@@ -5,8 +5,7 @@
 
 **Author**: Wessen Getachew  
 **Date**: Summer 2025  
-**Live Demo**: [View Interactive Paper](https://wessengetachew.github.io/primes/)
-
+https://wessengetachew.github.io/Primes/
 ---
 
 ## 🔬 Research Overview
