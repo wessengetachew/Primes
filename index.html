@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wessen Twin Prime Identity Verifier</title>
+    <title> Twin Prime Identity Verifier</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -229,11 +229,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>🧮 Wessen Twin Prime Identity Verifier</h1>
+        <h1> Wessen Twin Prime Identity Verifier</h1>
         <div class="subtitle">Finite-Cutoff Modular-Hardy-Littlewood Equivalence Theorem</div>
         
         <div class="theorem-box">
-            <div class="theorem-title">📜 The Wessen Twin Prime Identity</div>
+            <div class="theorem-title"> The Wessen Twin Prime Identity</div>
             <div class="algorithm-display">
                 <strong>Main Identity:</strong> R<sub>modular</sub>(p<sub>maximum</sub>) = ¼ · C<sub>twin</sub>(p<sub>maximum</sub>) · (M<sub>no-two</sub>(p<sub>maximum</sub>))<sup>3</sup>
                 <br><br>
@@ -260,14 +260,14 @@
         </div>
         
         <div class="context-section">
-            <div class="context-title">⚡ Computational Verification Methods</div>
+            <div class="context-title"> Computational Verification Methods</div>
             <strong>Algorithm 1 (Numeric Mode):</strong> Uses high-precision floating-point arithmetic with configurable tolerance testing. Computes each component separately and verifies the identity through ratio analysis with |ρ - 1| ≤ ε criterion.
             <br><br>
             <strong>Algorithm 2 (Exact Mode):</strong> Employs exact integer arithmetic using BigInt operations to eliminate all floating-point precision errors. Tests the algebraically equivalent condition: N<sub>R</sub> × D<sub>C</sub> × D<sub>M</sub>³ = D<sub>R</sub> × N<sub>C</sub> × N<sub>M</sub>³ for absolute verification.
         </div>
         
         <div class="context-section">
-            <div class="context-title">🎯 Research Implications</div>
+            <div class="context-title"> Research Implications</div>
             <strong>If Identity Holds Generally:</strong> Would provide the first exact finite formula for twin prime distributions, revolutionizing computational approaches to the Twin Prime Conjecture.
             <br><br>
             <strong>If Identity Fails Beyond p<sub>maximum</sub>=5:</strong> Would indicate fundamental transition points in prime structure, potentially revealing where classical analytic methods break down and new approaches are needed.
@@ -507,7 +507,7 @@
                 </div>
                 
                 <div class="identity-check ${result.equal ? '' : 'identity-fail'}">
-                    ${result.equal ? '✅ WESSEN IDENTITY VERIFIED WITH EXACT PRECISION!' : '❌ WESSEN IDENTITY DEFINITIVELY FAILED'}
+                    ${result.equal ? ' IDENTITY VERIFIED WITH EXACT PRECISION!' : ' IDENTITY DEFINITIVELY FAILED'}
                     <br><br>
                     <div class="highlight">Algorithm 2: Exact Integer Arithmetic Verification</div>
                     <br>
@@ -531,14 +531,14 @@
             resultDiv.className = 'result-card';
             
             resultDiv.innerHTML = `
-                <div class="result-header">📊 Numeric Test: p<sub>max</sub> = ${result.pmax}</div>
+                <div class="result-header"> Numeric Test: p<sub>max</sub> = ${result.pmax}</div>
                 
                 <div class="calculation-steps">
                     ${result.steps.join('<br>')}
                 </div>
                 
                 <div class="identity-check ${result.passed ? '' : 'identity-fail'}">
-                    ${result.passed ? '✅ WESSEN IDENTITY VERIFIED WITHIN NUMERICAL TOLERANCE!' : '❌ WESSEN IDENTITY FAILED NUMERICAL VERIFICATION'}
+                    ${result.passed ? ' IDENTITY VERIFIED WITHIN NUMERICAL TOLERANCE!' : '❌ WESSEN IDENTITY FAILED NUMERICAL VERIFICATION'}
                     <br><br>
                     <div class="highlight">Algorithm 1: High-Precision Numeric Verification</div>
                     <br>
@@ -564,7 +564,7 @@
             const pmax = parseInt(document.getElementById('pmax').value);
             const resultsDiv = document.getElementById('results');
             
-            resultsDiv.innerHTML = '<div class="loading">🔄 Computing...</div>';
+            resultsDiv.innerHTML = '<div class="loading"> Computing...</div>';
             
             setTimeout(() => {
                 try {
@@ -593,7 +593,7 @@
                 return;
             }
             
-            resultsDiv.innerHTML = '<div class="loading">🔄 Computing range...</div>';
+            resultsDiv.innerHTML = '<div class="loading"> Computing range...</div>';
             
             setTimeout(() => {
                 try {
@@ -615,7 +615,7 @@
                     const summaryDiv = document.createElement('div');
                     const modeText = exactMode ? 'Exact' : 'Numeric';
                     summaryDiv.innerHTML = `
-                        <div class="result-header">📈 ${modeText} Range Summary: p<sub>max</sub> ${start} to ${end}</div>
+                        <div class="result-header"> ${modeText} Range Summary: p<sub>max</sub> ${start} to ${end}</div>
                         <div class="summary-table">
                             <table>
                                 <tr>
