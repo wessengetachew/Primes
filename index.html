@@ -26,48 +26,16 @@
         h1 {
             text-align: center;
             margin-bottom: 10px;
-            font-size: 2.8em;
+            font-size: 2.5em;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
         
         .subtitle {
             text-align: center;
             margin-bottom: 30px;
-            font-size: 1.3em;
+            font-size: 1.2em;
             opacity: 0.9;
             font-style: italic;
-        }
-        
-        .theorem-box {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        .theorem-title {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: #4ecdc4;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .context-section {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border-left: 4px solid #f39c12;
-        }
-        
-        .context-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #f39c12;
-            margin-bottom: 12px;
         }
         
         .algorithm-display {
@@ -229,65 +197,31 @@
 </head>
 <body>
     <div class="container">
-        <h1> Wessen Twin Prime Identity Verifier</h1>
-        <div class="subtitle">Finite-Cutoff Modular-Hardy-Littlewood Equivalence Theorem</div>
+        <h1>Twin Prime Identity Verifier</h1>
+        <div class="subtitle">Finite-Cutoff Modular-Hardy-Littlewood Equivalence</div>
         
-        <div class="theorem-box">
-            <div class="theorem-title"> The Wessen Twin Prime Identity</div>
-            <div class="algorithm-display">
-                <strong>Main Identity:</strong> R<sub>modular</sub>(p<sub>maximum</sub>) = ¼ · C<sub>twin</sub>(p<sub>maximum</sub>) · (M<sub>no-two</sub>(p<sub>maximum</sub>))<sup>3</sup>
-                <br><br>
-                <strong>Component Definitions:</strong><br>
-                • R<sub>modular</sub>(p<sub>maximum</sub>) = ¼ ∏<sub>3 ≤ prime ≤ p<sub>maximum</sub></sub> [(prime-1)(prime-2)/prime²]<br>
-                • C<sub>twin</sub>(p<sub>maximum</sub>) = ∏<sub>3 ≤ prime ≤ p<sub>maximum</sub></sub> [1 - 1/(prime-1)²]<br>
-                • M<sub>no-two</sub>(p<sub>maximum</sub>) = ∏<sub>3 ≤ prime ≤ p<sub>maximum</sub></sub> [1 - 1/prime]
-                <br><br>
-                <em>Where the products are taken over all odd primes from 3 up to p<sub>maximum</sub> inclusive.</em>
-            </div>
-        </div>
-        
-        <div class="context-section">
-            <div class="context-title">🔍 Mathematical Context</div>
-            This identity connects three fundamental aspects of number theory:
+        <div class="algorithm-display">
+            <strong>Identity:</strong> R<sub>modular</sub>(p<sub>max</sub>) = ¼ · C<sub>twin</sub>(p<sub>max</sub>) · (M<sub>no-two</sub>(p<sub>max</sub>))<sup>3</sup>
             <br><br>
-            <strong>R<sub>modular</sub></strong>: Represents modular residue ratios in prime-based sieves, encoding how twin prime candidates survive modular constraints.
-            <br><br>
-            <strong>C<sub>twin</sub></strong>: Twin prime correlation factor derived from Hardy-Littlewood circle method, measuring pair correlations in prime distributions.
-            <br><br>
-            <strong>M<sub>no-two</sub></strong>: Modular "no-two" structure capturing exclusion principles in residue systems, related to Euler totient densities.
-            <br><br>
-            The identity bridges discrete modular arithmetic with analytic number theory, providing a finite-cutoff version of asymptotic twin prime conjectures.
-        </div>
-        
-        <div class="context-section">
-            <div class="context-title"> Computational Verification Methods</div>
-            <strong>Algorithm 1 (Numeric Mode):</strong> Uses high-precision floating-point arithmetic with configurable tolerance testing. Computes each component separately and verifies the identity through ratio analysis with |ρ - 1| ≤ ε criterion.
-            <br><br>
-            <strong>Algorithm 2 (Exact Mode):</strong> Employs exact integer arithmetic using BigInt operations to eliminate all floating-point precision errors. Tests the algebraically equivalent condition: N<sub>R</sub> × D<sub>C</sub> × D<sub>M</sub>³ = D<sub>R</sub> × N<sub>C</sub> × N<sub>M</sub>³ for absolute verification.
-        </div>
-        
-        <div class="context-section">
-            <div class="context-title"> Research Implications</div>
-            <strong>If Identity Holds Generally:</strong> Would provide the first exact finite formula for twin prime distributions, revolutionizing computational approaches to the Twin Prime Conjecture.
-            <br><br>
-            <strong>If Identity Fails Beyond p<sub>maximum</sub>=5:</strong> Would indicate fundamental transition points in prime structure, potentially revealing where classical analytic methods break down and new approaches are needed.
-            <br><br>
-            <strong>Connection to Riemann Hypothesis:</strong> The modular structure relates to Möbius function cancellation discussed in the broader framework, providing computational testing grounds for RH-equivalent formulations.
+            <strong>Where:</strong><br>
+            R<sub>modular</sub>(p<sub>max</sub>) = ¼ ∏<sub>3≤p≤p<sub>max</sub></sub> [(p-1)(p-2)/p²]<br>
+            C<sub>twin</sub>(p<sub>max</sub>) = ∏<sub>3≤p≤p<sub>max</sub></sub> [1 - 1/(p-1)²]<br>
+            M<sub>no-two</sub>(p<sub>max</sub>) = ∏<sub>3≤p≤p<sub>max</sub></sub> [1 - 1/p]
         </div>
         
         <div class="controls">
             <div class="control-group">
-                <label for="pmax">p<sub>maximum</sub>:</label>
-                <input type="number" id="pmax" value="5" min="3" max="97" title="Enter the largest prime to include in the product">
+                <label for="pmax">p<sub>max</sub>:</label>
+                <input type="number" id="pmax" value="5" min="3" max="97">
             </div>
             <div class="control-group">
                 <label for="testRange">Test Range:</label>
-                <input type="number" id="startRange" value="3" min="3" max="97" placeholder="Start" title="Starting prime for range test">
-                <input type="number" id="endRange" value="13" min="3" max="97" placeholder="End" title="Ending prime for range test">
+                <input type="number" id="startRange" value="3" min="3" max="97" placeholder="Start">
+                <input type="number" id="endRange" value="13" min="3" max="97" placeholder="End">
             </div>
-            <button onclick="testSingle()" title="Verify identity for single p_maximum value">Test Single Value</button>
-            <button onclick="testRange()" title="Test identity across range of prime values">Test Prime Range</button>
-            <button class="mode-toggle" onclick="toggleMode()" id="modeToggle" title="Switch between numeric and exact arithmetic methods">Numeric Mode</button>
+            <button onclick="testSingle()">Test Single</button>
+            <button onclick="testRange()">Test Range</button>
+            <button class="mode-toggle" onclick="toggleMode()" id="modeToggle">Numeric Mode</button>
         </div>
         
         <div id="results" class="results"></div>
@@ -333,34 +267,29 @@
             let NM = 1n, DM = 1n;  // For ∏(p-1)/p
             
             const steps = [];
-            steps.push(`Exact integer arithmetic verification for p_maximum = ${pmax}`);
-            steps.push(`Prime set: ${primes.join(', ')}`);
-            steps.push(`Algorithm: Test exact equality N_R × D_C × D_M³ = D_R × N_C × N_M³`);
+            steps.push(`Exact integer arithmetic for p_max = ${pmax}`);
+            steps.push(`Primes: ${primes.join(', ')}`);
             steps.push('');
             
             for (const p of primes) {
                 const pBig = BigInt(p);
                 
-                // R component: (prime-1)(prime-2)/prime²
+                // R component: (p-1)(p-2)/p²
                 NR *= (pBig - 1n) * (pBig - 2n);
                 DR *= pBig * pBig;
                 
-                // C component: prime(prime-2)/(prime-1)² (since 1-1/(prime-1)² = prime(prime-2)/(prime-1)²)
+                // C component: p(p-2)/(p-1)² (since 1-1/(p-1)² = p(p-2)/(p-1)²)
                 NC *= pBig * (pBig - 2n);
                 DC *= (pBig - 1n) * (pBig - 1n);
                 
-                // M component: (prime-1)/prime
+                // M component: (p-1)/p
                 NM *= (pBig - 1n);
                 DM *= pBig;
                 
-                steps.push(`Processing prime = ${p}:`);
-                steps.push(`  R_product numerator: ${NR.toString()}`);
-                steps.push(`  R_product denominator: ${DR.toString()}`);
-                steps.push(`  C_twin numerator: ${NC.toString()}`);
-                steps.push(`  C_twin denominator: ${DC.toString()}`);
-                steps.push(`  M_no-two numerator: ${NM.toString()}`);
-                steps.push(`  M_no-two denominator: ${DM.toString()}`);
-                steps.push('');
+                steps.push(`p = ${p}:`);
+                steps.push(`  R: ${NR}/${DR}`);
+                steps.push(`  C: ${NC}/${DC}`);
+                steps.push(`  M: ${NM}/${DM}`);
                 
                 // Reduce fractions periodically to keep numbers manageable
                 const gcdR = gcd(Number(NR % 1000000n), Number(DR % 1000000n));
@@ -373,14 +302,10 @@
             }
             
             steps.push('');
-            steps.push('Final fraction representations:');
-            steps.push(`R_product = ${NR}/${DR}`);
-            steps.push(`C_twin = ${NC}/${DC}`);
-            steps.push(`M_no-two = ${NM}/${DM}`);
-            steps.push('');
-            steps.push('Cross-multiplication equality test:');
-            steps.push(`Identity requires: (1/4) × (N_R/D_R) = (1/4) × (N_C/D_C) × (N_M/D_M)³`);
-            steps.push(`Algebraic simplification: N_R × D_C × D_M³ = D_R × N_C × N_M³`);
+            steps.push('Final fractions:');
+            steps.push(`R_prod = ${NR}/${DR}`);
+            steps.push(`C = ${NC}/${DC}`);
+            steps.push(`M = ${NM}/${DM}`);
             steps.push('');
             
             // Test: (1/4) * (NR/DR) == (1/4) * (NC/DC) * (NM/DM)³
@@ -390,21 +315,12 @@
             
             const equal = leftSide === rightSide;
             
-            steps.push('Exact integer comparison:');
-            steps.push(`Left side:  N_R × D_C × D_M³ = ${NR} × ${DC} × ${DM}³`);
-            steps.push(`Right side: D_R × N_C × N_M³ = ${DR} × ${NC} × ${NM}³`);
-            steps.push(`Left side value:  ${leftSide.toString()}`);
-            steps.push(`Right side value: ${rightSide.toString()}`);
-            steps.push(`Exact equality: ${equal}`);
-            
-            if (equal) {
-                steps.push('');
-                steps.push('✅ EXACT VERIFICATION: The identity holds with perfect integer precision!');
-            } else {
-                steps.push('');
-                steps.push('❌ EXACT VERIFICATION: The identity fails under exact integer arithmetic.');
-                steps.push('This definitively proves the identity does not hold for this p_maximum.');
-            }
+            steps.push('Exact equality test:');
+            steps.push(`Left:  NR × DC × DM³ = ${NR} × ${DC} × ${DM}³`);
+            steps.push(`Right: DR × NC × NM³ = ${DR} × ${NC} × NM³`);
+            steps.push(`Left  = ${leftSide}`);
+            steps.push(`Right = ${rightSide}`);
+            steps.push(`Equal = ${equal}`);
             
             return {
                 pmax: pmax,
@@ -429,10 +345,9 @@
             let M = 1.0;
             
             const steps = [];
-            steps.push(`Numeric floating-point verification for p_maximum = ${pmax}`);
-            steps.push(`Tolerance threshold = ${tolerance}`);
-            steps.push(`Prime set: ${primes.join(', ')}`);
-            steps.push(`Algorithm: Compute ratio ρ = R_modular/RightSide, verify |ρ - 1| ≤ ε`);
+            steps.push(`Numeric verification for p_max = ${pmax}`);
+            steps.push(`Tolerance = ${tolerance}`);
+            steps.push(`Primes: ${primes.join(', ')}`);
             steps.push('');
             
             for (const p of primes) {
@@ -444,13 +359,10 @@
                 C *= cFactor;
                 M *= mFactor;
                 
-                steps.push(`Processing prime = ${p}:`);
-                steps.push(`  R_modular factor: (${p}-1)(${p}-2)/${p}² = ${(p-1)*(p-2)}/${p*p} = ${rFactor.toFixed(10)}`);
-                steps.push(`  C_twin factor: 1-1/(${p}-1)² = 1-1/${(p-1)*(p-1)} = ${cFactor.toFixed(10)}`);
-                steps.push(`  M_no-two factor: 1-1/${p} = ${(p-1)}/${p} = ${mFactor.toFixed(10)}`);
-                steps.push(`  Running R_modular = ${R.toFixed(15)}`);
-                steps.push(`  Running C_twin = ${C.toFixed(12)}`);
-                steps.push(`  Running M_no-two = ${M.toFixed(12)}`);
+                steps.push(`p = ${p}:`);
+                steps.push(`  R factor: (${p}-1)(${p}-2)/${p}² = ${rFactor.toFixed(8)}, R = ${R.toFixed(12)}`);
+                steps.push(`  C factor: 1-1/(${p}-1)² = ${cFactor.toFixed(8)}, C = ${C.toFixed(8)}`);
+                steps.push(`  M factor: 1-1/${p} = ${mFactor.toFixed(8)}, M = ${M.toFixed(8)}`);
                 steps.push('');
             }
             
@@ -458,30 +370,12 @@
             const ratio = R / rightSide;
             const passed = Math.abs(ratio - 1) <= tolerance;
             
-            steps.push('Final identity verification:');
+            steps.push('Final calculation:');
             steps.push(`R_modular = ${R.toFixed(15)}`);
-            steps.push(`Right side = (1/4) × C_twin × (M_no-two)³`);
-            steps.push(`Right side = (1/4) × ${C.toFixed(12)} × (${M.toFixed(12)})³`);
-            steps.push(`Right side = 0.25 × ${C.toFixed(12)} × ${Math.pow(M, 3).toFixed(12)}`);
-            steps.push(`Right side = ${rightSide.toFixed(15)}`);
-            steps.push('');
-            steps.push('Ratio analysis:');
-            steps.push(`Ratio ρ = R_modular / RightSide = ${R.toFixed(15)} / ${rightSide.toFixed(15)}`);
-            steps.push(`Ratio ρ = ${ratio.toFixed(15)}`);
-            steps.push(`Deviation |ρ - 1| = ${Math.abs(ratio - 1).toExponential(6)}`);
-            steps.push(`Tolerance threshold = ${tolerance.toExponential(3)}`);
-            steps.push(`Identity verification: ${passed ? 'PASSED' : 'FAILED'}`);
-            
-            if (passed) {
-                steps.push('');
-                steps.push('✅ NUMERIC VERIFICATION: Identity holds within tolerance!');
-            } else {
-                steps.push('');
-                steps.push('❌ NUMERIC VERIFICATION: Identity fails beyond tolerance threshold.');
-                if (Math.abs(ratio - 0.25) < tolerance) {
-                    steps.push('Note: Ratio ≈ 1/4 suggests systematic factor-of-4 deviation.');
-                }
-            }
+            steps.push(`Right side = (1/4) × ${C.toFixed(8)} × ${M.toFixed(8)}³ = ${rightSide.toFixed(15)}`);
+            steps.push(`Ratio ρ = ${ratio.toFixed(12)}`);
+            steps.push(`|ρ - 1| = ${Math.abs(ratio - 1).toExponential(3)}`);
+            steps.push(`Pass: ${passed} (tolerance: ${tolerance})`);
             
             return {
                 pmax: pmax,
@@ -507,19 +401,14 @@
                 </div>
                 
                 <div class="identity-check ${result.equal ? '' : 'identity-fail'}">
-                    ${result.equal ? ' IDENTITY VERIFIED WITH EXACT PRECISION!' : ' IDENTITY DEFINITIVELY FAILED'}
+                    ${result.equal ? '✅ EXACT IDENTITY VERIFIED!' : '❌ EXACT IDENTITY FAILED'}
                     <br><br>
-                    <div class="highlight">Algorithm 2: Exact Integer Arithmetic Verification</div>
+                    <div class="highlight">Algorithm 2: Exact Integer Arithmetic</div>
                     <br>
-                    <strong>Final Component Fractions:</strong><br>
-                    R_product = ${result.fractions.R}<br>
-                    C_twin = ${result.fractions.C}<br>
-                    M_no-two = ${result.fractions.M}<br><br>
-                    <strong>Cross-Multiplication Test Result:</strong><br>
-                    ${result.equal ? 
-                        'Perfect integer equality confirmed - no floating-point approximation errors possible.' :
-                        'Exact integer inequality proven - identity mathematically impossible for this p_maximum.'
-                    }
+                    Final Fractions:<br>
+                    R<sub>prod</sub> = ${result.fractions.R}<br>
+                    C<sub>twin</sub> = ${result.fractions.C}<br>
+                    M<sub>no-two</sub> = ${result.fractions.M}
                 </div>
             `;
             
@@ -538,22 +427,13 @@
                 </div>
                 
                 <div class="identity-check ${result.passed ? '' : 'identity-fail'}">
-                    ${result.passed ? ' IDENTITY VERIFIED WITHIN NUMERICAL TOLERANCE!' : '❌ WESSEN IDENTITY FAILED NUMERICAL VERIFICATION'}
+                    ${result.passed ? '✅ NUMERIC IDENTITY VERIFIED!' : '❌ NUMERIC IDENTITY FAILED'}
                     <br><br>
-                    <div class="highlight">Algorithm 1: High-Precision Numeric Verification</div>
+                    <div class="highlight">Algorithm 1: Numeric Verification</div>
                     <br>
-                    <strong>Final Component Values:</strong><br>
-                    R_modular = ${result.R.toFixed(15)}<br>
-                    C_twin = ${result.C.toFixed(12)}<br>
-                    M_no-two = ${result.M.toFixed(12)}<br>
-                    Right Side = ${result.rightSide.toFixed(15)}<br><br>
-                    <strong>Statistical Analysis:</strong><br>
-                    Ratio ρ = ${result.ratio.toFixed(12)}<br>
-                    Deviation = ${Math.abs(result.ratio - 1).toExponential(3)}<br>
-                    ${result.passed ? 
-                        'Verification successful within computational precision limits.' :
-                        `Identity fails beyond tolerance. ${Math.abs(result.ratio - 0.25) < 1e-10 ? 'Note: Ratio ≈ 1/4 indicates systematic deviation pattern.' : ''}`
-                    }
+                    R<sub>modular</sub> = ${result.R.toFixed(15)}<br>
+                    Right Side = ${result.rightSide.toFixed(15)}<br>
+                    Ratio ρ = ${result.ratio.toFixed(12)}
                 </div>
             `;
             
@@ -668,4 +548,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
