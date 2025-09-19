@@ -3,513 +3,587 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twin-Prime Sieve Identity Explorer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <title>A Fully Explicit Explanation of a Finite-cutoff Identity for the Twin-prime Sieve Factors</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                packages: {'[+]': ['ams', 'mathtools']}
+            },
+            startup: {
+                ready: () => {
+                    MathJax.startup.defaultReady();
+                    // Calculate initial example when MathJax is ready
+                    setTimeout(calculateIdentity, 1000);
+                }
+            }
+        };
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Times', serif;
             line-height: 1.6;
-            color: #2c3e50;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px 20px;
+            background-color: #fefefe;
+            color: #333;
         }
-
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 30px;
+        }
+        
         h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #7f8c8d;
-            margin-bottom: 30px;
-            font-size: 1.2em;
-        }
-
-        .main-identity {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border: 3px solid #667eea;
-            border-radius: 15px;
-            padding: 30px;
-            margin: 30px 0;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .main-identity::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-            animation: pulse 4s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.1); opacity: 0.3; }
-        }
-
-        .identity-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .math-display {
-            font-size: 1.4em;
-            margin: 20px 0;
-            color: #2c3e50;
-            font-weight: 500;
-        }
-
-        .tabs {
-            display: flex;
-            background: #34495e;
-            border-radius: 10px;
-            margin: 30px 0;
-            overflow: hidden;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 15px 20px;
-            background: #34495e;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1em;
-        }
-
-        .tab:hover {
-            background: #4a6741;
-        }
-
-        .tab.active {
-            background: #667eea;
-            transform: translateY(-2px);
-        }
-
-        .tab-content {
-            display: none;
-            padding: 30px;
-            background: white;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .calculator {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 15px;
-            padding: 25px;
-            margin: 20px 0;
-        }
-
-        .input-group {
-            margin: 15px 0;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        input[type="number"], select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #bdc3c7;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.3s ease;
-        }
-
-        input[type="number"]:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            margin: 10px 5px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .result {
-            background: linear-gradient(135deg, #d4edda, #c3e6cb);
-            border: 2px solid #28a745;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            font-family: 'Courier New', monospace;
-        }
-
-        .error {
-            background: linear-gradient(135deg, #f8d7da, #f1aeb5);
-            border: 2px solid #dc3545;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-
-        .example {
-            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 400px;
-            margin: 30px 0;
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .proof-step {
-            background: linear-gradient(135deg, #e8f4fd, #d1ecf1);
-            border: 2px solid #17a2b8;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            position: relative;
-        }
-
-        .proof-step::before {
-            content: "Step " counter(step);
-            counter-increment: step;
-            position: absolute;
-            top: -10px;
-            left: 20px;
-            background: #17a2b8;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 0.9em;
+            font-size: 24px;
             font-weight: bold;
+            margin-bottom: 20px;
+            color: #1a1a1a;
         }
-
-        .proof-container {
-            counter-reset: step;
+        
+        .author {
+            font-size: 18px;
+            margin-bottom: 10px;
         }
-
-        .fraction {
-            display: inline-block;
-            text-align: center;
-            vertical-align: middle;
+        
+        .date {
+            font-size: 16px;
+            color: #666;
         }
-
-        .fraction .numerator {
-            display: block;
-            border-bottom: 1px solid #000;
-            padding-bottom: 2px;
-        }
-
-        .fraction .denominator {
-            display: block;
-            padding-top: 2px;
-        }
-
-        .interactive-demo {
-            border: 2px dashed #667eea;
-            border-radius: 15px;
+        
+        .interactive-section {
+            background-color: #f0f8ff;
+            border: 2px solid #4682b4;
+            border-radius: 10px;
             padding: 25px;
-            margin: 20px 0;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            margin: 30px 0;
         }
-
-        .slider-container {
-            margin: 20px 0;
-        }
-
-        .slider {
-            width: 100%;
-            height: 8px;
+        
+        .calculator-box {
+            background-color: white;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            background: #ddd;
-            outline: none;
-            -webkit-appearance: none;
+            padding: 20px;
+            margin-top: 15px;
         }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #667eea;
+        
+        .calculator-box label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .calculator-box input {
+            padding: 8px 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-right: 10px;
+            width: 100px;
+        }
+        
+        .calculator-box button {
+            padding: 8px 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+        
+        .calculator-box button:hover {
+            background-color: #2980b9;
+        }
+        
+        .results-display {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            min-height: 50px;
+        }
+        
+        .calculation-step {
+            background-color: white;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .calculation-step h4 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .verification {
+            background-color: #f8f9fa;
+            border: 2px solid #28a745;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .verification h4 {
+            color: #155724;
+            margin-top: 0;
+        }
+        
+        .per-prime-work {
+            background-color: #e8f5e8;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
             margin: 20px 0;
         }
-
-        .card {
-            background: white;
-            border-radius: 15px;
+        
+        .prime-calculation {
+            background-color: white;
+            border: 1px solid #28a745;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .prime-calculation h5 {
+            color: #155724;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-bottom: 1px solid #c3e6cb;
+            padding-bottom: 5px;
+        }
+        
+        .abstract {
+            background-color: #f9f9f9;
+            border-left: 4px solid #2c3e50;
+            padding: 20px;
+            margin: 30px 0;
+            font-style: italic;
+        }
+        
+        .abstract h2 {
+            margin-top: 0;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #2c3e50;
+        }
+        
+        h2 {
+            font-size: 20px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        h3 {
+            font-size: 18px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #34495e;
+        }
+        
+        .theorem {
+            background-color: #e8f4f8;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .theorem-title {
+            font-weight: bold;
+            color: #2980b9;
+            margin-bottom: 15px;
+        }
+        
+        .boxed-formula {
+            background-color: #fff;
+            border: 3px solid #e74c3c;
+            border-radius: 10px;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-
-        .card:hover {
-            transform: translateY(-5px);
+        
+        .proof-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 25px 0;
         }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                padding: 15px;
-            }
-            
-            h1 {
-                font-size: 2em;
-            }
-            
-            .tabs {
-                flex-direction: column;
-            }
-            
-            .math-display {
-                font-size: 1.1em;
-            }
+        
+        .example-section {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .example-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+        }
+        
+        .math-display {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .interpretation {
+            background-color: #f0f8ff;
+            border: 1px solid #87ceeb;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .paragraph-title {
+            font-weight: bold;
+            color: #4682b4;
+            margin-bottom: 10px;
+        }
+        
+        .qed {
+            text-align: right;
+            font-weight: bold;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Twin-Prime Sieve Identity Explorer</h1>
-        <p class="subtitle">Interactive exploration of finite-cutoff identities for twin-prime sieve factors</p>
+    <div class="header">
+        <h1>A Fully Explicit Explanation of a Finite-cutoff Identity for the Twin-prime Sieve Factors</h1>
+        <div class="author">Wessen Getachew</div>
+        <div class="date">September 16, 2025</div>
+    </div>
 
-        <div class="main-identity">
-            <div class="identity-content">
-                <h2>The Main Identity</h2>
-                <div class="math-display">
-                    ∏<sub>p prime, 3≤p≤p<sub>max</sub></sub> <span class="fraction"><span class="numerator">(p-1)(p-2)</span><span class="denominator">p²</span></span>
-                    = 
-                    [∏<sub>p prime, 3≤p≤p<sub>max</sub></sub> (1 - <span class="fraction"><span class="numerator">1</span><span class="denominator">(p-1)²</span></span>)]
-                    · 
-                    [∏<sub>p prime, 3≤p≤p<sub>max</sub></sub> (1 - <span class="fraction"><span class="numerator">1</span><span class="denominator">p</span></span>)]³
-                </div>
-                <p><strong>In notation:</strong> N(p<sub>max</sub>) = C₂(p<sub>max</sub>) · [M<sub>≠2</sub>(p<sub>max</sub>)]³</p>
-            </div>
-        </div>
-
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('calculator')">Interactive Calculator</button>
-            <button class="tab" onclick="showTab('proof')">Step-by-Step Proof</button>
-            <button class="tab" onclick="showTab('examples')">Numerical Examples</button>
-            <button class="tab" onclick="showTab('visualization')">Visualizations</button>
-            <button class="tab" onclick="showTab('theory')">Theory & Interpretation</button>
-        </div>
-
-        <div id="calculator" class="tab-content active">
-            <h3>Interactive Identity Calculator</h3>
-            <div class="calculator">
-                <div class="input-group">
-                    <label for="pmaxInput">Maximum Prime (p<sub>max</sub>):</label>
-                    <input type="number" id="pmaxInput" min="3" max="100" value="13" onchange="calculateIdentity()">
-                </div>
-                <button class="btn" onclick="calculateIdentity()">Calculate Identity</button>
-                <button class="btn" onclick="showAllSteps()">Show All Steps</button>
-            </div>
+    <div class="interactive-section">
+        <h2>Interactive Calculator</h2>
+        <div class="calculator-box">
+            <label for="pmax-input">Enter p_max (prime ≥ 3):</label>
+            <input type="number" id="pmax-input" value="7" min="3" step="1">
+            <button onclick="calculateIdentity()">Calculate Identity</button>
             
-            <div id="calculationResult"></div>
-            
-            <div class="interactive-demo">
-                <h4>Prime-by-Prime Builder</h4>
-                <p>Add primes one by one to see how the identity builds up:</p>
-                <div id="primeBuilder"></div>
-                <button class="btn" onclick="resetBuilder()">Reset</button>
-            </div>
-        </div>
-
-        <div id="proof" class="tab-content">
-            <h3>Interactive Proof</h3>
-            <div class="proof-container">
-                <div class="proof-step">
-                    <h4>Single Prime Factor Analysis</h4>
-                    <p>For any prime p ≥ 3, we need to show:</p>
-                    <div class="math-display">
-                        (1 - <span class="fraction"><span class="numerator">1</span><span class="denominator">(p-1)²</span></span>) · (1 - <span class="fraction"><span class="numerator">1</span><span class="denominator">p</span></span>)³ = <span class="fraction"><span class="numerator">(p-1)(p-2)</span><span class="denominator">p²</span></span>
-                    </div>
-                    <div class="calculator">
-                        <label for="proofPrime">Test with prime p:</label>
-                        <select id="proofPrime" onchange="demonstrateProofStep()">
-                            <option value="3">p = 3</option>
-                            <option value="5">p = 5</option>
-                            <option value="7">p = 7</option>
-                            <option value="11">p = 11</option>
-                            <option value="13">p = 13</option>
-                            <option value="17">p = 17</option>
-                        </select>
-                    </div>
-                    <div id="proofStepResult"></div>
-                </div>
-
-                <div class="proof-step">
-                    <h4>Algebraic Simplification</h4>
-                    <p>First, simplify the left-hand factors:</p>
-                    <div id="algebraicSteps"></div>
-                </div>
-
-                <div class="proof-step">
-                    <h4>Product Extension</h4>
-                    <p>Since the identity holds for each prime factor, taking the product over all primes 3 ≤ p ≤ p<sub>max</sub> preserves the equality.</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="examples" class="tab-content">
-            <h3>Detailed Numerical Examples</h3>
-            
-            <div class="grid">
-                <div class="card">
-                    <h4>Example: p<sub>max</sub> = 3</h4>
-                    <div id="example3"></div>
-                </div>
-                
-                <div class="card">
-                    <h4>Example: p<sub>max</sub> = 5</h4>
-                    <div id="example5"></div>
-                </div>
-                
-                <div class="card">
-                    <h4>Example: p<sub>max</sub> = 13</h4>
-                    <div id="example13"></div>
-                </div>
-            </div>
-
-            <div class="interactive-demo">
-                <h4>Custom Example Generator</h4>
-                <input type="number" id="customPmax" min="3" max="50" value="7" placeholder="Enter p_max">
-                <button class="btn" onclick="generateCustomExample()">Generate Example</button>
-                <div id="customExampleResult"></div>
-            </div>
-        </div>
-
-        <div id="visualization" class="tab-content">
-            <h3>Visual Analysis</h3>
-            
-            <div class="chart-container">
-                <canvas id="convergenceChart"></canvas>
-            </div>
-            
-            <div class="slider-container">
-                <label for="pmaxSlider">Adjust p<sub>max</sub>: <span id="pmaxValue">13</span></label>
-                <input type="range" id="pmaxSlider" class="slider" min="3" max="50" value="13" oninput="updateVisualization(this.value)">
-            </div>
-
-            <div class="grid">
-                <div class="card">
-                    <h4>Individual Components</h4>
-                    <canvas id="componentsChart" width="300" height="200"></canvas>
-                </div>
-                <div class="card">
-                    <h4>Factor Contributions</h4>
-                    <canvas id="factorsChart" width="300" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div id="theory" class="tab-content">
-            <h3>Mathematical Theory & Interpretation</h3>
-            
-            <div class="card">
-                <h4>What the Identity Means</h4>
-                <p>The left-hand product N(p<sub>max</sub>) represents a finite sieve factor that quantifies how many integers remain after removing residues forbidden by divisibility conditions for the twin prime pattern (n, n+2).</p>
-                
-                <p>The right-hand side decomposes this into:</p>
-                <ul>
-                    <li><strong>M<sub>≠2</sub>(p<sub>max</sub>)</strong>: Ordinary prime density factor</li>
-                    <li><strong>C₂(p<sub>max</sub>)</strong>: Twin-prime specific residue correction</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h4>Why the Cube Appears</h4>
-                <p>The cube [M<sub>≠2</sub>(p<sub>max</sub>)]³ reflects three overlapping density factors:</p>
-                <ol>
-                    <li>Prime-likeness of n</li>
-                    <li>Prime-likeness of n+2</li>
-                    <li>Mutual compatibility of their residues</li>
-                </ol>
-            </div>
-
-            <div class="card">
-                <h4>Connection to Hardy-Littlewood</h4>
-                <p>This identity provides an exact finite link between classical Hardy-Littlewood constants and concrete modular sieve factors used in computational approaches.</p>
-            </div>
-
-            <div class="example">
-                <h4>Why Start at p = 3?</h4>
-                <p>The factor for p = 2 would be (2-1)(2-2)/2² = 0, which would collapse the entire product to zero. The algebraic identity is valid only for primes p ≥ 3.</p>
+            <div id="results" class="results-display">
+                <!-- Results will appear here -->
             </div>
         </div>
     </div>
 
+    <div class="abstract">
+        <h2>Abstract</h2>
+        <p>This note gives a fully explicit statement, proof, and numerical examples of the finite-cutoff identity</p>
+        <div class="math-display">
+            \[
+            \prod_{\substack{p\text{ prime}\\3\le p\le p_{\max}}}\frac{(p-1)(p-2)}{p^{2}}
+            =
+            \left(\prod_{\substack{p\text{ prime}\\3\le p\le p_{\max}}}\left(1-\frac{1}{(p-1)^{2}}\right)\right)
+            \left(\prod_{\substack{p\text{ prime}\\3\le p\le p_{\max}}}\left(1-\frac{1}{p}\right)\right)^{3},
+            \]
+        </div>
+        <p>with every symbol defined and with explicit arithmetic checks for small cutoffs. The document also discusses the meaning and implications of this identity for the special prime gap of size two (twin primes).</p>
+    </div>
+
+    <h2>Notation and conventions</h2>
+    <ul>
+        <li>Throughout this note, \(p\) denotes a <em>prime number</em>. We use \(p_{\max}\) to denote a fixed finite cutoff prime, and we assume \(p_{\max}\ge 3\).</li>
+        <li>The phrase "product over primes \(3\le p\le p_{\max}\)" means the finite product taken over every prime \(p\) satisfying \(3\le p\le p_{\max}\); that is, \(p\in\{3,5,7,\dots,p_{\max}\}\).</li>
+        <li>We write the ordinary multiplicative symbol \(\prod\) with explicit index conditions whenever clarity is needed.</li>
+        <li>We define the following three functions of the cutoff \(p_{\max}\) (these are <em>finite</em> products):
+            <div class="math-display">
+                \begin{align}
+                N(p_{\max}) &:= \prod_{\substack{p\ \text{prime}\\ 3\le p\le p_{\max}}} \frac{(p-1)(p-2)}{p^{2}}, \\[6pt]
+                C_{2}(p_{\max}) &:= \prod_{\substack{p\ \text{prime}\\ 3\le p\le p_{\max}}}\left(1-\frac{1}{(p-1)^{2}}\right), \\[6pt]
+                M_{\neq 2}(p_{\max}) &:= \prod_{\substack{p\ \text{prime}\\ 3\le p\le p_{\max}}}\left(1-\frac{1}{p}\right).
+                \end{align}
+            </div>
+        </li>
+        <li>Note explicitly: the product index \(\{3\le p\le p_{\max}\}\) starts at \(p=3\). We <em>exclude</em> \(p=2\) because the factor \(\frac{(2-2)}{2^{2}}=0\) would zero out the entire left-hand product and make the identity meaningless.</li>
+    </ul>
+
+    <h2>Exact finite identity (statement)</h2>
+    <div class="theorem">
+        <div class="theorem-title">Theorem (Finite prime-by-prime factorization)</div>
+        <p>For every integer \(p_{\max}\ge 3\), the following identity holds exactly:</p>
+        <div class="boxed-formula">
+            \[
+            \prod_{\substack{p\ \text{prime}\\ 3\le p\le p_{\max}}} \frac{(p-1)(p-2)}{p^{2}}
+            \;=\;
+            \left( \prod_{\substack{p\ \text{prime}\\ 3\le p\le p_{\max}}} \!\left(1-\frac{1}{(p-1)^{2}}\right) \right)
+            \cdot
+            \left( \prod_{\substack{p\ \text{prime}\\ 3\le p\le p_{\max}}} \!\left(1-\frac{1}{p}\right) \right)^{3}
+            \]
+        </div>
+        <p>In short notation, \(N(p_{\max}) = C_{2}(p_{\max})\,[M_{\neq 2}(p_{\max})]^{3}\).</p>
+    </div>
+
+    <h2>Proof (termwise algebraic identity)</h2>
+    <div class="proof-section">
+        <p>We prove the theorem by showing the identity holds for each single prime factor \(p\ge 3\), and then taking the product over all such primes up to the cutoff.</p>
+
+        <p>Fix a prime \(p\) with \(p\ge 3\). Compute two elementary algebraic expressions.</p>
+
+        <p>First,</p>
+        <div class="math-display">
+            \[
+            1-\frac{1}{(p-1)^{2}}
+            = \frac{(p-1)^{2}-1}{(p-1)^{2}}
+            = \frac{p^{2}-2p}{(p-1)^{2}}
+            = \frac{p(p-2)}{(p-1)^{2}}.
+            \]
+        </div>
+
+        <p>Second,</p>
+        <div class="math-display">
+            \[
+            1-\frac{1}{p}=\frac{p-1}{p}.
+            \]
+        </div>
+        <p>Cubing the second expression gives</p>
+        <div class="math-display">
+            \[
+            \left(1-\frac{1}{p}\right)^{3}=\frac{(p-1)^{3}}{p^{3}}.
+            \]
+        </div>
+
+        <p>Now multiply the two pieces together:</p>
+        <div class="math-display">
+            \begin{align}
+            \left(1-\frac{1}{(p-1)^{2}}\right)\left(1-\frac{1}{p}\right)^{3}
+            &= \frac{p(p-2)}{(p-1)^{2}}\cdot\frac{(p-1)^{3}}{p^{3}} \\[6pt]
+            &= \frac{p(p-2)(p-1)^{3}}{(p-1)^{2}p^{3}} \\
+            &= \frac{(p-1)(p-2)}{p^{2}}.
+            \end{align}
+        </div>
+
+        <p>But the right-hand side of the last displayed equality is exactly the single-prime factor that appears in the definition of \(N(p_{\max})\), namely \(\frac{(p-1)(p-2)}{p^{2}}\). Therefore the identity holds for each prime factor \(p\ge 3\). Taking the product of these equalities over all primes \(p\) with \(3\le p\le p_{\max}\) yields the claimed finite identity</p>
+        <div class="math-display">
+            \[
+            N(p_{\max}) = C_{2}(p_{\max})\,[M_{\neq 2}(p_{\max})]^{3}.
+            \]
+        </div>
+        <p>This completes the proof.</p>
+        <div class="qed">∎</div>
+    </div>
+
+    <h2>Alternative display with the multiplicative constant \(\frac{1}{4}\)</h2>
+    <p>Some presentations display the same algebra in the (equivalently true) form</p>
+    <div class="math-display">
+        \[
+        \frac{N(p_{\max})}{\frac{1}{4}\,C_{2}(p_{\max})\,[M_{\neq 2}(p_{\max})]^{3}}=4,
+        \]
+    </div>
+    <p>which follows immediately because \(C_{2}(p_{\max})[M_{\neq 2}(p_{\max})]^{3}=N(p_{\max})\) and hence the denominator equals \(\frac{1}{4}N(p_{\max})\), so the whole fraction equals \(N(p_{\max})/(\frac14 N(p_{\max}))=4\). Both formulations express the same algebraic fact: the per-prime factors match exactly.</p>
+
+    <h2>Explicit numerical examples (step-by-step arithmetic)</h2>
+    <p>We display the arithmetic with no omissions for the small cutoffs \(p_{\max}=3\), \(p_{\max}=5\), and \(p_{\max}=13\). Each example lists the left-hand product factor by factor, the right-hand product factor by factor, and the final equality. We simplify rational fractions fully where convenient and show decimal approximations for sanity checks.</p>
+
+    <h3>Example: \(p_{\max}=3\)</h3>
+    <div class="example-section">
+        <div class="example-title">Primes used: \(\{3\}\).</div>
+        
+        <p><strong>Left-hand product:</strong></p>
+        <div class="math-display">
+            \[
+            N(3) = \frac{(3-1)(3-2)}{3^{2}} = \frac{2\cdot 1}{9} = \frac{2}{9}.
+            \]
+        </div>
+
+        <p><strong>Right-hand pieces:</strong></p>
+        <div class="math-display">
+            \[
+            C_{2}(3)= 1-\frac{1}{(3-1)^{2}}=1-\frac{1}{4}=\frac{3}{4},
+            \qquad
+            M_{\neq 2}(3)=1-\frac{1}{3}=\frac{2}{3}.
+            \]
+        </div>
+        <p>Then</p>
+        <div class="math-display">
+            \[
+            C_{2}(3)\,[M_{\neq 2}(3)]^{3}
+            = \frac{3}{4}\cdot\left(\frac{2}{3}\right)^{3}
+            = \frac{3}{4}\cdot\frac{8}{27}
+            = \frac{24}{108}
+            = \frac{2}{9}.
+            \]
+        </div>
+        <p>Hence \(N(3)=C_{2}(3)[M_{\neq2}(3)]^{3}=\frac{2}{9}\). Decimal check: \(2/9\approx 0.222222\).</p>
+    </div>
+
+    <h3>Example: \(p_{\max}=5\)</h3>
+    <div class="example-section">
+        <div class="example-title">Primes used: \(\{3,5\}\).</div>
+        
+        <p><strong>Left-hand product:</strong></p>
+        <div class="math-display">
+            \begin{align}
+            N(5) &= \frac{(3-1)(3-2)}{3^{2}}\cdot\frac{(5-1)(5-2)}{5^{2}} \\
+            &= \frac{2}{9}\cdot\frac{12}{25} \\
+            &= \frac{24}{225} = \frac{8}{75}.
+            \end{align}
+        </div>
+
+        <p><strong>Right-hand pieces:</strong></p>
+        <div class="math-display">
+            \begin{align}
+            C_{2}(5) &= \left(1-\frac{1}{(3-1)^{2}}\right)\left(1-\frac{1}{(5-1)^{2}}\right)
+            = \frac{3}{4}\cdot\frac{15}{16}=\frac{45}{64},\\[6pt]
+            M_{\neq 2}(5) &= \left(1-\frac{1}{3}\right)\left(1-\frac{1}{5}\right)=\frac{2}{3}\cdot\frac{4}{5}=\frac{8}{15}.
+            \end{align}
+        </div>
+        <p>Then</p>
+        <div class="math-display">
+            \[
+            C_{2}(5)\,[M_{\neq 2}(5)]^{3}
+            = \frac{45}{64}\cdot\left(\frac{8}{15}\right)^{3}
+            = \frac{45}{64}\cdot\frac{512}{3375}.
+            \]
+        </div>
+        <p>Simplify step by step:</p>
+        <div class="math-display">
+            \[
+            \frac{45}{64}\cdot\frac{512}{3375}
+            = \frac{45\cdot 512}{64\cdot 3375}
+            = \frac{45\cdot 8}{3375}
+            = \frac{360}{3375}
+            = \frac{8}{75}.
+            \]
+        </div>
+        <p>Hence \(N(5)=C_{2}(5)[M_{\neq 2}(5)]^{3}=\frac{8}{75}\). Decimal check: \(8/75\approx 0.106666\).</p>
+    </div>
+
+    <h3>Example: \(p_{\max}=13\)</h3>
+    <div class="example-section">
+        <div class="example-title">Primes used: \(\{3,5,7,11,13\}\).</div>
+        
+        <p><strong>Left-hand product</strong> (compute factor-by-factor):</p>
+        <div class="math-display">
+            \begin{align}
+            N(13) &=
+            \frac{(3-1)(3-2)}{3^{2}}
+            \cdot
+            \frac{(5-1)(5-2)}{5^{2}}
+            \cdot
+            \frac{(7-1)(7-2)}{7^{2}}
+            \cdot
+            \frac{(11-1)(11-2)}{11^{2}}
+            \cdot
+            \frac{(13-1)(13-2)}{13^{2}} \\
+            &=
+            \frac{2}{9}\cdot\frac{12}{25}\cdot\frac{30}{49}\cdot\frac{90}{121}\cdot\frac{132}{169}.
+            \end{align}
+        </div>
+        <p>Multiplying numerators and denominators gives</p>
+        <div class="math-display">
+            \[
+            N(13)=\frac{2\cdot 12\cdot 30\cdot 90\cdot 132}{9\cdot 25\cdot 49\cdot 121\cdot 169}
+            =\frac{8\,553\,600}{225\,450\,225}.
+            \]
+        </div>
+        <p>A convenient simplified representation (divide numerator and denominator by \(11\)) is</p>
+        <div class="math-display">
+            \[
+            N(13)=\frac{3\,456}{91\,091}
+            \approx 0.0379400819.
+            \]
+        </div>
+
+        <p><strong>Right-hand pieces:</strong></p>
+        <div class="math-display">
+            \begin{align}
+            C_{2}(13) &= \prod_{p\in\{3,5,7,11,13\}}\left(1-\frac{1}{(p-1)^{2}}\right)
+            = \frac{11011}{16384}
+            \approx 0.6720581055,\\[6pt]
+            M_{\neq 2}(13) &= \prod_{p\in\{3,5,7,11,13\}}\left(1-\frac{1}{p}\right)
+            = \frac{384}{1001}
+            \approx 0.3836163836.
+            \end{align}
+        </div>
+        <p>Compute the cube and the product:</p>
+        <div class="math-display">
+            \[
+            [M_{\neq 2}(13)]^{3} = \left(\frac{384}{1001}\right)^{3},
+            \qquad
+            C_{2}(13)\,[M_{\neq 2}(13)]^{3} \;=\; N(13).
+            \]
+        </div>
+        <p>The equality \(C_{2}(13)[M_{\neq 2}(13)]^{3}=N(13)\) holds exactly by the per-prime algebra proved above; the displayed rational values numerically match the left side and the right side to the shown decimal precision.</p>
+    </div>
+
+    <h2>Remarks and clarifications</h2>
+    <ol>
+        <li><strong>Why start at the prime \(3\) and not at \(2\).</strong> The left-hand factor for \(p=2\) would be \(\frac{(2-1)(2-2)}{2^{2}}=0\). Including \(p=2\) in the product would collapse \(N(p_{\max})\) to zero and destroy the identity. The algebraic identity that produces the factorization is valid prime-by-prime only for primes \(p\ge 3\); therefore the convention is to start all products at \(p=3\).</li>
+        <li><strong>This is a prime-indexed identity.</strong> The index set must be the primes; attempting to replace the prime index by "all integers" or by a set that includes composite numbers will not preserve the algebra, because the factor \(\frac{(n-1)(n-2)}{n^{2}}\) for a composite \(n\) does not decompose in the same form and the sieve interpretation breaks down.</li>
+        <li><strong>The \(\frac{1}{4}\) and the number \(4\) in some displays.</strong> If one writes the denominator as \(\frac{1}{4}\,C_{2}(p_{\max})[M_{\neq 2}(p_{\max})]^{3}\), then the quotient equals \(4\) because that denominator equals \(\frac{1}{4}N(p_{\max})\). The appearance of \(\frac{1}{4}\) is a harmless normalization: it does not change the substance of the identity.</li>
+    </ol>
+
+    <h2>Interpretation and implications for the twin prime problem</h2>
+    <div class="interpretation">
+        <div class="paragraph-title">What the identity means in words.</div>
+        <p>The left-hand product \(N(p_{\max})\) is a finite sieve factor that quantifies how many integers remain after removing residues forbidden by divisibility conditions at primes up to \(p_{\max}\) for the twin prime pattern \((n,n+2)\). The right-hand side decomposes the same finite sieve factor into two conceptually distinct parts:</p>
+        <ul>
+            <li>\(M_{\neq 2}(p_{\max})\), which is a truncated Mertens-type product measuring <em>ordinary prime scarcity</em> (the density effect of primes), and</li>
+            <li>\(C_{2}(p_{\max})\), which is the truncated Hardy–Littlewood twin-prime residue correction that accounts specifically for the residues excluded by the twin configuration.</li>
+        </ul>
+        <p>The identity says, exactly and at each finite cutoff, that the twin-prime sieve factor equals the cube of the ordinary prime-density factor multiplied by the twin-specific correction.</p>
+
+        <div class="paragraph-title">Why the cube appears.</div>
+        <p>Informally, twin primes require two numbers to be prime simultaneously (the number \(n\) and the number \(n+2\)). The appearance of the cube \([M_{\neq 2}(p_{\max})]^{3}\) can be interpreted as three overlapping density factors: two corresponding to prime-likeness of the separate entries \(n\) and \(n+2\), and a third that accounts for the mutual compatibility of their residues. The precise per-prime algebra above explains how those three factors combine multiplicatively into the simple polynomial factor \(\frac{(p-1)(p-2)}{p^{2}}\).</p>
+
+        <div class="paragraph-title">What this does not do.</div>
+        <p>This algebraic identity is an exact structural decomposition of finite cutoff sieve factors. It does not by itself prove that there are infinitely many twin primes. It clarifies the finite structure and shows compatibility between Hardy–Littlewood style factors and the concrete per-prime sieve factors that occur in modular/computational sieves.</p>
+    </div>
+
+    <h2>Connections to a modular sieve perspective</h2>
+    <p>If one constructs a modular sieve that retains residue classes modulo a base modulus \(M\) (for example \(M=30\cdot 2^{n}\) as in your modular sieve program), then the finite products above are the natural multiplicative densities that appear when counting admissible residue classes modulo primes dividing \(M\) and when lifting to larger moduli. The exact finite factorization gives a direct algebraic link between the classical truncated constants used in the Hardy–Littlewood heuristic and the residue-counting factors that arise in explicit modular sieves.</p>
+
+    <h2>Concluding statement</h2>
+    <p>All steps of the algebra are elementary and exact. When the products are taken over primes \(p\) with \(3\le p\le p_{\max}\) the factor-by-factor algebraic identity</p>
+    <div class="math-display">
+        \[
+        \left(1-\frac{1}{(p-1)^{2}}\right)\left(1-\frac{1}{p}\right)^{3}=\frac{(p-1)(p-2)}{p^{2}}
+        \]
+    </div>
+    <p>immediately implies the global finite identity</p>
+    <div class="math-display">
+        \[
+        \prod_{\substack{p\ \text{prime}\\ 3\le p\le p_{\max}}} \frac{(p-1)(p-2)}{p^{2}}
+        =
+        \left( \prod_{\substack{p\ \text{prime}\\ 3\le p\le p_{\max}}} \left(1-\frac{1}{(p-1)^{2}}\right) \right)
+        \left( \prod_{\substack{p\ \text{prime}\\ 3\le p\le p_{\max}}} \left(1-\frac{1}{p}\right) \right)^{3}.
+        \]
+    </div>
+    <p>This equality is exact for every finite cutoff \(p_{\max}\ge 3\), and the document above shows the algebra and numerical checks with no abbreviations.</p>
+
     <script>
-        // Utility functions
+        // Helper function to check if a number is prime
         function isPrime(n) {
             if (n < 2) return false;
             if (n === 2) return true;
@@ -519,554 +593,210 @@
             }
             return true;
         }
-
-        function getPrimesUpTo(max) {
+        
+        // Get all primes up to n
+        function getPrimesUpTo(n) {
             const primes = [];
-            for (let i = 3; i <= max; i++) {
+            for (let i = 3; i <= n; i++) {
                 if (isPrime(i)) primes.push(i);
             }
             return primes;
         }
-
-        function formatFraction(num, den) {
-            const gcd = math.gcd(num, den);
-            return `${num/gcd}/${den/gcd}`;
-        }
-
-        function calculateN(pmax) {
-            const primes = getPrimesUpTo(pmax);
-            let product = 1;
-            for (const p of primes) {
-                product *= (p - 1) * (p - 2) / (p * p);
-            }
-            return product;
-        }
-
-        function calculateC2(pmax) {
-            const primes = getPrimesUpTo(pmax);
-            let product = 1;
-            for (const p of primes) {
-                product *= (1 - 1 / ((p - 1) * (p - 1)));
-            }
-            return product;
-        }
-
-        function calculateMnot2(pmax) {
-            const primes = getPrimesUpTo(pmax);
-            let product = 1;
-            for (const p of primes) {
-                product *= (1 - 1 / p);
-            }
-            return product;
-        }
-
-        // Tab switching
-        function showTab(tabName) {
-            // Hide all tab contents
-            const contents = document.querySelectorAll('.tab-content');
-            contents.forEach(content => content.classList.remove('active'));
-
-            // Remove active class from all tabs
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
-
-            // Show selected tab content
-            document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to clicked tab
-            event.target.classList.add('active');
-
-            // Initialize specific tab content
-            if (tabName === 'examples') {
-                generateExamples();
-            } else if (tabName === 'visualization') {
-                initializeVisualization();
-            }
-        }
-
-        // Main calculator
-        function calculateIdentity() {
-            const pmax = parseInt(document.getElementById('pmaxInput').value);
-            const primes = getPrimesUpTo(pmax);
-            
-            if (primes.length === 0) {
-                document.getElementById('calculationResult').innerHTML = 
-                    '<div class="error">No primes found in range [3, ' + pmax + ']</div>';
-                return;
-            }
-
-            const N = calculateN(pmax);
-            const C2 = calculateC2(pmax);
-            const Mnot2 = calculateMnot2(pmax);
-            const rightSide = C2 * Math.pow(Mnot2, 3);
-
-            let html = '<div class="result">';
-            html += '<h4>Results for p<sub>max</sub> = ' + pmax + '</h4>';
-            html += '<p><strong>Primes used:</strong> [' + primes.join(', ') + ']</p>';
-            html += '<hr style="margin: 15px 0;">';
-            html += '<p><strong>N(p<sub>max</sub>)</strong> = ' + N.toFixed(10) + '</p>';
-            html += '<p><strong>C₂(p<sub>max</sub>)</strong> = ' + C2.toFixed(10) + '</p>';
-            html += '<p><strong>M<sub>≠2</sub>(p<sub>max</sub>)</strong> = ' + Mnot2.toFixed(10) + '</p>';
-            html += '<p><strong>Right side</strong> = ' + rightSide.toFixed(10) + '</p>';
-            html += '<hr style="margin: 15px 0;">';
-            html += '<p><strong>Difference:</strong> ' + Math.abs(N - rightSide).toExponential(3) + '</p>';
-            html += '<p><strong>Identity verified:</strong> ' + (Math.abs(N - rightSide) < 1e-12 ? '✅ TRUE' : '❌ FALSE') + '</p>';
-            html += '</div>';
-
-            document.getElementById('calculationResult').innerHTML = html;
-        }
-
-        // Proof demonstration
-        function demonstrateProofStep() {
-            const p = parseInt(document.getElementById('proofPrime').value);
-            
-            const leftFactor1 = 1 - 1/((p-1)*(p-1));
-            const leftFactor2 = 1 - 1/p;
-            const leftSide = leftFactor1 * Math.pow(leftFactor2, 3);
-            const rightSide = (p-1)*(p-2)/(p*p);
-
-            let html = '<div class="result">';
-            html += '<h5>For p = ' + p + ':</h5>';
-            html += '<p><strong>First factor:</strong> 1 - 1/(p-1)² = 1 - 1/' + (p-1) + '² = ' + leftFactor1.toFixed(6) + '</p>';
-            html += '<p><strong>Second factor:</strong> (1 - 1/p)³ = (1 - 1/' + p + ')³ = ' + Math.pow(leftFactor2, 3).toFixed(6) + '</p>';
-            html += '<p><strong>Left side:</strong> ' + leftSide.toFixed(10) + '</p>';
-            html += '<p><strong>Right side:</strong> (p-1)(p-2)/p² = ' + (p-1) + '×' + (p-2) + '/' + p + '² = ' + rightSide.toFixed(10) + '</p>';
-            html += '<p><strong>Equal?</strong> ' + (Math.abs(leftSide - rightSide) < 1e-12 ? '✅ YES' : '❌ NO') + '</p>';
-            html += '</div>';
-
-            document.getElementById('proofStepResult').innerHTML = html;
-
-            // Show algebraic steps
-            let algebraHtml = '<div class="example">';
-            algebraHtml += '<h5>Algebraic manipulation for p = ' + p + ':</h5>';
-            algebraHtml += '<p>1. First factor: 1 - 1/(p-1)² = ((p-1)² - 1)/(p-1)² = (p² - 2p)/(p-1)² = p(p-2)/(p-1)²</p>';
-            algebraHtml += '<p>2. Second factor: (1 - 1/p)³ = ((p-1)/p)³ = (p-1)³/p³</p>';
-            algebraHtml += '<p>3. Product: [p(p-2)/(p-1)²] × [(p-1)³/p³] = p(p-2)(p-1)³/[(p-1)²p³] = (p-1)(p-2)/p²</p>';
-            algebraHtml += '</div>';
-
-            document.getElementById('algebraicSteps').innerHTML = algebraHtml;
-        }
-
-        // Examples generation
-        function generateExamples() {
-            // Example for pmax = 3
-            let html3 = '<p><strong>Primes:</strong> {3}</p>';
-            html3 += '<p><strong>N(3):</strong> (3-1)(3-2)/3² = 2×1/9 = 2/9 ≈ 0.222222</p>';
-            html3 += '<p><strong>C₂(3):</strong> 1-1/4 = 3/4 = 0.75</p>';
-            html3 += '<p><strong>M(3):</strong> 1-1/3 = 2/3 ≈ 0.666667</p>';
-            html3 += '<p><strong>Right side:</strong> (3/4) × (2/3)³ = 3/4 × 8/27 = 2/9 ✅</p>';
-            document.getElementById('example3').innerHTML = html3;
-
-            // Example for pmax = 5
-            let html5 = '<p><strong>Primes:</strong> {3, 5}</p>';
-            const N5 = calculateN(5);
-            const C25 = calculateC2(5);
-            const M5 = calculateMnot2(5);
-            html5 += '<p><strong>N(5):</strong> ' + N5.toFixed(6) + '</p>';
-            html5 += '<p><strong>C₂(5):</strong> ' + C25.toFixed(6) + '</p>';
-            html5 += '<p><strong>M(5):</strong> ' + M5.toFixed(6) + '</p>';
-            html5 += '<p><strong>Verification:</strong> ' + (Math.abs(N5 - C25 * Math.pow(M5, 3)) < 1e-12 ? '✅' : '❌') + '</p>';
-            document.getElementById('example5').innerHTML = html5;
-
-            // Example for pmax = 13
-            let html13 = '<p><strong>Primes:</strong> {3, 5, 7, 11, 13}</p>';
-            const N13 = calculateN(13);
-            const C213 = calculateC2(13);
-            const M13 = calculateMnot2(13);
-            html13 += '<p><strong>N(13):</strong> ' + N13.toFixed(10) + '</p>';
-            html13 += '<p><strong>C₂(13):</strong> ' + C213.toFixed(10) + '</p>';
-            html13 += '<p><strong>M(13):</strong> ' + M13.toFixed(10) + '</p>';
-            html13 += '<p><strong>Verification:</strong> ' + (Math.abs(N13 - C213 * Math.pow(M13, 3)) < 1e-12 ? '✅' : '❌') + '</p>';
-            document.getElementById('example13').innerHTML = html13;
-        }
-
-        function generateCustomExample() {
-            const pmax = parseInt(document.getElementById('customPmax').value);
-            const primes = getPrimesUpTo(pmax);
-            
-            if (primes.length === 0) {
-                document.getElementById('customExampleResult').innerHTML = 
-                    '<div class="error">No primes in range [3, ' + pmax + ']</div>';
-                return;
-            }
-
-            const N = calculateN(pmax);
-            const C2 = calculateC2(pmax);
-            const Mnot2 = calculateMnot2(pmax);
-
-            let html = '<div class="result">';
-            html += '<h5>Custom Example: p<sub>max</sub> = ' + pmax + '</h5>';
-            html += '<p><strong>Primes used:</strong> {' + primes.join(', ') + '}</p>';
-            html += '<p><strong>N(' + pmax + '):</strong> ' + N.toFixed(10) + '</p>';
-            html += '<p><strong>C₂(' + pmax + '):</strong> ' + C2.toFixed(10) + '</p>';
-            html += '<p><strong>M≠2(' + pmax + '):</strong> ' + Mnot2.toFixed(10) + '</p>';
-            html += '<p><strong>Right side:</strong> ' + (C2 * Math.pow(Mnot2, 3)).toFixed(10) + '</p>';
-            html += '<p><strong>Difference:</strong> ' + Math.abs(N - C2 * Math.pow(Mnot2, 3)).toExponential(3) + '</p>';
-            html += '<p><strong>Identity holds:</strong> ' + (Math.abs(N - C2 * Math.pow(Mnot2, 3)) < 1e-12 ? '✅' : '❌') + '</p>';
-            html += '</div>';
-
-            document.getElementById('customExampleResult').innerHTML = html;
-        }
-
-        // Prime builder functionality
-        let builderPrimes = [];
         
-        function resetBuilder() {
-            builderPrimes = [];
-            updateBuilder();
+        // Calculate greatest common divisor
+        function gcd(a, b) {
+            while (b !== 0) {
+                let temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
         }
-
-        function updateBuilder() {
-            const nextPrimes = getPrimesUpTo(50).filter(p => !builderPrimes.includes(p));
+        
+        // Simplify a fraction
+        function simplifyFraction(num, den) {
+            const g = gcd(Math.abs(num), Math.abs(den));
+            return [num / g, den / g];
+        }
+        
+        function calculateIdentity() {
+            const pmax = parseInt(document.getElementById('pmax-input').value);
             
-            let html = '<div class="grid">';
-            
-            // Current state
-            if (builderPrimes.length > 0) {
-                const N = calculateNFromArray(builderPrimes);
-                const C2 = calculateC2FromArray(builderPrimes);
-                const M = calculateMFromArray(builderPrimes);
-                
-                html += '<div class="card">';
-                html += '<h5>Current State</h5>';
-                html += '<p><strong>Primes:</strong> [' + builderPrimes.join(', ') + ']</p>';
-                html += '<p><strong>N:</strong> ' + N.toFixed(8) + '</p>';
-                html += '<p><strong>C₂:</strong> ' + C2.toFixed(8) + '</p>';
-                html += '<p><strong>M³:</strong> ' + Math.pow(M, 3).toFixed(8) + '</p>';
-                html += '<p><strong>Equal?</strong> ' + (Math.abs(N - C2 * Math.pow(M, 3)) < 1e-12 ? '✅' : '❌') + '</p>';
-                html += '</div>';
+            if (!isPrime(pmax) || pmax < 3) {
+                document.getElementById('results').innerHTML = '<p style="color: red;">Please enter a prime number ≥ 3</p>';
+                return;
             }
             
-            // Add next prime options
-            html += '<div class="card">';
-            html += '<h5>Add Next Prime</h5>';
-            for (let i = 0; i < Math.min(5, nextPrimes.length); i++) {
-                const p = nextPrimes[i];
-                html += '<button class="btn" onclick="addPrimeToBuilder(' + p + ')" style="margin: 5px;">Add ' + p + '</button>';
-            }
-            html += '</div>';
-            
-            html += '</div>';
-            
-            document.getElementById('primeBuilder').innerHTML = html;
-        }
-
-        function addPrimeToBuilder(prime) {
-            if (!builderPrimes.includes(prime)) {
-                builderPrimes.push(prime);
-                builderPrimes.sort((a, b) => a - b);
-                updateBuilder();
-            }
-        }
-
-        function calculateNFromArray(primes) {
-            let product = 1;
-            for (const p of primes) {
-                product *= (p - 1) * (p - 2) / (p * p);
-            }
-            return product;
-        }
-
-        function calculateC2FromArray(primes) {
-            let product = 1;
-            for (const p of primes) {
-                product *= (1 - 1 / ((p - 1) * (p - 1)));
-            }
-            return product;
-        }
-
-        function calculateMFromArray(primes) {
-            let product = 1;
-            for (const p of primes) {
-                product *= (1 - 1 / p);
-            }
-            return product;
-        }
-
-        // Visualization functions
-        let convergenceChart, componentsChart, factorsChart;
-
-        function initializeVisualization() {
-            createConvergenceChart();
-            createComponentsChart();
-            createFactorsChart();
-        }
-
-        function createConvergenceChart() {
-            const ctx = document.getElementById('convergenceChart');
-            if (!ctx) return;
-
-            const data = [];
-            const labels = [];
-            const nData = [];
-            const rightData = [];
-
-            for (let pmax = 3; pmax <= 50; pmax++) {
-                if (getPrimesUpTo(pmax).length > 0) {
-                    const N = calculateN(pmax);
-                    const C2 = calculateC2(pmax);
-                    const M = calculateMnot2(pmax);
-                    const rightSide = C2 * Math.pow(M, 3);
-                    
-                    labels.push(pmax);
-                    nData.push(N);
-                    rightData.push(rightSide);
-                }
-            }
-
-            if (convergenceChart) {
-                convergenceChart.destroy();
-            }
-
-            convergenceChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'N(p_max) - Left Side',
-                        data: nData,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        borderWidth: 2,
-                        fill: false
-                    }, {
-                        label: 'C₂ × M³ - Right Side',
-                        data: rightData,
-                        borderColor: '#764ba2',
-                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Identity Convergence as p_max Increases'
-                        },
-                        legend: {
-                            display: true
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'p_max'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Value'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createComponentsChart() {
-            const ctx = document.getElementById('componentsChart');
-            if (!ctx) return;
-
-            const pmax = 13;
-            const N = calculateN(pmax);
-            const C2 = calculateC2(pmax);
-            const M = calculateMnot2(pmax);
-            const M3 = Math.pow(M, 3);
-
-            if (componentsChart) {
-                componentsChart.destroy();
-            }
-
-            componentsChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['N(p_max)', 'C₂(p_max)', 'M(p_max)', 'M³(p_max)'],
-                    datasets: [{
-                        label: 'Component Values',
-                        data: [N, C2, M, M3],
-                        backgroundColor: [
-                            'rgba(102, 126, 234, 0.8)',
-                            'rgba(118, 75, 162, 0.8)',
-                            'rgba(46, 204, 113, 0.8)',
-                            'rgba(231, 76, 60, 0.8)'
-                        ],
-                        borderColor: [
-                            '#667eea',
-                            '#764ba2',
-                            '#2ecc71',
-                            '#e74c3c'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Individual Component Values (p_max = 13)'
-                        },
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Value'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createFactorsChart() {
-            const ctx = document.getElementById('factorsChart');
-            if (!ctx) return;
-
-            const primes = getPrimesUpTo(13);
-            const labels = primes.map(p => `p=${p}`);
-            const leftFactors = primes.map(p => (p-1)*(p-2)/(p*p));
-            const rightFactors = primes.map(p => (1 - 1/((p-1)*(p-1))) * Math.pow(1 - 1/p, 3));
-
-            if (factorsChart) {
-                factorsChart.destroy();
-            }
-
-            factorsChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Left Factor',
-                        data: leftFactors,
-                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                        borderColor: '#667eea',
-                        borderWidth: 2
-                    }, {
-                        label: 'Right Factor',
-                        data: rightFactors,
-                        backgroundColor: 'rgba(118, 75, 162, 0.8)',
-                        borderColor: '#764ba2',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Per-Prime Factor Comparison'
-                        },
-                        legend: {
-                            display: true
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Factor Value'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateVisualization(value) {
-            document.getElementById('pmaxValue').textContent = value;
-            createComponentsChart();
-        }
-
-        function showAllSteps() {
-            const pmax = parseInt(document.getElementById('pmaxInput').value);
             const primes = getPrimesUpTo(pmax);
+            let results = `<h3>Calculation for p_max = ${pmax}</h3>`;
+            results += `<p><strong>Primes used:</strong> {${primes.join(', ')}}</p>`;
             
-            let html = '<div class="result">';
-            html += '<h4>Detailed Step-by-Step Calculation for p<sub>max</sub> = ' + pmax + '</h4>';
-            html += '<p><strong>Primes used:</strong> [' + primes.join(', ') + ']</p>';
-            html += '<hr>';
+            // Show per-prime factorization first
+            results += `<div class="per-prime-work"><h4>Per-Prime Identity Verification</h4>`;
+            results += `<p>For each prime p ≥ 3, we verify: \\(\\left(1-\\frac{1}{(p-1)^{2}}\\right)\\left(1-\\frac{1}{p}\\right)^{3} = \\frac{(p-1)(p-2)}{p^{2}}\\)</p>`;
             
-            // Left side calculation
-            html += '<h5>Left Side: N(p<sub>max</sub>)</h5>';
-            let leftProduct = 1;
-            for (let i = 0; i < primes.length; i++) {
-                const p = primes[i];
-                const factor = (p-1)*(p-2)/(p*p);
-                leftProduct *= factor;
-                html += '<p>Step ' + (i+1) + ': p=' + p + ' → factor = (' + (p-1) + ')×(' + (p-2) + ')/' + p + '² = ' + factor.toFixed(6);
-                html += ' → running product = ' + leftProduct.toFixed(8) + '</p>';
+            for (let p of primes) {
+                results += `<div class="prime-calculation">`;
+                results += `<h5>Prime p = ${p}:</h5>`;
+                
+                // Left side calculation
+                const term1_num = (p-1)*(p-1) - 1;
+                const term1_den = (p-1)*(p-1);
+                const [t1_simp_num, t1_simp_den] = simplifyFraction(term1_num, term1_den);
+                
+                const term2_num = p - 1;
+                const term2_den = p;
+                const [t2_simp_num, t2_simp_den] = simplifyFraction(term2_num, term2_den);
+                
+                const term2_cubed_num = t2_simp_num ** 3;
+                const term2_cubed_den = t2_simp_den ** 3;
+                
+                const left_product_num = t1_simp_num * term2_cubed_num;
+                const left_product_den = t1_simp_den * term2_cubed_den;
+                const [left_final_num, left_final_den] = simplifyFraction(left_product_num, left_product_den);
+                
+                // Right side calculation
+                const right_num = (p-1) * (p-2);
+                const right_den = p * p;
+                const [right_final_num, right_final_den] = simplifyFraction(right_num, right_den);
+                
+                results += `<p>\\[1-\\frac{1}{(${p}-1)^{2}} = 1-\\frac{1}{${(p-1)*(p-1)}} = \\frac{${(p-1)*(p-1)}-1}{${(p-1)*(p-1)}} = \\frac{${term1_num}}{${term1_den}}`;
+                if (t1_simp_num !== term1_num || t1_simp_den !== term1_den) {
+                    results += ` = \\frac{${t1_simp_num}}{${t1_simp_den}}`;
+                }
+                results += `\\]</p>`;
+                
+                results += `<p>\\[1-\\frac{1}{${p}} = \\frac{${p}-1}{${p}} = \\frac{${term2_num}}{${term2_den}}`;
+                if (t2_simp_num !== term2_num || t2_simp_den !== term2_den) {
+                    results += ` = \\frac{${t2_simp_num}}{${t2_simp_den}}`;
+                }
+                results += `\\]</p>`;
+                
+                results += `<p>\\[\\left(1-\\frac{1}{${p}}\\right)^{3} = \\left(\\frac{${t2_simp_num}}{${t2_simp_den}}\\right)^{3} = \\frac{${term2_cubed_num}}{${term2_cubed_den}}\\]</p>`;
+                
+                results += `<p><strong>Left side product:</strong></p>`;
+                results += `<p>\\[\\frac{${t1_simp_num}}{${t1_simp_den}} \\cdot \\frac{${term2_cubed_num}}{${term2_cubed_den}} = \\frac{${left_product_num}}{${left_product_den}}`;
+                if (left_final_num !== left_product_num || left_final_den !== left_product_den) {
+                    results += ` = \\frac{${left_final_num}}{${left_final_den}}`;
+                }
+                results += `\\]</p>`;
+                
+                results += `<p><strong>Right side:</strong></p>`;
+                results += `<p>\\[\\frac{(${p}-1)(${p}-2)}{${p}^{2}} = \\frac{${right_num}}{${right_den}}`;
+                if (right_final_num !== right_num || right_final_den !== right_den) {
+                    results += ` = \\frac{${right_final_num}}{${right_final_den}}`;
+                }
+                results += `\\]</p>`;
+                
+                const matches = (left_final_num === right_final_num && left_final_den === right_final_den);
+                results += `<p><strong>Verification:</strong> <span style="color: ${matches ? 'green' : 'red'}">`;
+                results += `${matches ? '✓ Identity holds!' : '✗ Identity fails!'}`;
+                results += `</span></p>`;
+                results += `</div>`;
+            }
+            results += `</div>`;
+            
+            // Calculate N(p_max) - left side
+            let N_num = 1, N_den = 1;
+            let leftFactors = [];
+            
+            for (let p of primes) {
+                const factor_num = (p - 1) * (p - 2);
+                const factor_den = p * p;
+                leftFactors.push(`\\frac{${factor_num}}{${factor_den}}`);
+                N_num *= factor_num;
+                N_den *= factor_den;
             }
             
-            html += '<hr>';
+            const [N_simplified_num, N_simplified_den] = simplifyFraction(N_num, N_den);
             
-            // Right side calculation
-            html += '<h5>Right Side: C₂(p<sub>max</sub>) × [M<sub>≠2</sub>(p<sub>max</sub>)]³</h5>';
+            // Calculate C_2(p_max)
+            let C2_num = 1, C2_den = 1;
+            let c2Factors = [];
+            let c2FactorsExpanded = [];
             
-            // C2 calculation
-            html += '<h6>C₂ calculation:</h6>';
-            let c2Product = 1;
-            for (let i = 0; i < primes.length; i++) {
-                const p = primes[i];
-                const factor = 1 - 1/((p-1)*(p-1));
-                c2Product *= factor;
-                html += '<p>p=' + p + ' → 1-1/(' + (p-1) + ')² = ' + factor.toFixed(6);
-                html += ' → running C₂ = ' + c2Product.toFixed(8) + '</p>';
+            for (let p of primes) {
+                const factor_num = (p - 1) * (p - 1) - 1;
+                const factor_den = (p - 1) * (p - 1);
+                c2Factors.push(`\\left(1-\\frac{1}{${(p-1)*(p-1)}}\\right)`);
+                c2FactorsExpanded.push(`\\frac{${factor_num}}{${factor_den}}`);
+                C2_num *= factor_num;
+                C2_den *= factor_den;
             }
             
-            // M calculation
-            html += '<h6>M<sub>≠2</sub> calculation:</h6>';
-            let mProduct = 1;
-            for (let i = 0; i < primes.length; i++) {
-                const p = primes[i];
-                const factor = 1 - 1/p;
-                mProduct *= factor;
-                html += '<p>p=' + p + ' → 1-1/' + p + ' = ' + factor.toFixed(6);
-                html += ' → running M = ' + mProduct.toFixed(8) + '</p>';
+            const [C2_simplified_num, C2_simplified_den] = simplifyFraction(C2_num, C2_den);
+            
+            // Calculate M_≠2(p_max)
+            let M_num = 1, M_den = 1;
+            let mFactors = [];
+            let mFactorsExpanded = [];
+            
+            for (let p of primes) {
+                const factor_num = p - 1;
+                const factor_den = p;
+                mFactors.push(`\\left(1-\\frac{1}{${p}}\\right)`);
+                mFactorsExpanded.push(`\\frac{${factor_num}}{${factor_den}}`);
+                M_num *= factor_num;
+                M_den *= factor_den;
             }
             
-            const mCubed = Math.pow(mProduct, 3);
-            const rightSide = c2Product * mCubed;
+            const [M_simplified_num, M_simplified_den] = simplifyFraction(M_num, M_den);
             
-            html += '<h6>Final right side calculation:</h6>';
-            html += '<p>M³ = (' + mProduct.toFixed(8) + ')³ = ' + mCubed.toFixed(10) + '</p>';
-            html += '<p>C₂ × M³ = ' + c2Product.toFixed(8) + ' × ' + mCubed.toFixed(10) + ' = ' + rightSide.toFixed(10) + '</p>';
+            // Calculate M^3
+            const M3_num = M_simplified_num ** 3;
+            const M3_den = M_simplified_den ** 3;
             
-            html += '<hr>';
-            html += '<h5>Verification:</h5>';
-            html += '<p><strong>Left side:</strong> ' + leftProduct.toFixed(10) + '</p>';
-            html += '<p><strong>Right side:</strong> ' + rightSide.toFixed(10) + '</p>';
-            html += '<p><strong>Difference:</strong> ' + Math.abs(leftProduct - rightSide).toExponential(3) + '</p>';
-            html += '<p><strong>Identity verified:</strong> ' + (Math.abs(leftProduct - rightSide) < 1e-12 ? '✅ EXACT MATCH' : '❌ MISMATCH') + '</p>';
+            // Calculate C_2 * M^3
+            const right_num = C2_simplified_num * M3_num;
+            const right_den = C2_simplified_den * M3_den;
+            const [right_simplified_num, right_simplified_den] = simplifyFraction(right_num, right_den);
             
-            html += '</div>';
+            results += `
+                <div class="calculation-step">
+                    <h4>Left-hand side: N(${pmax})</h4>
+                    <p>\\[N(${pmax}) = ${leftFactors.join(' \\cdot ')}\\]</p>
+                    <p>\\[= \\frac{${N_num}}{${N_den}} = \\frac{${N_simplified_num}}{${N_simplified_den}}\\]</p>
+                    <p><strong>Decimal:</strong> ${(N_simplified_num / N_simplified_den).toFixed(10)}</p>
+                </div>
+                
+                <div class="calculation-step">
+                    <h4>Right-hand side components:</h4>
+                    <p><strong>C₂ term:</strong></p>
+                    <p>\\[C_2(${pmax}) = ${c2Factors.join(' \\cdot ')}\\]</p>
+                    <p>\\[= ${c2FactorsExpanded.join(' \\cdot ')} = \\frac{${C2_num}}{${C2_den}} = \\frac{${C2_simplified_num}}{${C2_simplified_den}}\\]</p>
+                    
+                    <p><strong>M≠2 term:</strong></p>
+                    <p>\\[M_{\\neq 2}(${pmax}) = ${mFactors.join(' \\cdot ')}\\]</p>
+                    <p>\\[= ${mFactorsExpanded.join(' \\cdot ')} = \\frac{${M_num}}{${M_den}} = \\frac{${M_simplified_num}}{${M_simplified_den}}\\]</p>
+                    
+                    <p><strong>Cubed term:</strong></p>
+                    <p>\\[[M_{\\neq 2}(${pmax})]^3 = \\left(\\frac{${M_simplified_num}}{${M_simplified_den}}\\right)^3 = \\frac{${M3_num}}{${M3_den}}\\]</p>
+                </div>
+                
+                <div class="calculation-step">
+                    <h4>Right-hand side product:</h4>
+                    <p>\\[C_2(${pmax}) \\cdot [M_{\\neq 2}(${pmax})]^3 = \\frac{${C2_simplified_num}}{${C2_simplified_den}} \\cdot \\frac{${M3_num}}{${M3_den}}\\]</p>
+                    <p>\\[= \\frac{${C2_simplified_num} \\cdot ${M3_num}}{${C2_simplified_den} \\cdot ${M3_den}} = \\frac{${right_num}}{${right_den}} = \\frac{${right_simplified_num}}{${right_simplified_den}}\\]</p>
+                    <p><strong>Decimal:</strong> ${(right_simplified_num / right_simplified_den).toFixed(10)}</p>
+                </div>
+                
+                <div class="verification">
+                    <h4>Final Verification:</h4>
+                    <p><strong>Left side:</strong> \\(N(${pmax}) = \\frac{${N_simplified_num}}{${N_simplified_den}}\\)</p>
+                    <p><strong>Right side:</strong> \\(C_2(${pmax}) \\cdot [M_{\\neq 2}(${pmax})]^3 = \\frac{${right_simplified_num}}{${right_simplified_den}}\\)</p>
+                    <p><strong>Identity holds?</strong> <span style="color: ${N_simplified_num === right_simplified_num && N_simplified_den === right_simplified_den ? 'green' : 'red'}; font-size: 18px; font-weight: bold;">
+                        ${N_simplified_num === right_simplified_num && N_simplified_den === right_simplified_den ? '✓ YES' : '✗ NO'}
+                    </span></p>
+                </div>
+            `;
             
-            document.getElementById('calculationResult').innerHTML = html;
+            document.getElementById('results').innerHTML = results;
+            
+            // Re-render MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise([document.getElementById('results')]);
+            }
         }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            calculateIdentity();
-            updateBuilder();
-            demonstrateProofStep();
-            generateExamples();
-            
-            // Initialize visualization after a short delay to ensure DOM is ready
-            setTimeout(initializeVisualization, 100);
-        });
     </script>
 </body>
-    </html>
+</html>
