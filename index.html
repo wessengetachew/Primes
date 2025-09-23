@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modular Lifting Rings by Wessen Getachew </title>
+    <title>Modular Lifting Rings By Wessen</title>
     <style>
         * {
             margin: 0;
@@ -45,7 +45,7 @@
 
         .main-grid {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 320px 1fr;
             gap: 30px;
         }
 
@@ -54,6 +54,8 @@
             padding: 20px;
             border-radius: 15px;
             height: fit-content;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .control-section {
@@ -82,7 +84,7 @@
             padding: 5px;
         }
 
-        .checkbox-item input {
+        .checkbox-item input[type="checkbox"] {
             transform: scale(1.2);
         }
 
@@ -118,6 +120,7 @@
             cursor: pointer;
             font-weight: bold;
             transition: transform 0.2s;
+            margin: 2px;
         }
 
         button:hover {
@@ -126,7 +129,6 @@
 
         .reset-btn {
             background: linear-gradient(45deg, #e74c3c, #c0392b);
-            margin-top: 10px;
         }
 
         .slider-group {
@@ -136,10 +138,20 @@
         .slider-group label {
             display: block;
             margin-bottom: 5px;
+            font-size: 0.9em;
         }
 
         .slider-group input {
             width: 100%;
+        }
+
+        .slider-group select {
+            width: 100%;
+            padding: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
         }
 
         .canvas-container {
@@ -230,7 +242,7 @@
 <body>
     <div class="container">
         <h1>Interactive Modular Lifting Rings</h1>
-        <div class="subtitle">Version 4.0 - M<sub>n</sub> = 30 × 2<sup>n</sup> for n ∈ {-5 to 10}</div>
+        <div class="subtitle">Version 5.0 - Advanced Customization & Animation</div>
 
         <div class="main-grid">
             <div class="controls">
@@ -285,6 +297,61 @@
                 </div>
 
                 <div class="control-section">
+                    <h3>Visual Customization</h3>
+                    <div class="slider-group">
+                        <label>Residue Color Mode:</label>
+                        <select id="residueColorMode" onchange="updateColorMode()">
+                            <option value="hue">Rainbow by Position</option>
+                            <option value="value">By Residue Value</option>
+                            <option value="modulo">By Modulus</option>
+                            <option value="prime">Prime vs Composite</option>
+                            <option value="custom">Custom Color</option>
+                        </select>
+                    </div>
+                    <div class="slider-group" id="customColorGroup" style="display: none;">
+                        <label>Custom Residue Color:</label>
+                        <input type="color" id="customResidueColor" value="#FF6B6B" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Lift Line Color:</label>
+                        <input type="color" id="liftLineColor" value="#FFD700" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Modular Lift Color:</label>
+                        <input type="color" id="modularLiftColor" value="#FF6384" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Line Thickness: <span id="thicknessValue">2</span>px</label>
+                        <input type="range" id="lineThickness" min="0.5" max="8" step="0.5" value="2" oninput="updateThickness()">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Animation Controls</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enableRotation" onchange="toggleRotation()"> Enable Ring Rotation
+                    </div>
+                    <div class="slider-group">
+                        <label>Global Speed: <span id="globalSpeedValue">1.0</span>x</label>
+                        <input type="range" id="globalSpeed" min="0.1" max="5" step="0.1" value="1" oninput="updateGlobalSpeed()">
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="reverseDirection"> Reverse Direction
+                    </div>
+                    <button onclick="toggleInversionAnimation()">Show Inversion Process</button>
+                    <div id="inversionControls" style="display: none; margin-top: 10px;">
+                        <div class="slider-group">
+                            <label>Inversion Speed: <span id="inversionSpeedValue">1.0</span>x</label>
+                            <input type="range" id="inversionSpeed" min="0.1" max="3" step="0.1" value="1" oninput="updateInversionSpeed()">
+                        </div>
+                        <button onclick="stopInversionAnimation()">Stop Inversion</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
                     <h3>Display Options</h3>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showLabels" checked> Show Labels
@@ -292,7 +359,6 @@
                     <div class="checkbox-item">
                         <input type="checkbox" id="invertNesting"> Invert Nesting
                     </div>
-                    <button onclick="toggleAnimation()">Toggle Animation</button>
                     <button class="reset-btn" onclick="resetAll()">Reset All</button>
                 </div>
 
@@ -341,11 +407,11 @@
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FFD700;"></div>
-                    <span>Direct lifts - consecutive (r → r)</span>
+                    <span>Direct lifts - consecutive</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FFD700; opacity: 0.4;"></div>
-                    <span>Direct lifts - skip levels (r → r)</span>
+                    <span>Direct lifts - skip levels</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FF6384; border-style: dashed;"></div>
@@ -365,7 +431,10 @@
         const ctx = canvas.getContext('2d');
         let animating = false;
         let animationFrame = 0;
-        let customRingCounter = 1000; // Start custom ring IDs at 1000
+        let customRingCounter = 1000;
+        let isInverting = false;
+        let inversionProgress = 0;
+        let ringRotationSpeeds = {};
 
         // Modulus configurations
         const configs = {
@@ -397,6 +466,14 @@
             return a;
         }
 
+        function isPrime(n) {
+            if (n < 2) return false;
+            for (let i = 2; i <= Math.sqrt(n); i++) {
+                if (n % i === 0) return false;
+            }
+            return true;
+        }
+
         function getCoprimes(modulus) {
             const residues = [];
             const m = Math.round(modulus);
@@ -406,6 +483,25 @@
                 }
             }
             return residues;
+        }
+
+        function getResidueColor(r, modulus, ringIndex, colorMode) {
+            const customColor = document.getElementById('customResidueColor').value;
+            
+            switch(colorMode) {
+                case 'hue':
+                    return `hsl(${(r * 360 / modulus) % 360}, 70%, 60%)`;
+                case 'value':
+                    return `hsl(${(r * 30) % 360}, 80%, 65%)`;
+                case 'modulo':
+                    return `hsl(${(ringIndex * 60) % 360}, 75%, 60%)`;
+                case 'prime':
+                    return isPrime(r) ? '#FF6B6B' : '#4ECDC4';
+                case 'custom':
+                    return customColor;
+                default:
+                    return `hsl(${(r * 360 / modulus) % 360}, 70%, 60%)`;
+            }
         }
 
         function getSelectedGaps() {
@@ -418,23 +514,7 @@
             return Array.from(checked).map(cb => cb.value);
         }
 
-        // Initialize controls
-        function initControls() {
-            const ringControls = document.getElementById('ringControls');
-            
-            // Add predefined rings
-            Object.keys(configs).forEach(n => {
-                if (!n.startsWith('custom_')) {
-                    addRingControl(n, `n=${n} (M=${configs[n].label})`, ['0', '1', '2'].includes(n));
-                }
-            });
-
-            // Add event listeners
-            document.addEventListener('change', draw);
-            document.getElementById('zoomSlider').addEventListener('input', updateZoom);
-            document.getElementById('rotationSlider').addEventListener('input', updateRotation);
-        }
-
+        // Control functions
         function generateGaps() {
             const maxGap = parseInt(document.getElementById('maxGap').value);
             const gapControls = document.getElementById('gapControls');
@@ -474,20 +554,16 @@
                 return;
             }
             
-            // Check if this modulus already exists
             const existing = Object.values(configs).find(config => config.mod === modValue);
             if (existing) {
                 alert(`Modulus ${modValue} already exists in the ring list`);
                 return;
             }
             
-            // Add to configs
             const customId = `custom_${customRingCounter++}`;
             configs[customId] = { mod: modValue, label: modValue.toString() };
             
-            // Add to UI
             addRingControl(customId, `Custom: ${modValue}`, true);
-            
             draw();
         }
 
@@ -507,7 +583,6 @@
             const label = document.createElement('span');
             label.textContent = displayText;
             
-            // Add remove button for custom rings
             if (ringId.startsWith('custom_')) {
                 const removeBtn = document.createElement('button');
                 removeBtn.textContent = '×';
@@ -548,31 +623,98 @@
             draw();
         }
 
-        function toggleAnimation() {
-            animating = !animating;
-            if (animating) animate();
+        function updateThickness() {
+            const value = document.getElementById('lineThickness').value;
+            document.getElementById('thicknessValue').textContent = value;
+            draw();
+        }
+
+        function updateGlobalSpeed() {
+            const value = document.getElementById('globalSpeed').value;
+            document.getElementById('globalSpeedValue').textContent = value;
+        }
+
+        function updateInversionSpeed() {
+            const value = document.getElementById('inversionSpeed').value;
+            document.getElementById('inversionSpeedValue').textContent = value;
+        }
+
+        function updateColorMode() {
+            const mode = document.getElementById('residueColorMode').value;
+            const customGroup = document.getElementById('customColorGroup');
+            customGroup.style.display = mode === 'custom' ? 'block' : 'none';
+            draw();
+        }
+
+        function toggleRotation() {
+            const enabled = document.getElementById('enableRotation').checked;
+            if (enabled && !animating) {
+                animating = true;
+                animate();
+            }
+        }
+
+        function toggleInversionAnimation() {
+            isInverting = !isInverting;
+            inversionProgress = 0;
+            
+            const controls = document.getElementById('inversionControls');
+            controls.style.display = isInverting ? 'block' : 'none';
+            
+            if (isInverting && !animating) {
+                animating = true;
+                animate();
+            }
+        }
+
+        function stopInversionAnimation() {
+            isInverting = false;
+            inversionProgress = 0;
+            document.getElementById('inversionControls').style.display = 'none';
+            
+            if (!document.getElementById('enableRotation').checked) {
+                animating = false;
+            }
         }
 
         function animate() {
-            if (!animating) return;
-            animationFrame += 1;
+            if (!animating && !isInverting) return;
+            
+            const enableRotation = document.getElementById('enableRotation').checked;
+            const globalSpeed = parseFloat(document.getElementById('globalSpeed').value);
+            const reverseDirection = document.getElementById('reverseDirection').checked;
+            
+            if (enableRotation) {
+                animationFrame += globalSpeed * (reverseDirection ? -1 : 1);
+            }
+            
+            if (isInverting) {
+                const inversionSpeed = parseFloat(document.getElementById('inversionSpeed').value);
+                inversionProgress += 0.01 * inversionSpeed;
+                if (inversionProgress >= 1) {
+                    inversionProgress = 0;
+                }
+            }
+            
+            if (!enableRotation && !isInverting) {
+                animating = false;
+                return;
+            }
+            
             draw();
             requestAnimationFrame(animate);
         }
 
         function resetAll() {
-            // Reset gaps
             document.getElementById('maxGap').value = 12;
             generateGaps();
             
-            // Remove custom rings
             Object.keys(configs).forEach(key => {
                 if (key.startsWith('custom_')) {
                     delete configs[key];
                 }
             });
             
-            // Rebuild ring controls
             const ringControls = document.getElementById('ringControls');
             ringControls.innerHTML = '';
             Object.keys(configs).forEach(n => {
@@ -581,23 +723,38 @@
                 }
             });
             
-            // Reset options
             document.getElementById('showLabels').checked = true;
             document.getElementById('invertNesting').checked = false;
             document.getElementById('showDirectLifts').checked = true;
             document.getElementById('showModularLifts').checked = false;
+            document.getElementById('enableRotation').checked = false;
+            document.getElementById('reverseDirection').checked = false;
             
-            // Reset sliders
             document.getElementById('zoomSlider').value = 1;
             document.getElementById('rotationSlider').value = 0;
-            updateZoom();
-            updateRotation();
-            
-            // Reset custom modulus input
+            document.getElementById('lineThickness').value = 2;
+            document.getElementById('globalSpeed').value = 1;
+            document.getElementById('inversionSpeed').value = 1;
+            document.getElementById('residueColorMode').value = 'hue';
+            document.getElementById('liftLineColor').value = '#FFD700';
+            document.getElementById('modularLiftColor').value = '#FF6384';
+            document.getElementById('customResidueColor').value = '#FF6B6B';
             document.getElementById('customMod').value = 42;
             
+            updateZoom();
+            updateRotation();
+            updateThickness();
+            updateGlobalSpeed();
+            updateInversionSpeed();
+            updateColorMode();
+            
             animating = false;
+            isInverting = false;
             animationFrame = 0;
+            inversionProgress = 0;
+            ringRotationSpeeds = {};
+            
+            stopInversionAnimation();
             draw();
         }
 
@@ -611,8 +768,12 @@
             const showModularLifts = document.getElementById('showModularLifts').checked;
             const zoom = parseFloat(document.getElementById('zoomSlider').value);
             const rotation = parseFloat(document.getElementById('rotationSlider').value);
+            const colorMode = document.getElementById('residueColorMode').value;
+            const lineThickness = parseFloat(document.getElementById('lineThickness').value);
+            const enableRotation = document.getElementById('enableRotation').checked;
+            const liftLineColor = document.getElementById('liftLineColor').value;
+            const modularLiftColor = document.getElementById('modularLiftColor').value;
 
-            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             if (selectedRings.length === 0) {
@@ -623,9 +784,8 @@
             ctx.save();
             ctx.translate(canvas.width / 2, canvas.height / 2);
             ctx.scale(zoom, zoom);
-            ctx.rotate((rotation + animationFrame) * Math.PI / 180);
+            ctx.rotate((rotation + (animating ? animationFrame * 0.5 : 0)) * Math.PI / 180);
 
-            // Prepare ring data
             const rings = [];
             const sortedRings = [...selectedRings].sort((a, b) => 
                 invertNesting ? b - a : a - b
@@ -634,16 +794,37 @@
             const maxRadius = 250;
             const minRadius = 50;
 
+            // Initialize individual ring rotation speeds
+            sortedRings.forEach((n, index) => {
+                if (!ringRotationSpeeds[n]) {
+                    const modulus = configs[n].mod;
+                    ringRotationSpeeds[n] = Math.max(0.5, 2 - Math.log10(modulus + 1));
+                }
+            });
+
             sortedRings.forEach((n, index) => {
                 const radius = minRadius + (maxRadius - minRadius) * index / Math.max(1, sortedRings.length - 1);
                 const modulus = configs[n].mod;
                 const residues = getCoprimes(modulus);
                 
-                rings.push({ n, radius, modulus, residues });
+                rings.push({ n, radius, modulus, residues, index });
             });
 
             // Draw rings
             rings.forEach(ring => {
+                // Calculate individual ring rotation
+                let ringRotation = 0;
+                if (enableRotation) {
+                    ringRotation = animationFrame * ringRotationSpeeds[ring.n] * Math.PI / 180;
+                }
+                
+                // Add inversion animation effect
+                if (isInverting) {
+                    const waveOffset = ring.index * 0.2;
+                    const inversionPhase = Math.max(0, Math.min(1, inversionProgress * 2 - waveOffset));
+                    ringRotation += Math.sin(inversionPhase * Math.PI) * Math.PI;
+                }
+
                 // Ring circle
                 ctx.beginPath();
                 ctx.arc(0, 0, ring.radius, 0, 2 * Math.PI);
@@ -653,13 +834,14 @@
 
                 // Residue points
                 ring.residues.forEach(r => {
-                    const angle = 2 * Math.PI * r / ring.modulus - Math.PI / 2; // Start at top (12 o'clock)
+                    const baseAngle = 2 * Math.PI * r / ring.modulus - Math.PI / 2;
+                    const angle = baseAngle + ringRotation;
                     const x = ring.radius * Math.cos(angle);
                     const y = ring.radius * Math.sin(angle);
 
                     ctx.beginPath();
                     ctx.arc(x, y, 3, 0, 2 * Math.PI);
-                    ctx.fillStyle = `hsl(${(r * 360 / ring.modulus) % 360}, 70%, 60%)`;
+                    ctx.fillStyle = getResidueColor(r, ring.modulus, ring.index, colorMode);
                     ctx.fill();
                     ctx.strokeStyle = 'white';
                     ctx.lineWidth = 1;
@@ -682,8 +864,10 @@
                         const r2 = r + gap;
                         const mod = Math.round(ring.modulus);
                         if (ring.residues.includes(r2 % mod)) {
-                            const angle1 = 2 * Math.PI * r / ring.modulus - Math.PI / 2;
-                            const angle2 = 2 * Math.PI * (r2 % mod) / ring.modulus - Math.PI / 2;
+                            const baseAngle1 = 2 * Math.PI * r / ring.modulus - Math.PI / 2;
+                            const baseAngle2 = 2 * Math.PI * (r2 % mod) / ring.modulus - Math.PI / 2;
+                            const angle1 = baseAngle1 + ringRotation;
+                            const angle2 = baseAngle2 + ringRotation;
                             const x1 = ring.radius * Math.cos(angle1);
                             const y1 = ring.radius * Math.sin(angle1);
                             const x2 = ring.radius * Math.cos(angle2);
@@ -693,7 +877,7 @@
                             ctx.moveTo(x1, y1);
                             ctx.lineTo(x2, y2);
                             ctx.strokeStyle = `hsla(${hue}, 70%, 60%, 0.7)`;
-                            ctx.lineWidth = 2;
+                            ctx.lineWidth = lineThickness;
                             ctx.stroke();
                         }
                     });
@@ -702,17 +886,35 @@
 
             // Draw lift lines
             if ((showDirectLifts || showModularLifts) && rings.length > 1) {
-                // For each pair of rings (including non-consecutive)
                 for (let i = 0; i < rings.length; i++) {
                     for (let j = i + 1; j < rings.length; j++) {
-                        const ring1 = rings[i]; // smaller ring (inner)
-                        const ring2 = rings[j]; // larger ring (outer)
+                        const ring1 = rings[i];
+                        const ring2 = rings[j];
+                        
+                        // Calculate rotations for both rings
+                        let ringRotation1 = 0;
+                        let ringRotation2 = 0;
+                        if (enableRotation) {
+                            ringRotation1 = animationFrame * ringRotationSpeeds[ring1.n] * Math.PI / 180;
+                            ringRotation2 = animationFrame * ringRotationSpeeds[ring2.n] * Math.PI / 180;
+                        }
+                        
+                        if (isInverting) {
+                            const waveOffset1 = ring1.index * 0.2;
+                            const waveOffset2 = ring2.index * 0.2;
+                            const inversionPhase1 = Math.max(0, Math.min(1, inversionProgress * 2 - waveOffset1));
+                            const inversionPhase2 = Math.max(0, Math.min(1, inversionProgress * 2 - waveOffset2));
+                            ringRotation1 += Math.sin(inversionPhase1 * Math.PI) * Math.PI;
+                            ringRotation2 += Math.sin(inversionPhase2 * Math.PI) * Math.PI;
+                        }
                         
                         ring1.residues.forEach(r => {
-                            // Direct lifts (r maps to r if it exists in larger ring)
+                            // Direct lifts
                             if (showDirectLifts && ring2.residues.includes(r)) {
-                                const angle1 = 2 * Math.PI * r / ring1.modulus - Math.PI / 2;
-                                const angle2 = 2 * Math.PI * r / ring2.modulus - Math.PI / 2;
+                                const baseAngle1 = 2 * Math.PI * r / ring1.modulus - Math.PI / 2;
+                                const baseAngle2 = 2 * Math.PI * r / ring2.modulus - Math.PI / 2;
+                                const angle1 = baseAngle1 + ringRotation1;
+                                const angle2 = baseAngle2 + ringRotation2;
                                 const x1 = ring1.radius * Math.cos(angle1);
                                 const y1 = ring1.radius * Math.sin(angle1);
                                 const x2 = ring2.radius * Math.cos(angle2);
@@ -722,10 +924,9 @@
                                 ctx.moveTo(x1, y1);
                                 ctx.lineTo(x2, y2);
                                 
-                                // Use different colors for consecutive vs skip connections
                                 const isConsecutive = (j === i + 1);
-                                ctx.strokeStyle = isConsecutive ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 215, 0, 0.4)';
-                                ctx.lineWidth = isConsecutive ? 2 : 1;
+                                ctx.strokeStyle = isConsecutive ? liftLineColor : liftLineColor + '66';
+                                ctx.lineWidth = isConsecutive ? lineThickness : lineThickness * 0.7;
                                 ctx.stroke();
                             }
 
@@ -735,25 +936,23 @@
                                 const n2 = parseInt(ring2.n);
                                 
                                 if (n2 > n1) {
-                                    // Calculate the modular shift based on the difference in n values
                                     const nDiff = n2 - n1;
                                     const baseModulus = Math.round(ring1.modulus);
                                     
-                                    // For modular lifts, we need to account for the full jump
                                     let shift;
                                     if (nDiff === 1) {
-                                        // Direct consecutive lift
                                         shift = baseModulus;
                                     } else {
-                                        // Multi-level lift: shift by baseModulus * 2^(nDiff-1)
                                         shift = baseModulus * Math.pow(2, nDiff - 1);
                                     }
                                     
                                     const liftedR = (r + shift) % Math.round(ring2.modulus);
                                     
                                     if (ring2.residues.includes(liftedR)) {
-                                        const angle1 = 2 * Math.PI * r / ring1.modulus - Math.PI / 2;
-                                        const angle2 = 2 * Math.PI * liftedR / ring2.modulus - Math.PI / 2;
+                                        const baseAngle1 = 2 * Math.PI * r / ring1.modulus - Math.PI / 2;
+                                        const baseAngle2 = 2 * Math.PI * liftedR / ring2.modulus - Math.PI / 2;
+                                        const angle1 = baseAngle1 + ringRotation1;
+                                        const angle2 = baseAngle2 + ringRotation2;
                                         const x1 = ring1.radius * Math.cos(angle1);
                                         const y1 = ring1.radius * Math.sin(angle1);
                                         const x2 = ring2.radius * Math.cos(angle2);
@@ -763,10 +962,9 @@
                                         ctx.moveTo(x1, y1);
                                         ctx.lineTo(x2, y2);
                                         
-                                        // Different styles for consecutive vs skip modular lifts
                                         const isConsecutive = (j === i + 1);
-                                        ctx.strokeStyle = isConsecutive ? 'rgba(255, 99, 132, 0.7)' : 'rgba(255, 99, 132, 0.3)';
-                                        ctx.lineWidth = isConsecutive ? 1.5 : 1;
+                                        ctx.strokeStyle = isConsecutive ? modularLiftColor : modularLiftColor + '55';
+                                        ctx.lineWidth = isConsecutive ? lineThickness * 0.8 : lineThickness * 0.5;
                                         ctx.setLineDash(isConsecutive ? [5, 5] : [3, 7]);
                                         ctx.stroke();
                                         ctx.setLineDash([]);
@@ -809,6 +1007,19 @@
             }
 
             info.innerHTML = html;
+        }
+
+        // Initialize controls
+        function initControls() {
+            Object.keys(configs).forEach(n => {
+                if (!n.startsWith('custom_')) {
+                    addRingControl(n, `n=${n} (M=${configs[n].label})`, ['0', '1', '2'].includes(n));
+                }
+            });
+
+            document.addEventListener('change', draw);
+            document.getElementById('zoomSlider').addEventListener('input', updateZoom);
+            document.getElementById('rotationSlider').addEventListener('input', updateRotation);
         }
 
         // Initialize
