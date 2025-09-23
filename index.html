@@ -335,7 +335,8 @@
 <body>
     <div class="container">
         <h1>Interactive Modular Lifting Rings</h1>
-        <div class="subtitle">Version 8.0 - Complete Mathematical Foundation with Consecutive Moduli Explorer</div>
+        <div class="subtitle">Built by Wessen Getachew | Created by Leonhard Euler<br>
+        <em class="math-notation">φ(n) = n∏(1 - 1/p) | gcd(a,b) = 1 | Z/nZ ≅ (Z/nZ)* | r ≡ s (mod m)</em></div>
 
         <div class="main-grid">
             <div class="controls">
@@ -365,12 +366,12 @@
                     <div class="custom-gap">
                         <label><strong>Dynamic Gap Generation:</strong></label>
                         <div class="gap-input">
-                            Max Gap: <input type="number" id="maxGap" min="2" max="100" step="2" value="12" placeholder="12">
+                            Max Gap: <input type="number" id="maxGap" min="2" step="2" value="12" placeholder="12">
                         </div>
                         <div class="gap-input">
                             <strong>Add Consecutive Range:</strong><br>
-                            From: <input type="number" id="gapStart" min="2" max="98" step="1" value="14" placeholder="14">
-                            To: <input type="number" id="gapEnd" min="3" max="100" step="1" value="20" placeholder="20">
+                            From: <input type="number" id="gapStart" min="2" step="1" value="14" placeholder="14">
+                            To: <input type="number" id="gapEnd" min="3" step="1" value="20" placeholder="20">
                             <button onclick="addConsecutiveGaps()">Add Range</button>
                         </div>
                         <button onclick="generateGaps()">Generate Even Gaps</button>
@@ -386,17 +387,17 @@
                     <div class="custom-gap">
                         <label><strong>Custom Modulus Explorer:</strong></label>
                         <div class="gap-input">
-                            Single: <input type="number" id="customMod" min="2" max="50000" value="42" placeholder="42">
+                            Single: <input type="number" id="customMod" min="2" value="42" placeholder="42">
                             <button onclick="addCustomRing()">Add Single</button>
                         </div>
                         <div class="gap-input">
                             <strong>Add Consecutive Range:</strong><br>
-                            From: <input type="number" id="modStart" min="1" max="999" value="1" placeholder="1">
-                            To: <input type="number" id="modEnd" min="2" max="1000" value="20" placeholder="20">
+                            From: <input type="number" id="modStart" min="1" value="1" placeholder="1">
+                            To: <input type="number" id="modEnd" min="2" value="20" placeholder="20">
                             <button onclick="addConsecutiveMods()">Add M₁ to Mₙ</button>
                         </div>
                         <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
-                            Quick ranges: M₁-M₂₀, M₁₀-M₃₀, M₁₀₀-M₁₂₀
+                            No limits - explore any modulus range you want!
                         </div>
                     </div>
                 </div>
@@ -410,12 +411,27 @@
                             <option value="value">By Residue Value</option>
                             <option value="modulo">By Ring (Modulus)</option>
                             <option value="prime">Prime vs Composite</option>
+                            <option value="gcd_unified">GCD=1: Unified Color</option>
+                            <option value="gcd_per_mod">GCD=1: Unique Color per Modulus</option>
+                            <option value="gcd_per_residue">GCD=1: Unique Color per Residue Value</option>
+                            <option value="gcd_mathematical">GCD=1: Mathematical Progression</option>
+                            <option value="gcd_spectrum">GCD=1: Spectral Distribution</option>
                             <option value="custom">Custom Single Color</option>
                         </select>
                     </div>
                     <div class="slider-group" id="customColorGroup" style="display: none;">
                         <label>Custom Residue Color:</label>
                         <input type="color" id="customResidueColor" value="#FF6B6B" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group" id="gcdColorGroup" style="display: none;">
+                        <label>Base GCD=1 Color:</label>
+                        <input type="color" id="gcdBaseColor" value="#FF6B6B" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group" id="nonGcdColorGroup" style="display: none;">
+                        <label>Non-GCD=1 Color (if any):</label>
+                        <input type="color" id="nonGcdColor" value="#666666" onchange="draw()">
                     </div>
                     
                     <div class="slider-group">
@@ -429,13 +445,33 @@
                     </div>
                     
                     <div class="slider-group">
-                        <label>Lift Line Thickness: <span id="thicknessValue">2.0</span>px</label>
-                        <input type="range" id="lineThickness" min="0.5" max="10" step="0.5" value="2" oninput="updateThickness()">
+                        <label>Lift Line Thickness: <span id="thicknessValue">0.5</span></label>
+                        <input type="range" id="lineThickness" min="0" max="1" step="0.01" value="0.5" oninput="updateThickness()">
                     </div>
                     
                     <div class="slider-group">
-                        <label>Gap Line Thickness: <span id="gapThicknessValue">1.5</span>px</label>
-                        <input type="range" id="gapLineThickness" min="0.5" max="8" step="0.5" value="1.5" oninput="updateGapThickness()">
+                        <label>Gap Line Thickness: <span id="gapThicknessValue">0.3</span></label>
+                        <input type="range" id="gapLineThickness" min="0" max="1" step="0.01" value="0.3" oninput="updateGapThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Ring Circle Thickness: <span id="ringThicknessValue">0.2</span></label>
+                        <input type="range" id="ringThickness" min="0" max="1" step="0.01" value="0.2" oninput="updateRingThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Unit Circle Thickness: <span id="unitThicknessValue">0.8</span></label>
+                        <input type="range" id="unitThickness" min="0" max="1" step="0.01" value="0.8" oninput="updateUnitThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Residue Point Size: <span id="pointSizeValue">0.4</span></label>
+                        <input type="range" id="pointSize" min="0" max="1" step="0.01" value="0.4" oninput="updatePointSize()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Point Border Thickness: <span id="pointBorderValue">0.3</span></label>
+                        <input type="range" id="pointBorder" min="0" max="1" step="0.01" value="0.3" oninput="updatePointBorder()">
                     </div>
                 </div>
 
@@ -494,10 +530,10 @@
                     <div class="custom-gap" id="sieveControls" style="display: none;">
                         <label><strong>Sieve Parameters:</strong></label>
                         <div class="gap-input">
-                            Search up to: <input type="number" id="sieveLimit" min="100" max="1000000" value="10000" placeholder="10000">
+                            Search up to: <input type="number" id="sieveLimit" min="100" value="10000" placeholder="10000">
                         </div>
                         <div class="gap-input">
-                            Using modulus: <input type="number" id="sieveModulus" min="2" max="1000" value="30" placeholder="30">
+                            Using modulus: <input type="number" id="sieveModulus" min="2" value="30" placeholder="30">
                             <button onclick="runPrimeSieve()">Generate Sieve</button>
                         </div>
                         <div class="gap-input">
@@ -542,8 +578,22 @@
                     </div>
                     
                     <div class="custom-gap" id="primePatternAnalysis" style="display: none;">
-                        <label><strong>Pattern Analysis:</strong></label>
-                        <div id="residueDistribution" style="font-size: 12px; max-height: 200px; overflow-y: auto;"></div>
+                        <label><strong>Complete Prime Distribution Analysis:</strong></label>
+                        <div id="residueDistribution" style="font-size: 12px; max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 10px;"></div>
+                        
+                        <div class="gap-input" style="margin-top: 15px;">
+                            <button onclick="exportDetailedPrimeList()">Export All Primes by Residue</button>
+                            <button onclick="togglePrimeSearchMode()">Search Specific Primes</button>
+                        </div>
+                        
+                        <div id="primeSearchControls" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                            <label><strong>Prime Search:</strong></label>
+                            <div class="gap-input">
+                                Prime: <input type="number" id="searchPrime" min="2" max="1000000" placeholder="Enter prime">
+                                <button onclick="findPrimeInResidue()">Find Residue Class</button>
+                            </div>
+                            <div id="searchResult" style="margin-top: 10px; font-size: 13px;"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -575,27 +625,27 @@
             <div class="legend-grid">
                 <div class="legend-item">
                     <div class="legend-color" style="background: linear-gradient(45deg, #FFD700, #FFA500);"></div>
-                    <span><strong>Unit Circle (M=1)</strong> - Fundamental building block</span>
+                    <span><strong>Unit Circle (M=1)</strong> - Leonhard Euler's foundation</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FF6B6B;"></div>
-                    <span>Residues coprime to modulus <em class="math-notation">gcd(r,M) = 1</em></span>
+                    <span><em class="math-notation">gcd(r,M) = 1</em> - Euler's totient function φ(M)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #4ECDC4;"></div>
-                    <span>Prime gap connections within rings</span>
+                    <span>Prime gap connections within Euler's rings</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FFD700;"></div>
-                    <span>Direct lifts (consecutive): <em class="math-notation">r ↦ r</em></span>
+                    <span>Direct lifts: <em class="math-notation">r ↦ r</em> (Euler homomorphism)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FFD700; opacity: 0.4;"></div>
-                    <span>Direct lifts (skip-level): <em class="math-notation">r ↦ r</em></span>
+                    <span>Skip-level lifts: <em class="math-notation">r ↦ r</em> (extended morphism)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FF6384; border-style: dashed;"></div>
-                    <span>Modular lifts: <em class="math-notation">r ↦ r + M×2ⁿ</em></span>
+                    <span>Modular lifts: <em class="math-notation">r ↦ r + M×2ⁿ</em> (Chinese Remainder)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #9b59b6;"></div>
@@ -603,7 +653,7 @@
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: linear-gradient(45deg, #667eea, #764ba2);"></div>
-                    <span><em class="math-notation">Mₙ = 30 × 2ⁿ</em> series for n ∈ [-5, 10]</span>
+                    <span><em class="math-notation">Mₙ = 30 × 2ⁿ</em> series (Euler's multiplicative function)</span>
                 </div>
             </div>
         </div>
@@ -691,11 +741,16 @@
 
         function getResidueColor(r, modulus, ringIndex, colorMode) {
             const customColor = document.getElementById('customResidueColor').value;
+            const gcdBaseColor = document.getElementById('gcdBaseColor').value;
+            const nonGcdColor = document.getElementById('nonGcdColor').value;
             
             // Special handling for unit circle
             if (modulus === 1) {
                 return 'rgba(255, 215, 0, 0.9)'; // Golden color for unit circle
             }
+            
+            // Check if residue is coprime to modulus
+            const isGcdOne = gcd(r, Math.round(modulus)) === 1;
             
             switch(colorMode) {
                 case 'hue':
@@ -706,6 +761,46 @@
                     return `hsl(${(ringIndex * 67) % 360}, 78%, 62%)`;
                 case 'prime':
                     return isPrime(r) ? '#FF6B6B' : '#4ECDC4';
+                case 'gcd_unified':
+                    // All GCD=1 residues get same color, non-GCD=1 get different color
+                    return isGcdOne ? gcdBaseColor : nonGcdColor;
+                case 'gcd_per_mod':
+                    // Each modulus gets its own hue for GCD=1 residues
+                    if (isGcdOne) {
+                        const modHue = (Math.round(modulus) * 67) % 360;
+                        return `hsl(${modHue}, 85%, 70%)`;
+                    } else {
+                        return nonGcdColor;
+                    }
+                case 'gcd_per_residue':
+                    // Each unique GCD=1 residue value gets its own color across all moduli
+                    if (isGcdOne) {
+                        const residueHue = (r * 43 + 123) % 360; // Offset to avoid common angles
+                        return `hsl(${residueHue}, 78%, 68%)`;
+                    } else {
+                        return nonGcdColor;
+                    }
+                case 'gcd_mathematical':
+                    // Mathematical progression based on φ(n) and residue position
+                    if (isGcdOne) {
+                        const phi = getCoprimes(Math.round(modulus)).length;
+                        const position = getCoprimes(Math.round(modulus)).indexOf(r);
+                        const mathHue = (position * 360 / phi + Math.round(modulus) * 7) % 360;
+                        return `hsl(${mathHue}, 82%, 66%)`;
+                    } else {
+                        return nonGcdColor;
+                    }
+                case 'gcd_spectrum':
+                    // Spectral distribution based on modulus size and residue density
+                    if (isGcdOne) {
+                        const phi = getCoprimes(Math.round(modulus)).length;
+                        const density = phi / Math.round(modulus); // Euler's totient density
+                        const spectralHue = (density * 240 + r * 15) % 360; // Blue-to-red spectrum
+                        const saturation = 60 + density * 30; // Higher density = more saturated
+                        return `hsl(${spectralHue}, ${saturation}%, 65%)`;
+                    } else {
+                        return nonGcdColor;
+                    }
                 case 'custom':
                     return customColor;
                 default:
@@ -747,8 +842,8 @@
                 return;
             }
             
-            if (gapStart < 1 || gapEnd > 100) {
-                alert('Gap range must be between 1 and 100');
+            if (gapStart < 1) {
+                alert('Gap start must be at least 1');
                 return;
             }
             
@@ -800,13 +895,14 @@
                 return;
             }
             
-            if (modStart < 1 || modEnd > 1000) {
-                alert('Modulus range must be between 1 and 1,000');
+            if (modStart < 1) {
+                alert('Modulus start must be at least 1');
                 return;
             }
             
-            if ((modEnd - modStart) > 50) {
-                if (!confirm(`This will add ${modEnd - modStart + 1} rings. Continue?`)) {
+            // Only warn for extremely large ranges
+            if ((modEnd - modStart) > 1000) {
+                if (!confirm(`This will add ${modEnd - modStart + 1} rings. This may impact performance. Continue?`)) {
                     return;
                 }
             }
@@ -839,9 +935,16 @@
         function addCustomRing() {
             const modValue = parseInt(document.getElementById('customMod').value);
             
-            if (modValue < 2 || modValue > 50000) {
-                alert('Please enter a modulus between 2 and 50,000');
+            if (modValue < 1) {
+                alert('Please enter a modulus of at least 1');
                 return;
+            }
+            
+            // Only warn for extremely large moduli that might impact performance
+            if (modValue > 100000) {
+                if (!confirm(`Modulus ${modValue} is very large and may impact performance. Continue?`)) {
+                    return;
+                }
             }
             
             const existing = Object.values(configs).find(config => config.mod === modValue);
@@ -950,6 +1053,30 @@
             document.getElementById('gapThicknessValue').textContent = value;
             draw();
         }
+        
+        function updateRingThickness() {
+            const value = document.getElementById('ringThickness').value;
+            document.getElementById('ringThicknessValue').textContent = value;
+            draw();
+        }
+        
+        function updateUnitThickness() {
+            const value = document.getElementById('unitThickness').value;
+            document.getElementById('unitThicknessValue').textContent = value;
+            draw();
+        }
+        
+        function updatePointSize() {
+            const value = document.getElementById('pointSize').value;
+            document.getElementById('pointSizeValue').textContent = value;
+            draw();
+        }
+        
+        function updatePointBorder() {
+            const value = document.getElementById('pointBorder').value;
+            document.getElementById('pointBorderValue').textContent = value;
+            draw();
+        }
 
         // Advanced prime sieve implementation
         function sieveOfEratosthenes(limit) {
@@ -1004,14 +1131,21 @@
             const limit = parseInt(document.getElementById('sieveLimit').value);
             const modulus = parseInt(document.getElementById('sieveModulus').value);
             
-            if (limit < 100 || limit > 1000000) {
-                alert('Please enter a limit between 100 and 1,000,000');
+            if (limit < 2) {
+                alert('Please enter a limit of at least 2');
                 return;
             }
             
-            if (modulus < 2 || modulus > 1000) {
-                alert('Please enter a modulus between 2 and 1,000');
+            if (modulus < 2) {
+                alert('Please enter a modulus of at least 2');
                 return;
+            }
+            
+            // Warning for very large computations
+            if (limit > 10000000) {
+                if (!confirm(`Computing primes up to ${limit.toLocaleString()} may take significant time and memory. Continue?`)) {
+                    return;
+                }
             }
             
             // Show progress bar
@@ -1121,12 +1255,42 @@
                 const deviation = (parseFloat(data.percentage) - parseFloat(expectedPercent)).toFixed(2);
                 const deviationColor = deviation > 0 ? '#4ECDC4' : '#FF6B6B';
                 
+                // Format all primes for display - group in rows of 10 for readability
+                let primesDisplay = '';
+                if (data.count === 0) {
+                    primesDisplay = '<em>No primes in this residue class</em>';
+                } else if (data.count <= 50) {
+                    // Show all primes if 50 or fewer
+                    const rows = [];
+                    for (let i = 0; i < data.primes.length; i += 10) {
+                        rows.push(data.primes.slice(i, i + 10).join(', '));
+                    }
+                    primesDisplay = `[${rows.join(',<br>&nbsp;&nbsp;')}]`;
+                } else {
+                    // For large counts, show first 30, then last 10
+                    const firstPrimes = data.primes.slice(0, 30);
+                    const lastPrimes = data.primes.slice(-10);
+                    const firstRows = [];
+                    const lastRows = [];
+                    
+                    for (let i = 0; i < firstPrimes.length; i += 10) {
+                        firstRows.push(firstPrimes.slice(i, i + 10).join(', '));
+                    }
+                    for (let i = 0; i < lastPrimes.length; i += 10) {
+                        lastRows.push(lastPrimes.slice(i, i + 10).join(', '));
+                    }
+                    
+                    primesDisplay = `[${firstRows.join(',<br>&nbsp;&nbsp;')},<br>&nbsp;&nbsp;...(${data.count - 40} more)...,<br>&nbsp;&nbsp;${lastRows.join(',<br>&nbsp;&nbsp;')}]`;
+                }
+                
                 distributionHTML += `
                     <div style="margin: 5px 0; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px;">
                         <strong>r ≡ ${residue} (mod ${primeData.modulus}):</strong><br>
                         Count: ${data.count} primes (${data.percentage}%)<br>
                         <span style="color: ${deviationColor};">Deviation: ${deviation > 0 ? '+' : ''}${deviation}%</span><br>
-                        <em>First few: [${data.primes.slice(0, 8).join(', ')}${data.primes.length > 8 ? '...' : ''}]</em>
+                        <div style="font-family: monospace; font-size: 11px; margin-top: 5px; max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 3px;">
+                            ${primesDisplay}
+                        </div>
                     </div>
                 `;
             });
@@ -1186,7 +1350,22 @@
         function updateColorMode() {
             const mode = document.getElementById('residueColorMode').value;
             const customGroup = document.getElementById('customColorGroup');
-            customGroup.style.display = mode === 'custom' ? 'block' : 'none';
+            const gcdColorGroup = document.getElementById('gcdColorGroup');
+            const nonGcdColorGroup = document.getElementById('nonGcdColorGroup');
+            
+            // Hide all color option groups first
+            customGroup.style.display = 'none';
+            gcdColorGroup.style.display = 'none';
+            nonGcdColorGroup.style.display = 'none';
+            
+            // Show relevant color options based on mode
+            if (mode === 'custom') {
+                customGroup.style.display = 'block';
+            } else if (mode.startsWith('gcd_')) {
+                gcdColorGroup.style.display = 'block';
+                nonGcdColorGroup.style.display = 'block';
+            }
+            
             draw();
         }
 
@@ -1268,42 +1447,53 @@
             
             // Reset modulus controls
             document.getElementById('customMod').value = 42;
-            document.getElementById('modStart').value = 1;
-            document.getElementById('modEnd').value = 20;
+            document.getElementById('modStart').value = 31;
+            document.getElementById('modEnd').value = 50;
             
-            // Remove custom rings
+            // Remove custom rings and rebuild with new defaults
             Object.keys(configs).forEach(key => {
-                if (key.startsWith('custom_')) {
+                if (key.startsWith('custom_') || key.startsWith('default_')) {
                     delete configs[key];
                 }
             });
             
-            // Rebuild ring controls with unit circle first
+            // Rebuild ring controls with unit circle first, then M1-M30 by default
             const ringControls = document.getElementById('ringControls');
             ringControls.innerHTML = '';
             
-            // Add unit circle first (always)
+            // Add unit circle first (always checked)
             addRingControl('unit', 'Unit Circle (M=1)', true);
             
-            // Add standard series
+            // Add M1-M30 by default (all checked)
+            for (let mod = 2; mod <= 30; mod++) {
+                const customId = `default_${mod}`;
+                configs[customId] = { 
+                    mod: mod, 
+                    label: mod.toString(),
+                    description: `Default modulus ${mod}`
+                };
+                addRingControl(customId, `M${mod}`, true);
+            }
+            
+            // Add standard series (unchecked by default now)
             Object.keys(configs).forEach(n => {
-                if (!n.startsWith('custom_') && n !== 'unit') {
-                    addRingControl(n, `n=${n} (M=${configs[n].label})`, ['0', '1', '2'].includes(n));
+                if (!n.startsWith('custom_') && !n.startsWith('default_') && n !== 'unit') {
+                    addRingControl(n, `n=${n} (M=${configs[n].label})`, false);
                 }
             });
             
-            // Reset all controls to defaults
+            // Reset controls to new defaults
             document.getElementById('showLabels').checked = true;
             document.getElementById('invertNesting').checked = false;
-            document.getElementById('showDirectLifts').checked = true;
+            document.getElementById('showDirectLifts').checked = false; // Default off
             document.getElementById('showModularLifts').checked = false;
             document.getElementById('enableRotation').checked = false;
             document.getElementById('reverseDirection').checked = false;
             document.getElementById('showUnitCircle').checked = true;
             
-            // Reset sliders
+            // Reset sliders with new defaults
             document.getElementById('zoomSlider').value = 1;
-            document.getElementById('rotationSlider').value = 0;
+            document.getElementById('rotationSlider').value = 90; // Default 90° rotation
             document.getElementById('lineThickness').value = 2;
             document.getElementById('gapLineThickness').value = 1.5;
             document.getElementById('globalSpeed').value = 1;
@@ -1311,7 +1501,8 @@
             document.getElementById('residueColorMode').value = 'hue';
             document.getElementById('liftLineColor').value = '#FFD700';
             document.getElementById('modularLiftColor').value = '#FF6384';
-            document.getElementById('customResidueColor').value = '#FF6B6B';
+            document.getElementById('gcdBaseColor').value = '#FF6B6B';
+            document.getElementById('nonGcdColor').value = '#666666';
             
             // Update displays
             updateZoom();
@@ -1440,18 +1631,21 @@
                     ctx.globalAlpha = 1.0;
                 }
 
-                // Enhanced ring circle drawing
+                // Enhanced ring circle drawing with normalized thickness controls
                 ctx.beginPath();
                 ctx.arc(0, 0, ring.radius, 0, 2 * Math.PI);
                 
+                const ringThicknessNorm = parseFloat(document.getElementById('ringThickness').value);
+                const unitThicknessNorm = parseFloat(document.getElementById('unitThickness').value);
+                
                 if (ring.n === 'unit' && showUnitCircle) {
-                    // Special styling for unit circle
+                    // Special styling for unit circle with normalized thickness
                     ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 0.5 + unitThicknessNorm * 4.5; // Scale 0-1 to 0.5-5.0
                     ctx.setLineDash([]);
                 } else {
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-                    ctx.lineWidth = 1;
+                    ctx.lineWidth = 0.2 + ringThicknessNorm * 1.8; // Scale 0-1 to 0.2-2.0
                     ctx.setLineDash([2, 4]);
                 }
                 ctx.stroke();
@@ -1459,14 +1653,26 @@
 
                 // Enhanced residue points with prime sieve integration
                 ring.residues.forEach(r => {
-                    const baseAngle = ring.n === 'unit' ? -Math.PI / 2 : 2 * Math.PI * r / ring.modulus - Math.PI / 2;
+                    // FIXED: Correct angle calculation to match mathematical convention
+                    // For mod M, residue r should be at angle: 2π * (M - r) / M (clockwise from top)
+                    // This puts gcd(r,M)=1 residues in their proper mathematical positions
+                    let baseAngle;
+                    if (ring.n === 'unit') {
+                        baseAngle = 0; // Unit circle residue 0 at 0° (3 o'clock position)
+                    } else {
+                        // Reverse the angle calculation so gcd=1 residues align correctly
+                        baseAngle = 2 * Math.PI * (ring.modulus - r) / ring.modulus;
+                    }
+                    
                     const angle = baseAngle + ringRotation;
                     const x = ring.radius * Math.cos(angle);
                     const y = ring.radius * Math.sin(angle);
 
-                    // Enhanced point drawing with prime analysis
+                    // Enhanced point drawing with normalized thickness controls
                     ctx.beginPath();
-                    let pointSize = ring.n === 'unit' ? 6 : (ring.radius > 150 ? 4 : 3);
+                    const pointSizeNorm = parseFloat(document.getElementById('pointSize').value);
+                    const basePointSize = ring.n === 'unit' ? 8 : (ring.radius > 150 ? 6 : 4);
+                    let pointSize = basePointSize * (0.2 + pointSizeNorm * 1.8); // Scale 0-1 to 0.2-2.0
                     
                     // Prime sieve visualization enhancements
                     if (primeData.isActive && ring.modulus === primeData.modulus) {
@@ -1520,9 +1726,11 @@
                     ctx.fillStyle = color;
                     ctx.fill();
                     
-                    // Enhanced border for better visibility
+                    // Enhanced border for better visibility with normalized thickness
+                    const pointBorderNorm = parseFloat(document.getElementById('pointBorder').value);
+                    const borderThickness = 0.5 + pointBorderNorm * 2.5; // Scale 0-1 to 0.5-3.0
                     ctx.strokeStyle = ring.n === 'unit' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)';
-                    ctx.lineWidth = ring.n === 'unit' ? 2 : 1.5;
+                    ctx.lineWidth = borderThickness;
                     ctx.stroke();
 
                     // Enhanced labels with prime count information
@@ -1550,6 +1758,9 @@
 
                 // Enhanced gap connections (skip for unit circle as it has no gaps)
                 if (ring.n !== 'unit') {
+                    const gapThicknessNorm = parseFloat(document.getElementById('gapLineThickness').value);
+                    const gapLineWidth = 0.2 + gapThicknessNorm * 2.8; // Scale 0-1 to 0.2-3.0
+                    
                     selectedGaps.forEach((gap, index) => {
                         const hue = (index * 360 / selectedGaps.length) % 360;
                         
@@ -1557,8 +1768,9 @@
                             const r2 = r + gap;
                             const mod = Math.round(ring.modulus);
                             if (ring.residues.includes(r2 % mod)) {
-                                const baseAngle1 = 2 * Math.PI * r / ring.modulus - Math.PI / 2;
-                                const baseAngle2 = 2 * Math.PI * (r2 % mod) / ring.modulus - Math.PI / 2;
+                                // FIXED: Apply same angle correction for gap connections
+                                const baseAngle1 = 2 * Math.PI * (ring.modulus - r) / ring.modulus;
+                                const baseAngle2 = 2 * Math.PI * (ring.modulus - (r2 % mod)) / ring.modulus;
                                 const angle1 = baseAngle1 + ringRotation;
                                 const angle2 = baseAngle2 + ringRotation;
                                 const x1 = ring.radius * Math.cos(angle1);
@@ -1570,7 +1782,7 @@
                                 ctx.moveTo(x1, y1);
                                 ctx.lineTo(x2, y2);
                                 ctx.strokeStyle = `hsla(${hue}, 75%, 65%, 0.6)`;
-                                ctx.lineWidth = gapLineThickness;
+                                ctx.lineWidth = gapLineWidth;
                                 ctx.stroke();
                             }
                         });
@@ -1578,8 +1790,11 @@
                 }
             });
 
-            // Enhanced lift line drawing with unit circle support
+            // Enhanced lift line drawing with unit circle support and normalized thickness
             if ((showDirectLifts || showModularLifts) && rings.length > 1) {
+                const liftThicknessNorm = parseFloat(document.getElementById('lineThickness').value);
+                const baseLiftThickness = 0.5 + liftThicknessNorm * 3.5; // Scale 0-1 to 0.5-4.0
+                
                 for (let i = 0; i < rings.length; i++) {
                     for (let j = i + 1; j < rings.length; j++) {
                         const ring1 = rings[i];
@@ -1605,8 +1820,20 @@
                         ring1.residues.forEach(r => {
                             // Enhanced direct lifts with unit circle special handling
                             if (showDirectLifts && ring2.residues.includes(r)) {
-                                const baseAngle1 = ring1.n === 'unit' ? -Math.PI / 2 : 2 * Math.PI * r / ring1.modulus - Math.PI / 2;
-                                const baseAngle2 = ring2.n === 'unit' ? -Math.PI / 2 : 2 * Math.PI * r / ring2.modulus - Math.PI / 2;
+                                // FIXED: Apply angle correction for lift lines
+                                let baseAngle1, baseAngle2;
+                                if (ring1.n === 'unit') {
+                                    baseAngle1 = 0; // Unit circle at 0°
+                                } else {
+                                    baseAngle1 = 2 * Math.PI * (ring1.modulus - r) / ring1.modulus;
+                                }
+                                
+                                if (ring2.n === 'unit') {
+                                    baseAngle2 = 0; // Unit circle at 0°
+                                } else {
+                                    baseAngle2 = 2 * Math.PI * (ring2.modulus - r) / ring2.modulus;
+                                }
+                                
                                 const angle1 = baseAngle1 + ringRotation1;
                                 const angle2 = baseAngle2 + ringRotation2;
                                 const x1 = ring1.radius * Math.cos(angle1);
@@ -1623,10 +1850,10 @@
                                 
                                 if (hasUnitCircle) {
                                     ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)'; // Golden for unit circle connections
-                                    ctx.lineWidth = lineThickness * 1.2;
+                                    ctx.lineWidth = baseLiftThickness * 1.2;
                                 } else {
                                     ctx.strokeStyle = isConsecutive ? liftLineColor : liftLineColor + '66';
-                                    ctx.lineWidth = isConsecutive ? lineThickness : lineThickness * 0.7;
+                                    ctx.lineWidth = isConsecutive ? baseLiftThickness : baseLiftThickness * 0.7;
                                 }
                                 ctx.stroke();
                             }
@@ -1650,8 +1877,9 @@
                                     const liftedR = (r + shift) % Math.round(ring2.modulus);
                                     
                                     if (ring2.residues.includes(liftedR)) {
-                                        const baseAngle1 = 2 * Math.PI * r / ring1.modulus - Math.PI / 2;
-                                        const baseAngle2 = 2 * Math.PI * liftedR / ring2.modulus - Math.PI / 2;
+                                        // FIXED: Apply angle correction for modular lifts
+                                        const baseAngle1 = 2 * Math.PI * (ring1.modulus - r) / ring1.modulus;
+                                        const baseAngle2 = 2 * Math.PI * (ring2.modulus - liftedR) / ring2.modulus;
                                         const angle1 = baseAngle1 + ringRotation1;
                                         const angle2 = baseAngle2 + ringRotation2;
                                         const x1 = ring1.radius * Math.cos(angle1);
@@ -1665,7 +1893,7 @@
                                         
                                         const isConsecutive = (j === i + 1);
                                         ctx.strokeStyle = isConsecutive ? modularLiftColor : modularLiftColor + '55';
-                                        ctx.lineWidth = isConsecutive ? lineThickness * 0.9 : lineThickness * 0.6;
+                                        ctx.lineWidth = isConsecutive ? baseLiftThickness * 0.9 : baseLiftThickness * 0.6;
                                         ctx.setLineDash(isConsecutive ? [6, 4] : [3, 6]);
                                         ctx.stroke();
                                         ctx.setLineDash([]);
@@ -1760,33 +1988,110 @@
             info.innerHTML = html;
         }
 
-        // Add missing prime sieve export function
-        function exportPrimeData() {
+        // Add missing prime search and export functions
+        function exportDetailedPrimeList() {
             if (!primeData.isActive) {
                 alert('No prime data to export. Run a sieve first.');
                 return;
             }
             
-            const exportData = {
-                modulus: primeData.modulus,
-                limit: primeData.limit,
-                totalPrimes: primeData.totalPrimes,
-                primes: primeData.primes,
-                residueDistribution: primeData.residueDistribution,
-                timestamp: new Date().toISOString()
-            };
+            let exportText = `Complete Prime Distribution Analysis\n`;
+            exportText += `Modulus: ${primeData.modulus}, Limit: ${primeData.limit}\n`;
+            exportText += `Total Primes: ${primeData.totalPrimes}\n`;
+            exportText += `Generated: ${new Date().toISOString()}\n\n`;
             
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const sortedResidues = Object.keys(primeData.residueDistribution).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            sortedResidues.forEach(residue => {
+                const data = primeData.residueDistribution[residue];
+                exportText += `\n=== Residue Class r ≡ ${residue} (mod ${primeData.modulus}) ===\n`;
+                exportText += `Count: ${data.count} primes (${data.percentage}%)\n`;
+                
+                if (data.count === 0) {
+                    exportText += `No primes in this residue class\n`;
+                } else {
+                    exportText += `All ${data.count} primes: `;
+                    // Format in rows of 15 for readability
+                    for (let i = 0; i < data.primes.length; i += 15) {
+                        if (i > 0) exportText += '\n                     ';
+                        exportText += data.primes.slice(i, i + 15).join(', ');
+                        if (i + 15 < data.primes.length) exportText += ',';
+                    }
+                    exportText += '\n';
+                }
+            });
+            
+            const dataBlob = new Blob([exportText], {type: 'text/plain'});
             const url = URL.createObjectURL(dataBlob);
             
             const link = document.createElement('a');
             link.href = url;
-            link.download = `prime_sieve_mod${primeData.modulus}_to_${primeData.limit}.json`;
+            link.download = `complete_prime_distribution_mod${primeData.modulus}_to_${primeData.limit}.txt`;
             link.click();
             
             URL.revokeObjectURL(url);
-            updateAnimationStatus('Prime data exported successfully');
+            updateAnimationStatus('Complete prime distribution exported');
+        }
+        
+        function togglePrimeSearchMode() {
+            const controls = document.getElementById('primeSearchControls');
+            const isVisible = controls.style.display !== 'none';
+            controls.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                document.getElementById('searchPrime').focus();
+            }
+        }
+        
+        function findPrimeInResidue() {
+            const searchPrime = parseInt(document.getElementById('searchPrime').value);
+            const result = document.getElementById('searchResult');
+            
+            if (!primeData.isActive) {
+                result.innerHTML = '<span style="color: #FF6B6B;">No sieve data available. Run a prime sieve first.</span>';
+                return;
+            }
+            
+            if (!searchPrime || searchPrime < 2) {
+                result.innerHTML = '<span style="color: #FF6B6B;">Please enter a valid prime number ≥ 2.</span>';
+                return;
+            }
+            
+            if (!isPrime(searchPrime)) {
+                result.innerHTML = `<span style="color: #FF6B6B;">${searchPrime} is not a prime number.</span>`;
+                return;
+            }
+            
+            if (searchPrime > primeData.limit) {
+                result.innerHTML = `<span style="color: #FFA500;">Prime ${searchPrime} is beyond sieve limit ${primeData.limit}. Cannot verify presence in residue classes.</span>`;
+                return;
+            }
+            
+            const residue = searchPrime % primeData.modulus;
+            const residueData = primeData.residueDistribution[residue];
+            
+            if (residueData && residueData.primes.includes(searchPrime)) {
+                const position = residueData.primes.indexOf(searchPrime) + 1;
+                result.innerHTML = `
+                    <span style="color: #4ECDC4;"><strong>✓ Found!</strong></span><br>
+                    Prime ${searchPrime} ≡ ${residue} (mod ${primeData.modulus})<br>
+                    Position ${position} of ${residueData.count} primes in this residue class<br>
+                    <em>This residue class contains ${residueData.percentage}% of all primes up to ${primeData.limit}</em>
+                `;
+            } else if (gcd(residue, primeData.modulus) !== 1) {
+                result.innerHTML = `
+                    <span style="color: #FF6B6B;"><strong>Impossible!</strong></span><br>
+                    Prime ${searchPrime} ≡ ${residue} (mod ${primeData.modulus})<br>
+                    But gcd(${residue}, ${primeData.modulus}) = ${gcd(residue, primeData.modulus)} ≠ 1<br>
+                    <em>This residue class cannot contain primes (except possibly small exceptions)</em>
+                `;
+            } else {
+                result.innerHTML = `
+                    <span style="color: #FFA500;"><strong>Not found in sieve data</strong></span><br>
+                    Prime ${searchPrime} should be ≡ ${residue} (mod ${primeData.modulus})<br>
+                    <em>This may indicate the prime is beyond the sieve limit or there's a calculation error</em>
+                `;
+            }
         }
 
         // Enhanced initialization
@@ -1794,10 +2099,21 @@
             // Add unit circle first (highlighted and checked by default)
             addRingControl('unit', 'Unit Circle (M=1)', true);
             
-            // Add standard M_n series
+            // Add consecutive moduli 1-30 by default
+            for (let mod = 2; mod <= 30; mod++) {
+                const customId = `default_${mod}`;
+                configs[customId] = { 
+                    mod: mod, 
+                    label: mod.toString(),
+                    description: `Default modulus ${mod}`
+                };
+                addRingControl(customId, `M${mod}`, true);
+            }
+            
+            // Add standard M_n series (unchecked by default)
             Object.keys(configs).forEach(n => {
-                if (!n.startsWith('custom_') && n !== 'unit') {
-                    addRingControl(n, `n=${n} (M=${configs[n].label})`, ['0', '1', '2'].includes(n));
+                if (!n.startsWith('custom_') && !n.startsWith('default_') && n !== 'unit') {
+                    addRingControl(n, `n=${n} (M=${configs[n].label})`, false);
                 }
             });
 
@@ -1807,7 +2123,7 @@
             document.getElementById('rotationSlider').addEventListener('input', updateRotation);
             document.getElementById('enablePrimeSieve').addEventListener('change', togglePrimeSieve);
             
-            updateAnimationStatus('System initialized with Unit Circle foundation');
+            updateAnimationStatus('System initialized with corrected angle positioning and normalized thickness controls');
         }
 
         // Initialize the enhanced system
