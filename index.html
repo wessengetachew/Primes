@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modular Lifting Rings By Wessen</title>
+    <title>Interactive Modular Lifting Rings</title>
     <style>
         * {
             margin: 0;
@@ -12,87 +12,108 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #667eea 100%);
             color: white;
             min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 25px;
             padding: 30px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         h1 {
             text-align: center;
-            font-size: 2.5em;
+            font-size: 3em;
             margin-bottom: 10px;
-            background: linear-gradient(45deg, #FFD700, #FFA500);
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FF6B6B);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
         }
 
         .subtitle {
             text-align: center;
-            opacity: 0.8;
+            opacity: 0.9;
             margin-bottom: 30px;
+            font-size: 1.2em;
+            font-weight: 300;
         }
 
         .main-grid {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 350px 1fr;
             gap: 30px;
         }
 
         .controls {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 20px;
             height: fit-content;
-            max-height: 90vh;
+            max-height: 85vh;
             overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .control-section {
             margin-bottom: 25px;
-            padding: 15px;
+            padding: 20px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .control-section h3 {
             color: #FFD700;
             margin-bottom: 15px;
-            font-size: 1.1em;
+            font-size: 1.2em;
+            font-weight: 600;
         }
 
         .checkbox-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .checkbox-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 5px;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .checkbox-item input[type="checkbox"] {
-            transform: scale(1.2);
+            transform: scale(1.3);
+            accent-color: #FFD700;
+        }
+
+        .unit-circle-highlight {
+            background: linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            font-weight: bold;
         }
 
         .custom-gap {
             margin-top: 15px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .gap-input {
@@ -103,129 +124,188 @@
         }
 
         .gap-input input {
-            width: 80px;
-            padding: 5px;
+            width: 90px;
+            padding: 8px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
+            font-size: 14px;
+        }
+
+        .gap-input input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
         }
 
         button {
             background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
             border: none;
-            padding: 10px 15px;
-            border-radius: 20px;
+            padding: 12px 18px;
+            border-radius: 25px;
             color: white;
             cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s;
-            margin: 2px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin: 3px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         button:hover {
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
 
         .reset-btn {
             background: linear-gradient(45deg, #e74c3c, #c0392b);
         }
 
+        .special-btn {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+
         .slider-group {
-            margin: 10px 0;
+            margin: 15px 0;
         }
 
         .slider-group label {
             display: block;
-            margin-bottom: 5px;
-            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
         }
 
-        .slider-group input {
+        .slider-group input[type="range"] {
             width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #FFD700;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
         .slider-group select {
             width: 100%;
-            padding: 5px;
-            border-radius: 5px;
+            padding: 8px;
+            border-radius: 8px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+        }
+
+        .slider-group input[type="color"] {
+            width: 100%;
+            height: 40px;
             border: none;
+            border-radius: 8px;
+            cursor: pointer;
         }
 
         .canvas-container {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 15px;
-            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         #canvas {
-            border-radius: 10px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.2) 100%);
+            border-radius: 15px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.3) 100%);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         }
 
         .info-panel {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            border-radius: 10px;
-            min-width: 200px;
-            max-height: 400px;
+            top: 25px;
+            right: 25px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 15px;
+            min-width: 220px;
+            max-height: 450px;
             overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
         }
 
         .info-panel h4 {
             color: #FFD700;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
         }
 
         .ring-info {
-            margin: 8px 0;
-            padding: 8px;
+            margin: 10px 0;
+            padding: 12px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            font-size: 0.9em;
+            border-radius: 8px;
+            font-size: 13px;
+            border-left: 3px solid #FFD700;
+        }
+
+        .unit-circle-info {
+            background: linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            border-left: 3px solid #FFD700;
+            font-weight: bold;
         }
 
         .legend {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .legend h3 {
             color: #FFD700;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 1.3em;
         }
 
         .legend-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .legend-color {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             border: 2px solid white;
+            flex-shrink: 0;
         }
 
-        @media (max-width: 1200px) {
+        .math-notation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+
+        @media (max-width: 1400px) {
             .main-grid {
                 grid-template-columns: 1fr;
             }
@@ -237,26 +317,37 @@
                 margin-top: 20px;
             }
         }
+
+        .animation-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Interactive Modular Lifting Rings</h1>
-        <div class="subtitle">Version 5.0 - Advanced Customization & Animation</div>
+        <h1> Modular Lifting Rings</h1>
+        <div class="subtitle"> Complete Mathematical Foundation from Unit Circle M=1</div>
 
         <div class="main-grid">
             <div class="controls">
                 <div class="control-section">
-                    <h3>Gap Sizes</h3>
+                    <h3>Gap Analysis</h3>
                     <div class="checkbox-group" id="gapControls">
                         <div class="checkbox-item">
-                            <input type="checkbox" value="2" checked> Gap 2 (Twin)
+                            <input type="checkbox" value="2" checked> Gap 2 (Twin Primes)
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" value="4"> Gap 4 (Cousin)
+                            <input type="checkbox" value="4"> Gap 4 (Cousin Primes)
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" value="6"> Gap 6 (Sexy)
+                            <input type="checkbox" value="6"> Gap 6 (Sexy Primes)
                         </div>
                         <div class="checkbox-item">
                             <input type="checkbox" value="8"> Gap 8
@@ -270,42 +361,42 @@
                     </div>
                     
                     <div class="custom-gap">
-                        <label><strong>Custom Gap Range:</strong></label>
+                        <label><strong>Dynamic Gap Generation:</strong></label>
                         <div class="gap-input">
-                            Max Gap: <input type="number" id="maxGap" min="2" max="100" step="2" value="12">
+                            Max Gap: <input type="number" id="maxGap" min="2" max="100" step="2" value="12" placeholder="12">
                         </div>
-                        <button onclick="generateGaps()">Generate Gaps</button>
+                        <button onclick="generateGaps()"> Generate Gap Range</button>
                     </div>
                 </div>
 
                 <div class="control-section">
-                    <h3>Ring Selection</h3>
+                    <h3>🔵 Modular Ring System</h3>
                     <div class="checkbox-group" id="ringControls">
                         <!-- Generated by JavaScript -->
                     </div>
                     
                     <div class="custom-gap">
-                        <label><strong>Custom Modulus:</strong></label>
+                        <label><strong>Custom Modulus Explorer:</strong></label>
                         <div class="gap-input">
-                            Modulus: <input type="number" id="customMod" min="2" max="10000" value="42">
-                            <button onclick="addCustomRing()">Add Ring</button>
+                            Modulus: <input type="number" id="customMod" min="2" max="50000" value="42" placeholder="42">
+                            <button onclick="addCustomRing()"> Add Ring</button>
                         </div>
-                        <div style="font-size: 0.9em; opacity: 0.8; margin-top: 5px;">
-                            Examples: 42, 105, 210, 420...
+                        <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
+                             Examples: 42, 77, 105, 210, 420, 1001...
                         </div>
                     </div>
                 </div>
 
                 <div class="control-section">
-                    <h3>Visual Customization</h3>
+                    <h3> Visual Customization</h3>
                     <div class="slider-group">
-                        <label>Residue Color Mode:</label>
+                        <label>Residue Coloring Scheme:</label>
                         <select id="residueColorMode" onchange="updateColorMode()">
-                            <option value="hue">Rainbow by Position</option>
-                            <option value="value">By Residue Value</option>
-                            <option value="modulo">By Modulus</option>
-                            <option value="prime">Prime vs Composite</option>
-                            <option value="custom">Custom Color</option>
+                            <option value="hue"> Rainbow by Angular Position</option>
+                            <option value="value"> By Residue Value</option>
+                            <option value="modulo"> By Ring (Modulus)</option>
+                            <option value="prime"> Prime vs Composite</option>
+                            <option value="custom"> Custom Single Color</option>
                         </select>
                     </div>
                     <div class="slider-group" id="customColorGroup" style="display: none;">
@@ -314,119 +405,131 @@
                     </div>
                     
                     <div class="slider-group">
-                        <label>Lift Line Color:</label>
+                        <label>Direct Lift Line Color:</label>
                         <input type="color" id="liftLineColor" value="#FFD700" onchange="draw()">
                     </div>
                     
                     <div class="slider-group">
-                        <label>Modular Lift Color:</label>
+                        <label>Modular Lift Line Color:</label>
                         <input type="color" id="modularLiftColor" value="#FF6384" onchange="draw()">
                     </div>
                     
                     <div class="slider-group">
-                        <label>Line Thickness: <span id="thicknessValue">2</span>px</label>
-                        <input type="range" id="lineThickness" min="0.5" max="8" step="0.5" value="2" oninput="updateThickness()">
+                        <label>Line Thickness: <span id="thicknessValue">2.0</span>px</label>
+                        <input type="range" id="lineThickness" min="0.5" max="10" step="0.5" value="2" oninput="updateThickness()">
                     </div>
                 </div>
 
                 <div class="control-section">
-                    <h3>Animation Controls</h3>
+                    <h3> Advanced Animation Engine</h3>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="enableRotation" onchange="toggleRotation()"> Enable Ring Rotation
+                        <input type="checkbox" id="enableRotation" onchange="toggleRotation()"> 🔄 Enable Individual Ring Rotation
                     </div>
                     <div class="slider-group">
-                        <label>Global Speed: <span id="globalSpeedValue">1.0</span>x</label>
-                        <input type="range" id="globalSpeed" min="0.1" max="5" step="0.1" value="1" oninput="updateGlobalSpeed()">
+                        <label>Global Animation Speed: <span id="globalSpeedValue">1.0</span>x</label>
+                        <input type="range" id="globalSpeed" min="0.1" max="8" step="0.1" value="1" oninput="updateGlobalSpeed()">
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="reverseDirection"> Reverse Direction
+                        <input type="checkbox" id="reverseDirection"> ↩️ Reverse Rotation Direction
                     </div>
-                    <button onclick="toggleInversionAnimation()">Show Inversion Process</button>
-                    <div id="inversionControls" style="display: none; margin-top: 10px;">
+                    <button class="special-btn" onclick="toggleInversionAnimation()">🔄 Mathematical Inversion Process</button>
+                    <div id="inversionControls" style="display: none; margin-top: 15px;">
                         <div class="slider-group">
-                            <label>Inversion Speed: <span id="inversionSpeedValue">1.0</span>x</label>
-                            <input type="range" id="inversionSpeed" min="0.1" max="3" step="0.1" value="1" oninput="updateInversionSpeed()">
+                            <label>Inversion Wave Speed: <span id="inversionSpeedValue">1.0</span>x</label>
+                            <input type="range" id="inversionSpeed" min="0.1" max="5" step="0.1" value="1" oninput="updateInversionSpeed()">
                         </div>
-                        <button onclick="stopInversionAnimation()">Stop Inversion</button>
+                        <button onclick="stopInversionAnimation()">⏹️ Stop Inversion</button>
                     </div>
                 </div>
 
                 <div class="control-section">
-                    <h3>Display Options</h3>
+                    <h3> Display Controls</h3>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showLabels" checked> Show Labels
+                        <input type="checkbox" id="showLabels" checked> 🏷️ Show Residue Labels
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="invertNesting"> Invert Nesting
+                        <input type="checkbox" id="invertNesting"> 🔄 Invert Ring Nesting Order
                     </div>
-                    <button class="reset-btn" onclick="resetAll()">Reset All</button>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showUnitCircle" checked> ⭕ Highlight Unit Circle
+                    </div>
+                    <button class="reset-btn" onclick="resetAll()">🔄 Reset All Settings</button>
                 </div>
 
                 <div class="control-section">
-                    <h3>Lift Lines</h3>
+                    <h3> Lifting Morphisms</h3>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showDirectLifts" checked> Direct (r → r)
+                        <input type="checkbox" id="showDirectLifts" checked> 📏 Direct Lifts (r → r)
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showModularLifts"> Modular (r → r + M×2ⁿ)
+                        <input type="checkbox" id="showModularLifts"> 📐 Modular Lifts (r → r + M×2ⁿ)
                     </div>
                 </div>
 
                 <div class="control-section">
-                    <h3>Controls</h3>
+                    <h3> View Controls</h3>
                     <div class="slider-group">
-                        <label>Zoom: <span id="zoomValue">1.0</span></label>
-                        <input type="range" id="zoomSlider" min="0.3" max="2.5" step="0.1" value="1">
+                        <label>Zoom Level: <span id="zoomValue">1.0</span>x</label>
+                        <input type="range" id="zoomSlider" min="0.2" max="3.5" step="0.1" value="1" oninput="updateZoom()">
                     </div>
                     <div class="slider-group">
-                        <label>Rotation: <span id="rotationValue">0°</span></label>
-                        <input type="range" id="rotationSlider" min="0" max="360" step="1" value="0">
+                        <label>Manual Rotation: <span id="rotationValue">0°</span></label>
+                        <input type="range" id="rotationSlider" min="0" max="360" step="1" value="0" oninput="updateRotation()">
                     </div>
                 </div>
             </div>
 
             <div class="canvas-container">
-                <canvas id="canvas" width="800" height="600"></canvas>
+                <canvas id="canvas" width="900" height="700"></canvas>
+                <div class="animation-status" id="animationStatus">Ready</div>
                 <div class="info-panel">
-                    <h4>Ring Information</h4>
-                    <div id="ringInfo">Select rings to view details</div>
+                    <h4> Mathematical Analysis</h4>
+                    <div id="ringInfo">Select rings to view detailed analysis</div>
                 </div>
             </div>
         </div>
 
         <div class="legend">
-            <h3>Legend</h3>
+            <h3>📖 Mathematical Legend & Notation</h3>
             <div class="legend-grid">
                 <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(45deg, #FFD700, #FFA500);"></div>
+                    <span><strong>Unit Circle (M=1)</strong> - Fundamental building block</span>
+                </div>
+                <div class="legend-item">
                     <div class="legend-color" style="background: #FF6B6B;"></div>
-                    <span>Residues coprime to modulus</span>
+                    <span>Residues coprime to modulus <em class="math-notation">gcd(r,M) = 1</em></span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #4ECDC4;"></div>
-                    <span>Gap connections</span>
+                    <span>Prime gap connections within rings</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FFD700;"></div>
-                    <span>Direct lifts - consecutive</span>
+                    <span>Direct lifts (consecutive): <em class="math-notation">r ↦ r</em></span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FFD700; opacity: 0.4;"></div>
-                    <span>Direct lifts - skip levels</span>
+                    <span>Direct lifts (skip-level): <em class="math-notation">r ↦ r</em></span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FF6384; border-style: dashed;"></div>
-                    <span>Modular lifts - consecutive</span>
+                    <span>Modular lifts: <em class="math-notation">r ↦ r + M×2ⁿ</em></span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #FF6384; opacity: 0.3; border-style: dotted;"></div>
-                    <span>Modular lifts - skip levels</span>
+                    <div class="legend-color" style="background: #9b59b6;"></div>
+                    <span>Custom moduli explorations</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(45deg, #667eea, #764ba2);"></div>
+                    <span><em class="math-notation">Mₙ = 30 × 2ⁿ</em> series for n ∈ [-5, 10]</span>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Global variables
+        // Global state management
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let animating = false;
@@ -436,27 +539,28 @@
         let inversionProgress = 0;
         let ringRotationSpeeds = {};
 
-        // Modulus configurations
+        // Enhanced modulus configurations with unit circle foundation
         const configs = {
-            '-5': { mod: 30/32, label: '30/32' },
-            '-4': { mod: 30/16, label: '30/16' },
-            '-3': { mod: 30/8, label: '30/8' },
-            '-2': { mod: 30/4, label: '30/4' },
-            '-1': { mod: 30/2, label: '15' },
-            '0': { mod: 30, label: '30' },
-            '1': { mod: 60, label: '60' },
-            '2': { mod: 120, label: '120' },
-            '3': { mod: 240, label: '240' },
-            '4': { mod: 480, label: '480' },
-            '5': { mod: 960, label: '960' },
-            '6': { mod: 1920, label: '1920' },
-            '7': { mod: 3840, label: '3840' },
-            '8': { mod: 7680, label: '7680' },
-            '9': { mod: 15360, label: '15360' },
-            '10': { mod: 30720, label: '30720' }
+            'unit': { mod: 1, label: '1', description: 'Unit Circle - Fundamental mathematical foundation' },
+            '-5': { mod: 30/32, label: '30/32', description: 'M₋₅ = 30/32 ≈ 0.9375' },
+            '-4': { mod: 30/16, label: '30/16', description: 'M₋₄ = 30/16 = 1.875' },
+            '-3': { mod: 30/8, label: '30/8', description: 'M₋₃ = 30/8 = 3.75' },
+            '-2': { mod: 30/4, label: '30/4', description: 'M₋₂ = 30/4 = 7.5' },
+            '-1': { mod: 30/2, label: '15', description: 'M₋₁ = 15' },
+            '0': { mod: 30, label: '30', description: 'M₀ = 30 (Base modulus)' },
+            '1': { mod: 60, label: '60', description: 'M₁ = 60' },
+            '2': { mod: 120, label: '120', description: 'M₂ = 120' },
+            '3': { mod: 240, label: '240', description: 'M₃ = 240' },
+            '4': { mod: 480, label: '480', description: 'M₄ = 480' },
+            '5': { mod: 960, label: '960', description: 'M₅ = 960' },
+            '6': { mod: 1920, label: '1920', description: 'M₆ = 1920' },
+            '7': { mod: 3840, label: '3840', description: 'M₇ = 3840' },
+            '8': { mod: 7680, label: '7680', description: 'M₈ = 7680' },
+            '9': { mod: 15360, label: '15360', description: 'M₉ = 15360' },
+            '10': { mod: 30720, label: '30720', description: 'M₁₀ = 30720' }
         };
 
-        // Utility functions
+        // Enhanced mathematical utility functions
         function gcd(a, b) {
             while (b !== 0) {
                 let temp = b;
@@ -468,7 +572,9 @@
 
         function isPrime(n) {
             if (n < 2) return false;
-            for (let i = 2; i <= Math.sqrt(n); i++) {
+            if (n === 2) return true;
+            if (n % 2 === 0) return false;
+            for (let i = 3; i <= Math.sqrt(n); i += 2) {
                 if (n % i === 0) return false;
             }
             return true;
@@ -477,6 +583,13 @@
         function getCoprimes(modulus) {
             const residues = [];
             const m = Math.round(modulus);
+            
+            // Special case for mod 1: only residue is 0, and gcd(0,1) = 1
+            if (m === 1) {
+                return [0];
+            }
+            
+            // For all other moduli, find residues coprime to m
             for (let r = 1; r < m; r++) {
                 if (gcd(r, m) === 1) {
                     residues.push(r);
@@ -488,19 +601,24 @@
         function getResidueColor(r, modulus, ringIndex, colorMode) {
             const customColor = document.getElementById('customResidueColor').value;
             
+            // Special handling for unit circle
+            if (modulus === 1) {
+                return 'rgba(255, 215, 0, 0.9)'; // Golden color for unit circle
+            }
+            
             switch(colorMode) {
                 case 'hue':
-                    return `hsl(${(r * 360 / modulus) % 360}, 70%, 60%)`;
+                    return `hsl(${(r * 360 / modulus) % 360}, 75%, 65%)`;
                 case 'value':
-                    return `hsl(${(r * 30) % 360}, 80%, 65%)`;
+                    return `hsl(${(r * 37) % 360}, 80%, 70%)`;
                 case 'modulo':
-                    return `hsl(${(ringIndex * 60) % 360}, 75%, 60%)`;
+                    return `hsl(${(ringIndex * 67) % 360}, 78%, 62%)`;
                 case 'prime':
                     return isPrime(r) ? '#FF6B6B' : '#4ECDC4';
                 case 'custom':
                     return customColor;
                 default:
-                    return `hsl(${(r * 360 / modulus) % 360}, 70%, 60%)`;
+                    return `hsl(${(r * 360 / modulus) % 360}, 75%, 65%)`;
             }
         }
 
@@ -514,7 +632,7 @@
             return Array.from(checked).map(cb => cb.value);
         }
 
-        // Control functions
+        // Enhanced control functions
         function generateGaps() {
             const maxGap = parseInt(document.getElementById('maxGap').value);
             const gapControls = document.getElementById('gapControls');
@@ -533,9 +651,9 @@
                 
                 const label = document.createElement('span');
                 let name = '';
-                if (gap === 2) name = ' (Twin)';
-                else if (gap === 4) name = ' (Cousin)';
-                else if (gap === 6) name = ' (Sexy)';
+                if (gap === 2) name = ' (Twin Primes)';
+                else if (gap === 4) name = ' (Cousin Primes)';
+                else if (gap === 6) name = ' (Sexy Primes)';
                 label.textContent = `Gap ${gap}${name}`;
                 
                 div.appendChild(checkbox);
@@ -543,27 +661,33 @@
                 gapControls.appendChild(div);
             }
             
+            updateAnimationStatus('Generated gaps up to ' + maxGap);
             draw();
         }
 
         function addCustomRing() {
             const modValue = parseInt(document.getElementById('customMod').value);
             
-            if (modValue < 2 || modValue > 10000) {
-                alert('Please enter a modulus between 2 and 10000');
+            if (modValue < 2 || modValue > 50000) {
+                alert('Please enter a modulus between 2 and 50,000');
                 return;
             }
             
             const existing = Object.values(configs).find(config => config.mod === modValue);
             if (existing) {
-                alert(`Modulus ${modValue} already exists in the ring list`);
+                alert(`Modulus ${modValue} already exists in the ring system`);
                 return;
             }
             
             const customId = `custom_${customRingCounter++}`;
-            configs[customId] = { mod: modValue, label: modValue.toString() };
+            configs[customId] = { 
+                mod: modValue, 
+                label: modValue.toString(),
+                description: `Custom modulus ${modValue}`
+            };
             
-            addRingControl(customId, `Custom: ${modValue}`, true);
+            addRingControl(customId, `🔧 Custom: ${modValue}`, true);
+            updateAnimationStatus(`Added custom ring M=${modValue}`);
             draw();
         }
 
@@ -573,6 +697,11 @@
             const div = document.createElement('div');
             div.className = 'checkbox-item';
             div.id = `ring_${ringId}`;
+            
+            // Special styling for unit circle
+            if (ringId === 'unit') {
+                div.classList.add('unit-circle-highlight');
+            }
             
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -587,9 +716,10 @@
                 const removeBtn = document.createElement('button');
                 removeBtn.textContent = '×';
                 removeBtn.style.marginLeft = '10px';
-                removeBtn.style.padding = '2px 6px';
+                removeBtn.style.padding = '4px 8px';
                 removeBtn.style.fontSize = '12px';
                 removeBtn.style.background = '#e74c3c';
+                removeBtn.style.minWidth = '24px';
                 removeBtn.onclick = () => removeCustomRing(ringId);
                 div.appendChild(checkbox);
                 div.appendChild(label);
@@ -608,7 +738,22 @@
             if (element) {
                 element.remove();
             }
+            updateAnimationStatus('Removed custom ring');
             draw();
+        }
+
+        function updateAnimationStatus(message) {
+            const status = document.getElementById('animationStatus');
+            status.textContent = message;
+            setTimeout(() => {
+                if (isInverting) {
+                    status.textContent = ' Inversion Active';
+                } else if (animating) {
+                    status.textContent = ' Animating';
+                } else {
+                    status.textContent = 'Ready';
+                }
+            }, 2000);
         }
 
         function updateZoom() {
@@ -650,7 +795,11 @@
             const enabled = document.getElementById('enableRotation').checked;
             if (enabled && !animating) {
                 animating = true;
+                updateAnimationStatus(' Ring rotation enabled');
                 animate();
+            } else if (!enabled && animating && !isInverting) {
+                animating = false;
+                updateAnimationStatus(' Animation paused');
             }
         }
 
@@ -661,9 +810,14 @@
             const controls = document.getElementById('inversionControls');
             controls.style.display = isInverting ? 'block' : 'none';
             
-            if (isInverting && !animating) {
-                animating = true;
-                animate();
+            if (isInverting) {
+                updateAnimationStatus(' Mathematical inversion started');
+                if (!animating) {
+                    animating = true;
+                    animate();
+                }
+            } else {
+                updateAnimationStatus(' Inversion stopped');
             }
         }
 
@@ -675,6 +829,7 @@
             if (!document.getElementById('enableRotation').checked) {
                 animating = false;
             }
+            updateAnimationStatus(' Inversion stopped');
         }
 
         function animate() {
@@ -690,9 +845,9 @@
             
             if (isInverting) {
                 const inversionSpeed = parseFloat(document.getElementById('inversionSpeed').value);
-                inversionProgress += 0.01 * inversionSpeed;
+                inversionProgress += 0.008 * inversionSpeed;
                 if (inversionProgress >= 1) {
-                    inversionProgress = 0;
+                    inversionProgress = 0; // Loop the inversion
                 }
             }
             
@@ -706,30 +861,41 @@
         }
 
         function resetAll() {
+            // Reset gap controls
             document.getElementById('maxGap').value = 12;
             generateGaps();
             
+            // Remove custom rings
             Object.keys(configs).forEach(key => {
                 if (key.startsWith('custom_')) {
                     delete configs[key];
                 }
             });
             
+            // Rebuild ring controls with unit circle first
             const ringControls = document.getElementById('ringControls');
             ringControls.innerHTML = '';
+            
+            // Add unit circle first (always)
+            addRingControl('unit', '⭕ Unit Circle (M=1)', true);
+            
+            // Add standard series
             Object.keys(configs).forEach(n => {
-                if (!n.startsWith('custom_')) {
+                if (!n.startsWith('custom_') && n !== 'unit') {
                     addRingControl(n, `n=${n} (M=${configs[n].label})`, ['0', '1', '2'].includes(n));
                 }
             });
             
+            // Reset all controls to defaults
             document.getElementById('showLabels').checked = true;
             document.getElementById('invertNesting').checked = false;
             document.getElementById('showDirectLifts').checked = true;
             document.getElementById('showModularLifts').checked = false;
             document.getElementById('enableRotation').checked = false;
             document.getElementById('reverseDirection').checked = false;
+            document.getElementById('showUnitCircle').checked = true;
             
+            // Reset sliders
             document.getElementById('zoomSlider').value = 1;
             document.getElementById('rotationSlider').value = 0;
             document.getElementById('lineThickness').value = 2;
@@ -741,6 +907,7 @@
             document.getElementById('customResidueColor').value = '#FF6B6B';
             document.getElementById('customMod').value = 42;
             
+            // Update displays
             updateZoom();
             updateRotation();
             updateThickness();
@@ -748,6 +915,7 @@
             updateInversionSpeed();
             updateColorMode();
             
+            // Reset animation state
             animating = false;
             isInverting = false;
             animationFrame = 0;
@@ -755,10 +923,11 @@
             ringRotationSpeeds = {};
             
             stopInversionAnimation();
+            updateAnimationStatus(' All settings reset to defaults');
             draw();
         }
 
-        // Main drawing function
+        // Enhanced main drawing function
         function draw() {
             const selectedRings = getSelectedRings();
             const selectedGaps = getSelectedGaps();
@@ -766,6 +935,7 @@
             const invertNesting = document.getElementById('invertNesting').checked;
             const showDirectLifts = document.getElementById('showDirectLifts').checked;
             const showModularLifts = document.getElementById('showModularLifts').checked;
+            const showUnitCircle = document.getElementById('showUnitCircle').checked;
             const zoom = parseFloat(document.getElementById('zoomSlider').value);
             const rotation = parseFloat(document.getElementById('rotationSlider').value);
             const colorMode = document.getElementById('residueColorMode').value;
@@ -774,9 +944,17 @@
             const liftLineColor = document.getElementById('liftLineColor').value;
             const modularLiftColor = document.getElementById('modularLiftColor').value;
 
+            // Clear canvas with enhanced background
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             if (selectedRings.length === 0) {
+                // Draw a helpful message
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '24px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Select rings to begin exploration', canvas.width / 2, canvas.height / 2);
+                ctx.font = '16px Segoe UI';
+                ctx.fillText('Start with the Unit Circle (M=1) for complete foundation', canvas.width / 2, canvas.height / 2 + 30);
                 updateInfo([]);
                 return;
             }
@@ -784,21 +962,28 @@
             ctx.save();
             ctx.translate(canvas.width / 2, canvas.height / 2);
             ctx.scale(zoom, zoom);
-            ctx.rotate((rotation + (animating ? animationFrame * 0.5 : 0)) * Math.PI / 180);
+            ctx.rotate((rotation + (animating ? animationFrame * 0.3 : 0)) * Math.PI / 180);
 
             const rings = [];
-            const sortedRings = [...selectedRings].sort((a, b) => 
-                invertNesting ? b - a : a - b
-            );
+            const sortedRings = [...selectedRings].sort((a, b) => {
+                // Always put unit circle first (innermost)
+                if (a === 'unit') return invertNesting ? 1 : -1;
+                if (b === 'unit') return invertNesting ? -1 : 1;
+                return invertNesting ? b.localeCompare(a, undefined, {numeric: true}) : a.localeCompare(b, undefined, {numeric: true});
+            });
 
-            const maxRadius = 250;
-            const minRadius = 50;
+            const maxRadius = 280;
+            const minRadius = showUnitCircle && selectedRings.includes('unit') ? 25 : 60;
 
-            // Initialize individual ring rotation speeds
+            // Initialize enhanced ring rotation speeds
             sortedRings.forEach((n, index) => {
                 if (!ringRotationSpeeds[n]) {
                     const modulus = configs[n].mod;
-                    ringRotationSpeeds[n] = Math.max(0.5, 2 - Math.log10(modulus + 1));
+                    if (n === 'unit') {
+                        ringRotationSpeeds[n] = 3.0; // Unit circle rotates faster
+                    } else {
+                        ringRotationSpeeds[n] = Math.max(0.3, 2.5 - Math.log10(modulus + 1));
+                    }
                 }
             });
 
@@ -810,7 +995,7 @@
                 rings.push({ n, radius, modulus, residues, index });
             });
 
-            // Draw rings
+            // Enhanced ring drawing with special unit circle treatment
             rings.forEach(ring => {
                 // Calculate individual ring rotation
                 let ringRotation = 0;
@@ -818,73 +1003,101 @@
                     ringRotation = animationFrame * ringRotationSpeeds[ring.n] * Math.PI / 180;
                 }
                 
-                // Add inversion animation effect
+                // Enhanced inversion animation with wave effects
                 if (isInverting) {
-                    const waveOffset = ring.index * 0.2;
-                    const inversionPhase = Math.max(0, Math.min(1, inversionProgress * 2 - waveOffset));
-                    ringRotation += Math.sin(inversionPhase * Math.PI) * Math.PI;
+                    const waveOffset = ring.index * 0.15;
+                    const inversionPhase = Math.max(0, Math.min(1, inversionProgress * 3 - waveOffset));
+                    const waveIntensity = Math.sin(inversionPhase * Math.PI);
+                    ringRotation += waveIntensity * Math.PI;
+                    
+                    // Add visual pulsing during inversion
+                    ctx.globalAlpha = 0.7 + 0.3 * Math.sin(inversionProgress * Math.PI * 4 + ring.index);
+                } else {
+                    ctx.globalAlpha = 1.0;
                 }
 
-                // Ring circle
+                // Enhanced ring circle drawing
                 ctx.beginPath();
                 ctx.arc(0, 0, ring.radius, 0, 2 * Math.PI);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-                ctx.lineWidth = 1;
+                
+                if (ring.n === 'unit' && showUnitCircle) {
+                    // Special styling for unit circle
+                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([]);
+                } else {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([2, 4]);
+                }
                 ctx.stroke();
+                ctx.setLineDash([]);
 
-                // Residue points
+                // Enhanced residue points with special unit circle handling
                 ring.residues.forEach(r => {
-                    const baseAngle = 2 * Math.PI * r / ring.modulus - Math.PI / 2;
+                    const baseAngle = ring.n === 'unit' ? -Math.PI / 2 : 2 * Math.PI * r / ring.modulus - Math.PI / 2;
                     const angle = baseAngle + ringRotation;
                     const x = ring.radius * Math.cos(angle);
                     const y = ring.radius * Math.sin(angle);
 
+                    // Enhanced point drawing
                     ctx.beginPath();
-                    ctx.arc(x, y, 3, 0, 2 * Math.PI);
-                    ctx.fillStyle = getResidueColor(r, ring.modulus, ring.index, colorMode);
+                    const pointSize = ring.n === 'unit' ? 6 : (ring.radius > 150 ? 4 : 3);
+                    ctx.arc(x, y, pointSize, 0, 2 * Math.PI);
+                    
+                    const color = getResidueColor(r, ring.modulus, ring.index, colorMode);
+                    ctx.fillStyle = color;
                     ctx.fill();
-                    ctx.strokeStyle = 'white';
-                    ctx.lineWidth = 1;
+                    
+                    // Enhanced border for better visibility
+                    ctx.strokeStyle = ring.n === 'unit' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)';
+                    ctx.lineWidth = ring.n === 'unit' ? 2 : 1.5;
                     ctx.stroke();
 
-                    // Labels
-                    if (showLabels && ring.radius > 80) {
-                        ctx.fillStyle = 'white';
-                        ctx.font = '10px Arial';
+                    // Enhanced labels with better positioning
+                    if (showLabels && (ring.radius > 80 || ring.n === 'unit')) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                        ctx.font = ring.n === 'unit' ? 'bold 14px Segoe UI' : '11px Segoe UI';
                         ctx.textAlign = 'center';
-                        ctx.fillText(r.toString(), x, y - 8);
+                        ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                        ctx.lineWidth = 3;
+                        const labelY = y - (ring.n === 'unit' ? 12 : 8);
+                        ctx.strokeText(r.toString(), x, labelY);
+                        ctx.fillText(r.toString(), x, labelY);
                     }
                 });
 
-                // Gap connections
-                selectedGaps.forEach((gap, index) => {
-                    const hue = (index * 360 / selectedGaps.length) % 360;
-                    
-                    ring.residues.forEach(r => {
-                        const r2 = r + gap;
-                        const mod = Math.round(ring.modulus);
-                        if (ring.residues.includes(r2 % mod)) {
-                            const baseAngle1 = 2 * Math.PI * r / ring.modulus - Math.PI / 2;
-                            const baseAngle2 = 2 * Math.PI * (r2 % mod) / ring.modulus - Math.PI / 2;
-                            const angle1 = baseAngle1 + ringRotation;
-                            const angle2 = baseAngle2 + ringRotation;
-                            const x1 = ring.radius * Math.cos(angle1);
-                            const y1 = ring.radius * Math.sin(angle1);
-                            const x2 = ring.radius * Math.cos(angle2);
-                            const y2 = ring.radius * Math.sin(angle2);
+                // Enhanced gap connections (skip for unit circle as it has no gaps)
+                if (ring.n !== 'unit') {
+                    selectedGaps.forEach((gap, index) => {
+                        const hue = (index * 360 / selectedGaps.length) % 360;
+                        
+                        ring.residues.forEach(r => {
+                            const r2 = r + gap;
+                            const mod = Math.round(ring.modulus);
+                            if (ring.residues.includes(r2 % mod)) {
+                                const baseAngle1 = 2 * Math.PI * r / ring.modulus - Math.PI / 2;
+                                const baseAngle2 = 2 * Math.PI * (r2 % mod) / ring.modulus - Math.PI / 2;
+                                const angle1 = baseAngle1 + ringRotation;
+                                const angle2 = baseAngle2 + ringRotation;
+                                const x1 = ring.radius * Math.cos(angle1);
+                                const y1 = ring.radius * Math.sin(angle1);
+                                const x2 = ring.radius * Math.cos(angle2);
+                                const y2 = ring.radius * Math.sin(angle2);
 
-                            ctx.beginPath();
-                            ctx.moveTo(x1, y1);
-                            ctx.lineTo(x2, y2);
-                            ctx.strokeStyle = `hsla(${hue}, 70%, 60%, 0.7)`;
-                            ctx.lineWidth = lineThickness;
-                            ctx.stroke();
-                        }
+                                ctx.beginPath();
+                                ctx.moveTo(x1, y1);
+                                ctx.lineTo(x2, y2);
+                                ctx.strokeStyle = `hsla(${hue}, 75%, 65%, 0.6)`;
+                                ctx.lineWidth = lineThickness * 0.8;
+                                ctx.stroke();
+                            }
+                        });
                     });
-                });
+                }
             });
 
-            // Draw lift lines
+            // Enhanced lift line drawing with unit circle support
             if ((showDirectLifts || showModularLifts) && rings.length > 1) {
                 for (let i = 0; i < rings.length; i++) {
                     for (let j = i + 1; j < rings.length; j++) {
@@ -900,19 +1113,19 @@
                         }
                         
                         if (isInverting) {
-                            const waveOffset1 = ring1.index * 0.2;
-                            const waveOffset2 = ring2.index * 0.2;
-                            const inversionPhase1 = Math.max(0, Math.min(1, inversionProgress * 2 - waveOffset1));
-                            const inversionPhase2 = Math.max(0, Math.min(1, inversionProgress * 2 - waveOffset2));
+                            const waveOffset1 = ring1.index * 0.15;
+                            const waveOffset2 = ring2.index * 0.15;
+                            const inversionPhase1 = Math.max(0, Math.min(1, inversionProgress * 3 - waveOffset1));
+                            const inversionPhase2 = Math.max(0, Math.min(1, inversionProgress * 3 - waveOffset2));
                             ringRotation1 += Math.sin(inversionPhase1 * Math.PI) * Math.PI;
                             ringRotation2 += Math.sin(inversionPhase2 * Math.PI) * Math.PI;
                         }
                         
                         ring1.residues.forEach(r => {
-                            // Direct lifts
+                            // Enhanced direct lifts with unit circle special handling
                             if (showDirectLifts && ring2.residues.includes(r)) {
-                                const baseAngle1 = 2 * Math.PI * r / ring1.modulus - Math.PI / 2;
-                                const baseAngle2 = 2 * Math.PI * r / ring2.modulus - Math.PI / 2;
+                                const baseAngle1 = ring1.n === 'unit' ? -Math.PI / 2 : 2 * Math.PI * r / ring1.modulus - Math.PI / 2;
+                                const baseAngle2 = ring2.n === 'unit' ? -Math.PI / 2 : 2 * Math.PI * r / ring2.modulus - Math.PI / 2;
                                 const angle1 = baseAngle1 + ringRotation1;
                                 const angle2 = baseAngle2 + ringRotation2;
                                 const x1 = ring1.radius * Math.cos(angle1);
@@ -925,17 +1138,24 @@
                                 ctx.lineTo(x2, y2);
                                 
                                 const isConsecutive = (j === i + 1);
-                                ctx.strokeStyle = isConsecutive ? liftLineColor : liftLineColor + '66';
-                                ctx.lineWidth = isConsecutive ? lineThickness : lineThickness * 0.7;
+                                const hasUnitCircle = ring1.n === 'unit' || ring2.n === 'unit';
+                                
+                                if (hasUnitCircle) {
+                                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)'; // Golden for unit circle connections
+                                    ctx.lineWidth = lineThickness * 1.2;
+                                } else {
+                                    ctx.strokeStyle = isConsecutive ? liftLineColor : liftLineColor + '66';
+                                    ctx.lineWidth = isConsecutive ? lineThickness : lineThickness * 0.7;
+                                }
                                 ctx.stroke();
                             }
 
-                            // Modular lifts
-                            if (showModularLifts) {
+                            // Enhanced modular lifts (skip for unit circle)
+                            if (showModularLifts && ring1.n !== 'unit' && ring2.n !== 'unit') {
                                 const n1 = parseInt(ring1.n);
                                 const n2 = parseInt(ring2.n);
                                 
-                                if (n2 > n1) {
+                                if (!isNaN(n1) && !isNaN(n2) && n2 > n1) {
                                     const nDiff = n2 - n1;
                                     const baseModulus = Math.round(ring1.modulus);
                                     
@@ -964,8 +1184,8 @@
                                         
                                         const isConsecutive = (j === i + 1);
                                         ctx.strokeStyle = isConsecutive ? modularLiftColor : modularLiftColor + '55';
-                                        ctx.lineWidth = isConsecutive ? lineThickness * 0.8 : lineThickness * 0.5;
-                                        ctx.setLineDash(isConsecutive ? [5, 5] : [3, 7]);
+                                        ctx.lineWidth = isConsecutive ? lineThickness * 0.9 : lineThickness * 0.6;
+                                        ctx.setLineDash(isConsecutive ? [6, 4] : [3, 6]);
                                         ctx.stroke();
                                         ctx.setLineDash([]);
                                     }
@@ -980,51 +1200,87 @@
             updateInfo(rings);
         }
 
+        // Enhanced info panel update
         function updateInfo(rings) {
             const info = document.getElementById('ringInfo');
             
             if (rings.length === 0) {
-                info.innerHTML = 'No rings selected';
+                info.innerHTML = '<em>No rings selected</em><br><br>💡 <strong>Tip:</strong> Start with the Unit Circle (M=1) to explore the complete mathematical foundation.';
                 return;
             }
 
             let html = '';
+            let totalResidues = 0;
+            
             rings.forEach((ring, index) => {
                 const config = configs[ring.n];
                 const modLabel = config ? config.label : ring.modulus.toString();
-                html += `<div class="ring-info">
-                    <strong>Ring ${index + 1}: ${ring.n.startsWith('custom_') ? 'Custom' : `n = ${ring.n}`}</strong><br>
-                    M = ${modLabel}<br>
-                    φ(M) = ${ring.residues.length}
+                totalResidues += ring.residues.length;
+                
+                let ringTitle;
+                let specialNote = '';
+                
+                if (ring.n === 'unit') {
+                    ringTitle = ' Unit Circle';
+                    specialNote = '<br><em> Fundamental mathematical foundation</em><br><em>Contains residue 0 where gcd(0,1) = 1</em>';
+                } else if (ring.n.startsWith('custom_')) {
+                    ringTitle = ' Custom Ring';
+                } else {
+                    ringTitle = `Ring M<sub>${ring.n}</sub>`;
+                }
+                
+                const infoClass = ring.n === 'unit' ? 'unit-circle-info' : 'ring-info';
+                html += `<div class="${infoClass}">
+                    <strong>${ringTitle}</strong><br>
+                    <em class="math-notation">M = ${modLabel}</em><br>
+                    <em class="math-notation">φ(M) = ${ring.residues.length}</em><br>
+                    Residues: [${ring.residues.join(', ')}]
+                    ${specialNote}
                 </div>`;
             });
 
             const gaps = getSelectedGaps();
             if (gaps.length > 0) {
                 html += `<div class="ring-info">
-                    <strong>Active Gaps:</strong> ${gaps.join(', ')}
+                    <strong> Active Gap Analysis:</strong><br>
+                    Gaps: [${gaps.join(', ')}]<br>
+                    <em>Exploring prime gap patterns across ${rings.length} ring${rings.length > 1 ? 's' : ''}</em>
                 </div>`;
             }
+
+            html += `<div class="ring-info">
+                <strong> System Summary:</strong><br>
+                Total Rings: ${rings.length}<br>
+                Total Residues: ${totalResidues}<br>
+                <em class="math-notation">∑φ(M<sub>i</sub>) = ${totalResidues}</em>
+            </div>`;
 
             info.innerHTML = html;
         }
 
-        // Initialize controls
+        // Enhanced initialization
         function initControls() {
+            // Add unit circle first (highlighted and checked by default)
+            addRingControl('unit', ' Unit Circle (M=1)', true);
+            
+            // Add standard M_n series
             Object.keys(configs).forEach(n => {
-                if (!n.startsWith('custom_')) {
+                if (!n.startsWith('custom_') && n !== 'unit') {
                     addRingControl(n, `n=${n} (M=${configs[n].label})`, ['0', '1', '2'].includes(n));
                 }
             });
 
+            // Enhanced event listeners
             document.addEventListener('change', draw);
             document.getElementById('zoomSlider').addEventListener('input', updateZoom);
             document.getElementById('rotationSlider').addEventListener('input', updateRotation);
+            
+            updateAnimationStatus(' System initialized with Unit Circle foundation');
         }
 
-        // Initialize
+        // Initialize the enhanced system
         initControls();
         draw();
     </script>
 </body>
-</html>
+                                </html>
