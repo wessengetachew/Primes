@@ -1,7 +1,7 @@
 # Interactive Modular Lifting Rings
 
 An advanced mathematical visualization tool for exploring modular arithmetic patterns, prime gaps, and lifting relationships in the context of **M_n = 30 × 2^n**.
-
+https://wessengetachew.github.io/Primes/
 
 ## 🎯 Overview
 
