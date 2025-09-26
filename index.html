@@ -535,7 +535,7 @@
                 <div class="control-section">
                     <h3>Display Controls</h3>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r)
+                        <input type="checkbox" id="showDirectLifts"> Direct Lifts (r → r)
                     </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showModularLifts"> Modular Lifts (r → r + M×2ⁿ)
@@ -682,10 +682,7 @@
             <div class="canvas-container">
                 <canvas id="canvas" width="800" height="600"></canvas>
                 <div class="animation-status" id="animationStatus">Ready</div>
-                <div class="info-panel">
-                    <h4>Mathematical Analysis</h4>
-                    <div id="ringInfo">Select rings to view detailed analysis</div>
-                </div>
+
             </div>
         </div>
 
@@ -1825,7 +1822,6 @@
                 ctx.fillText('Select rings to begin exploration', canvas.width / 2, canvas.height / 2);
                 ctx.font = '16px Segoe UI';
                 ctx.fillText('Try adding consecutive moduli M₁ to M₂₀ for complete foundation', canvas.width / 2, canvas.height / 2 + 30);
-                updateInfo([]);
                 return;
             }
 
@@ -2209,81 +2205,9 @@
 
         // Enhanced info panel update with prime sieve integration
         function updateInfo(rings) {
-            const info = document.getElementById('ringInfo');
-            
-            if (rings.length === 0) {
-                info.innerHTML = '<em>No rings selected</em><br><br><strong>Tip:</strong> Try adding consecutive moduli M₁ to M₂₀ for systematic exploration starting from the mathematical foundation.';
-                return;
-            }
-
-            let html = '';
-            let totalResidues = 0;
-            
-            rings.forEach((ring, index) => {
-                const config = configs[ring.n];
-                const modLabel = config ? config.label : ring.modulus.toString();
-                totalResidues += ring.coprimes.length;
-                
-                let ringTitle;
-                let specialNote = '';
-                
-                if (ring.n === 'unit') {
-                    ringTitle = 'Unit Circle';
-                    specialNote = '<br><em>Fundamental mathematical foundation</em><br><em>Contains residue 0 where gcd(0,1) = 1</em>';
-                } else if (ring.n.startsWith('custom_') || ring.n.startsWith('sieve_')) {
-                    ringTitle = ring.n.startsWith('sieve_') ? 'Sieve Ring' : 'Custom Ring';
-                } else {
-                    ringTitle = `Ring M<sub>${ring.n}</sub>`;
-                }
-                
-                // Add prime sieve information if applicable
-                if (primeData.isActive && ring.modulus === primeData.modulus) {
-                    specialNote += '<br><strong style="color: #FFD700;">🎯 Prime Sieve Active</strong>';
-                    const totalPrimesInRing = Object.values(primeData.residueDistribution).reduce((sum, data) => sum + data.count, 0);
-                    specialNote += `<br><em>Contains ${totalPrimesInRing} of ${primeData.totalPrimes} primes up to ${primeData.limit}</em>`;
-                }
-                
-                const infoClass = ring.n === 'unit' ? 'unit-circle-info' : 'ring-info';
-                html += `<div class="${infoClass}">
-                    <strong>${ringTitle}</strong><br>
-                    <em class="math-notation">M = ${modLabel}</em><br>
-                    <em class="math-notation">φ(M) = ${ring.coprimes.length}</em><br>
-                    Residues: [${ring.coprimes.slice(0, 10).join(', ')}${ring.coprimes.length > 10 ? '...' : ''}]
-                    ${specialNote}
-                </div>`;
-            });
-
-            const gaps = getSelectedGaps();
-            if (gaps.length > 0) {
-                html += `<div class="ring-info">
-                    <strong>Active Gap Analysis:</strong><br>
-                    Gaps: [${gaps.join(', ')}]<br>
-                    <em>Exploring prime gap patterns across ${rings.length} ring${rings.length > 1 ? 's' : ''}</em>
-                </div>`;
-            }
-
-            // Add prime sieve summary if active
-            if (primeData.isActive) {
-                const eulerPhi = getCoprimes(primeData.modulus).length;
-                const avgPrimesPerResidue = (primeData.totalPrimes / eulerPhi).toFixed(1);
-                
-                html += `<div class="ring-info" style="border-left: 3px solid #FFD700;">
-                    <strong>Prime Sieve Analysis:</strong><br>
-                    Modulus: ${primeData.modulus}, Limit: ${primeData.limit}<br>
-                    Total Primes: ${primeData.totalPrimes}<br>
-                    Avg per residue: ${avgPrimesPerResidue}<br>
-                    <em>Distribution across φ(${primeData.modulus}) = ${eulerPhi} classes</em>
-                </div>`;
-            }
-
-            html += `<div class="ring-info">
-                <strong>System Summary:</strong><br>
-                Total Rings: ${rings.length}<br>
-                Total Residues: ${totalResidues}<br>
-                <em class="math-notation">∑φ(M<sub>i</sub>) = ${totalResidues}</em>
-            </div>`;
-
-            info.innerHTML = html;
+            // Info panel has been removed, so this function now does nothing
+            // but is kept to prevent errors from existing calls
+            return;
         }
 
         // Add missing prime search and export functions
@@ -2429,4 +2353,4 @@
         draw();
     </script>
 </body>
-    </html>
+                                </html>
