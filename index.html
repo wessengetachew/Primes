@@ -49,7 +49,7 @@
 
         .main-grid {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 350px 1fr 300px;
             gap: 30px;
             min-height: 0; /* Prevent grid overflow */
         }
@@ -159,8 +159,10 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .reset-btn {
+        .reset-section-btn {
             background: linear-gradient(45deg, #e74c3c, #c0392b);
+            width: 100%;
+            margin-top: 10px;
         }
 
         .special-btn {
@@ -229,6 +231,16 @@
             box-sizing: border-box;
         }
 
+        .analysis-panel {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 20px;
+            height: fit-content;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
         #canvas {
             border-radius: 15px;
             background: #000000;
@@ -245,9 +257,6 @@
         }
 
         .info-panel {
-            position: absolute;
-            top: 25px;
-            right: 25px;
             background: rgba(0, 0, 0, 0.85);
             padding: 20px;
             border-radius: 15px;
@@ -326,7 +335,7 @@
                 grid-template-columns: 1fr;
             }
             
-            .info-panel {
+            .analysis-panel {
                 position: relative;
                 top: auto;
                 right: auto;
@@ -408,6 +417,7 @@
                             From: <input type="number" id="gapStart" min="2" step="1" value="14" placeholder="14">
                             To: <input type="number" id="gapEnd" min="3" step="1" value="20" placeholder="20">
                             <button onclick="addConsecutiveGaps()">Add Range</button>
+                            <button class="reset-section-btn" onclick="clearAllGaps()">Clear All Gaps</button>
                         </div>
                         <button onclick="generateGaps()">Generate Even Gaps</button>
                     </div>
@@ -430,6 +440,7 @@
                             From: <input type="number" id="modStart" min="1" value="1" placeholder="1">
                             To: <input type="number" id="modEnd" min="2" value="20" placeholder="20">
                             <button onclick="addConsecutiveMods()">Add M₁ to Mₙ</button>
+                            <button class="reset-section-btn" onclick="clearAllMods()">Clear All Mods</button>
                         </div>
                         <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
                             No limits - explore any modulus range you want!
@@ -535,7 +546,241 @@
                 <div class="control-section">
                     <h3>Display Controls</h3>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showDirectLifts"> Direct Lifts (r → r)
+                        <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r)
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showModularLifts"> Modular Lifts (r → r + M×2ⁿ)
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>GCD Filter Controls</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showGcdOne" checked onchange="draw()"> Show GCD(r,M) = 1
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showNonGcdOne" onchange="draw()"> Show GCD(r,M) ≠ 1
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="highlightGcdDifference" onchange="draw()"> Highlight GCD Difference
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>Non-GCD=1 Styling:</strong></label>
+                        <div class="slider-group">
+                            <label>Non-GCD=1 Opacity: <span id="nonGcdOpacityValue">0.3</span></label>
+                            <input type="range" id="nonGcdOpacity" min="0" max="1" step="0.05" value="0.3" oninput="updateNonGcdOpacity()">
+                        </div>
+                        <div class="slider-group">
+                            <label>Non-GCD=1 Color:</label>
+                            <input type="color" id="nonGcdColor" value="#666666" onchange="draw()">
+                        </div>
+                    </div>
+                </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showLabels" checked> Show Residue Labels
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="invertNesting"> Invert Ring Nesting Order
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showUnitCircle" checked> Highlight Unit Circle
+                    </div>
+                    <button class="reset-section-btn" onclick="resetAll()">Reset All Settings</button>
+                </div>
+
+                <div class="control-section">
+                    <h3>Prime Sieve Engine</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enablePrimeSieve"> Enable Prime Sieve Analysis
+                    </div>
+                    
+                    <div class="custom-gap" id="sieveControls" style="display: none;">
+                        <label><strong>Sieve Parameters:</strong></label>
+                        <div class="gap-input">
+                            Search up to: <input type="number" id="sieveLimit" min="100" value="10000" placeholder="10000">
+                        </div>
+                        <div class="gap-input">
+                            Using modulus: <input type="number" id="sieveModulus" min="2" value="30" placeholder="30">
+                            <button onclick="runPrimeSieve()">Generate Sieve</button>
+                        </div>
+                        <div class="gap-input">
+                            <button onclick="clearPrimeSieve()">Clear Sieve</button>
+                            <button onclick="exportPrimeData()">Export Data</button>
+                        </div>
+                        <div id="sieveProgress" style="display: none; margin-top: 10px;">
+                            <div style="background: rgba(255,255,255,0.2); border-radius: 10px; height: 20px;">
+                                <div id="progressBar" style="background: linear-gradient(45deg, #4ECDC4, #44A08D); height: 100%; border-radius: 10px; width: 0%; transition: width 0.3s;"></div>
+                            </div>
+                            <div id="progressText" style="text-align: center; margin-top: 5px; font-size: 12px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap" id="sieveResults" style="display: none;">
+                        <label><strong>Prime Distribution Analysis:</strong></label>
+                        <div id="primeStats" style="font-size: 13px; margin: 10px 0;"></div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showPrimeMarkers"> Highlight Primes on Rings
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showCompositeMarkers"> Show Composite Numbers
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showPrimeDensity"> Show Density Visualization
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Advanced Prime Analysis</h3>
+                    <div class="custom-gap">
+                        <label><strong>Quick Sieve Presets:</strong></label>
+                        <div class="gap-input">
+                            <button onclick="quickSieve(1000, 6)">Primes to 1K (mod 6)</button>
+                            <button onclick="quickSieve(10000, 30)">Primes to 10K (mod 30)</button>
+                        </div>
+                        <div class="gap-input">
+                            <button onclick="quickSieve(100000, 210)">Primes to 100K (mod 210)</button>
+                            <button onclick="quickSieve(1000000, 2310)">Primes to 1M (mod 2310)</button>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap" id="primePatternAnalysis" style="display: none;">
+                        <label><strong>Complete Prime Distribution Analysis:</strong></label>
+                        <div id="residueDistribution" style="font-size: 12px; max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 10px;"></div>
+                        
+                        <div class="gap-input" style="margin-top: 15px;">
+                            <button onclick="exportDetailedPrimeList()">Export All Primes by Residue</button>
+                            <button onclick="togglePrimeSearchMode()">Search Specific Primes</button>
+                        </div>
+                        
+                        <div id="primeSearchControls" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                            <label><strong>Prime Search:</strong></label>
+                            <div class="gap-input">
+                                Prime: <input type="number" id="searchPrime" min="2" max="1000000" placeholder="Enter prime">
+                                <button onclick="findPrimeInResidue()">Find Residue Class</button>
+                            </div>
+                            <div id="searchResult" style="margin-top: 10px; font-size: 13px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>View Controls</h3>
+                    <div class="slider-group">
+                        <label>Zoom Level: <span id="zoomValue">1.0</span>x</label>
+                        <input type="range" id="zoomSlider" min="0.1" max="10" step="0.1" value="1" oninput="updateZoom()">
+                    </div>
+                    <div class="slider-group">
+                        <label>Manual Rotation: <span id="rotationValue">0°</span></label>
+                        <input type="range" id="rotationSlider" min="0" max="360" step="1" value="0" oninput="updateRotation()">
+                    </div>
+                    <div class="gap-input">
+                        <button onclick="resetView()">Reset View</button>
+                        <button onclick="takeScreenshot()">📸 Screenshot</button>
+                    </div>
+                    <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
+                        <strong>Navigation:</strong><br>
+                        • Click & drag to pan<br>
+                        • Mouse wheel to zoom<br>
+                        • Double-click to reset center
+                    </div>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="canvas" width="800" height="600"></canvas>
+                <div class="animation-status" id="animationStatus">Ready</div>
+            </div>
+
+            <div class="analysis-panel">
+                <div class="info-panel">
+                    <h4>Mathematical Analysis</h4>
+                    <div id="ringInfo">Select rings to view detailed analysis</div>
+                </div>
+            </div>
+        </div>color" id="customResidueColor" value="#FF6B6B" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group" id="gcdColorGroup" style="display: none;">
+                        <label>Base GCD=1 Color:</label>
+                        <input type="color" id="gcdBaseColor" value="#FF6B6B" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group" id="nonGcdColorGroup" style="display: none;">
+                        <label>Non-GCD=1 Color (if any):</label>
+                        <input type="color" id="nonGcdColor" value="#666666" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Direct Lift Line Color:</label>
+                        <input type="color" id="liftLineColor" value="#FFD700" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Modular Lift Line Color:</label>
+                        <input type="color" id="modularLiftColor" value="#FF6384" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Lift Line Thickness: <span id="thicknessValue">0.5</span></label>
+                        <input type="range" id="lineThickness" min="0" max="1" step="0.01" value="0.5" oninput="updateThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Gap Line Thickness: <span id="gapThicknessValue">0.3</span></label>
+                        <input type="range" id="gapLineThickness" min="0" max="1" step="0.01" value="0.3" oninput="updateGapThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Ring Circle Thickness: <span id="ringThicknessValue">0.2</span></label>
+                        <input type="range" id="ringThickness" min="0" max="1" step="0.01" value="0.2" oninput="updateRingThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Unit Circle Thickness: <span id="unitThicknessValue">0.8</span></label>
+                        <input type="range" id="unitThickness" min="0" max="1" step="0.01" value="0.8" oninput="updateUnitThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Residue Point Size: <span id="pointSizeValue">0.4</span></label>
+                        <input type="range" id="pointSize" min="0" max="1" step="0.01" value="0.4" oninput="updatePointSize()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Point Border Thickness: <span id="pointBorderValue">0.3</span></label>
+                        <input type="range" id="pointBorder" min="0" max="1" step="0.01" value="0.3" oninput="updatePointBorder()">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Advanced Animation Engine</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enableRotation" onchange="toggleRotation()"> Enable Individual Ring Rotation
+                    </div>
+                    <div class="slider-group">
+                        <label>Global Animation Speed: <span id="globalSpeedValue">1.0</span>x</label>
+                        <input type="range" id="globalSpeed" min="0.1" max="8" step="0.1" value="1" oninput="updateGlobalSpeed()">
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="reverseDirection"> Reverse Rotation Direction
+                    </div>
+                    <button class="special-btn" onclick="toggleInversionAnimation()">Mathematical Inversion Process</button>
+                    <div id="inversionControls" style="display: none; margin-top: 15px;">
+                        <div class="slider-group">
+                            <label>Inversion Wave Speed: <span id="inversionSpeedValue">1.0</span>x</label>
+                            <input type="range" id="inversionSpeed" min="0.1" max="5" step="0.1" value="1" oninput="updateInversionSpeed()">
+                        </div>
+                        <button onclick="stopInversionAnimation()">Stop Inversion</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Display Controls</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r)
                     </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showModularLifts"> Modular Lifts (r → r + M×2ⁿ)
@@ -682,7 +927,10 @@
             <div class="canvas-container">
                 <canvas id="canvas" width="800" height="600"></canvas>
                 <div class="animation-status" id="animationStatus">Ready</div>
-
+                <div class="info-panel">
+                    <h4>Mathematical Analysis</h4>
+                    <div id="ringInfo">Select rings to view detailed analysis</div>
+                </div>
             </div>
         </div>
 
@@ -1140,14 +1388,14 @@
         }
 
         function takeScreenshot() {
-            // Create a temporary canvas with black background
+            // Create a temporary canvas with white background for better contrast
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
             tempCanvas.width = canvas.width;
             tempCanvas.height = canvas.height;
             
-            // Fill with black background
-            tempCtx.fillStyle = '#000000';
+            // Fill with white background
+            tempCtx.fillStyle = 'white';
             tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             
             // Draw the current canvas content on top
@@ -1822,6 +2070,7 @@
                 ctx.fillText('Select rings to begin exploration', canvas.width / 2, canvas.height / 2);
                 ctx.font = '16px Segoe UI';
                 ctx.fillText('Try adding consecutive moduli M₁ to M₂₀ for complete foundation', canvas.width / 2, canvas.height / 2 + 30);
+                updateInfo([]);
                 return;
             }
 
@@ -1913,7 +2162,6 @@
                 }
                 ctx.stroke();
                 ctx.setLineDash([]);
-
 
                 // Enhanced residue points with prime sieve integration
                 const residuesToDraw = [];
@@ -2028,8 +2276,8 @@
                     ctx.lineWidth = borderThickness;
                     ctx.stroke();
 
-                    // Enhanced labels with prime count information - show ALL residue values when labels are enabled
-                    if (showLabels && (ring.radius > 40 || ring.n === 'unit')) {
+                    // Enhanced labels with prime count information
+                    if (showLabels && (ring.radius > 80 || ring.n === 'unit')) {
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                         let labelText = r.toString();
                         
@@ -2206,9 +2454,81 @@
 
         // Enhanced info panel update with prime sieve integration
         function updateInfo(rings) {
-            // Info panel has been removed, so this function now does nothing
-            // but is kept to prevent errors from existing calls
-            return;
+            const info = document.getElementById('ringInfo');
+            
+            if (rings.length === 0) {
+                info.innerHTML = '<em>No rings selected</em><br><br><strong>Tip:</strong> Try adding consecutive moduli M₁ to M₂₀ for systematic exploration starting from the mathematical foundation.';
+                return;
+            }
+
+            let html = '';
+            let totalResidues = 0;
+            
+            rings.forEach((ring, index) => {
+                const config = configs[ring.n];
+                const modLabel = config ? config.label : ring.modulus.toString();
+                totalResidues += ring.coprimes.length;
+                
+                let ringTitle;
+                let specialNote = '';
+                
+                if (ring.n === 'unit') {
+                    ringTitle = 'Unit Circle';
+                    specialNote = '<br><em>Fundamental mathematical foundation</em><br><em>Contains residue 0 where gcd(0,1) = 1</em>';
+                } else if (ring.n.startsWith('custom_') || ring.n.startsWith('sieve_')) {
+                    ringTitle = ring.n.startsWith('sieve_') ? 'Sieve Ring' : 'Custom Ring';
+                } else {
+                    ringTitle = `Ring M<sub>${ring.n}</sub>`;
+                }
+                
+                // Add prime sieve information if applicable
+                if (primeData.isActive && ring.modulus === primeData.modulus) {
+                    specialNote += '<br><strong style="color: #FFD700;">🎯 Prime Sieve Active</strong>';
+                    const totalPrimesInRing = Object.values(primeData.residueDistribution).reduce((sum, data) => sum + data.count, 0);
+                    specialNote += `<br><em>Contains ${totalPrimesInRing} of ${primeData.totalPrimes} primes up to ${primeData.limit}</em>`;
+                }
+                
+                const infoClass = ring.n === 'unit' ? 'unit-circle-info' : 'ring-info';
+                html += `<div class="${infoClass}">
+                    <strong>${ringTitle}</strong><br>
+                    <em class="math-notation">M = ${modLabel}</em><br>
+                    <em class="math-notation">φ(M) = ${ring.coprimes.length}</em><br>
+                    Residues: [${ring.coprimes.slice(0, 10).join(', ')}${ring.coprimes.length > 10 ? '...' : ''}]
+                    ${specialNote}
+                </div>`;
+            });
+
+            const gaps = getSelectedGaps();
+            if (gaps.length > 0) {
+                html += `<div class="ring-info">
+                    <strong>Active Gap Analysis:</strong><br>
+                    Gaps: [${gaps.join(', ')}]<br>
+                    <em>Exploring prime gap patterns across ${rings.length} ring${rings.length > 1 ? 's' : ''}</em>
+                </div>`;
+            }
+
+            // Add prime sieve summary if active
+            if (primeData.isActive) {
+                const eulerPhi = getCoprimes(primeData.modulus).length;
+                const avgPrimesPerResidue = (primeData.totalPrimes / eulerPhi).toFixed(1);
+                
+                html += `<div class="ring-info" style="border-left: 3px solid #FFD700;">
+                    <strong>Prime Sieve Analysis:</strong><br>
+                    Modulus: ${primeData.modulus}, Limit: ${primeData.limit}<br>
+                    Total Primes: ${primeData.totalPrimes}<br>
+                    Avg per residue: ${avgPrimesPerResidue}<br>
+                    <em>Distribution across φ(${primeData.modulus}) = ${eulerPhi} classes</em>
+                </div>`;
+            }
+
+            html += `<div class="ring-info">
+                <strong>System Summary:</strong><br>
+                Total Rings: ${rings.length}<br>
+                Total Residues: ${totalResidues}<br>
+                <em class="math-notation">∑φ(M<sub>i</sub>) = ${totalResidues}</em>
+            </div>`;
+
+            info.innerHTML = html;
         }
 
         // Add missing prime search and export functions
@@ -2354,4 +2674,4 @@
         draw();
     </script>
 </body>
-</html>
+                                </html>
