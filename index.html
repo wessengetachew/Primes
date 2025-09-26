@@ -51,6 +51,7 @@
             display: grid;
             grid-template-columns: 350px 1fr;
             gap: 30px;
+            min-height: 0; /* Prevent grid overflow */
         }
 
         .controls {
@@ -222,12 +223,25 @@
             align-items: center;
             position: relative;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
         #canvas {
             border-radius: 15px;
             background: #000000;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            max-width: 100%;
+            max-height: 700px;
+            width: auto;
+            height: auto;
+            cursor: grab;
+        }
+
+        #canvas:active {
+            cursor: grabbing;
         }
 
         .info-panel {
@@ -317,6 +331,27 @@
                 top: auto;
                 right: auto;
                 margin-top: 20px;
+            }
+            
+            #canvas {
+                width: 100%;
+                max-width: 90vw;
+                height: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .canvas-container {
+                padding: 15px;
+            }
+            
+            #canvas {
+                max-width: 95vw;
+                max-height: 500px;
+            }
+            
+            .container {
+                padding: 15px;
             }
         }
 
@@ -625,17 +660,27 @@
                     <h3>View Controls</h3>
                     <div class="slider-group">
                         <label>Zoom Level: <span id="zoomValue">1.0</span>x</label>
-                        <input type="range" id="zoomSlider" min="0.2" max="3.5" step="0.1" value="1" oninput="updateZoom()">
+                        <input type="range" id="zoomSlider" min="0.1" max="10" step="0.1" value="1" oninput="updateZoom()">
                     </div>
                     <div class="slider-group">
                         <label>Manual Rotation: <span id="rotationValue">0°</span></label>
                         <input type="range" id="rotationSlider" min="0" max="360" step="1" value="0" oninput="updateRotation()">
                     </div>
+                    <div class="gap-input">
+                        <button onclick="resetView()">Reset View</button>
+                        <button onclick="takeScreenshot()">📸 Screenshot</button>
+                    </div>
+                    <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
+                        <strong>Navigation:</strong><br>
+                        • Click & drag to pan<br>
+                        • Mouse wheel to zoom<br>
+                        • Double-click to reset center
+                    </div>
                 </div>
             </div>
 
             <div class="canvas-container">
-                <canvas id="canvas" width="900" height="700"></canvas>
+                <canvas id="canvas" width="800" height="600"></canvas>
                 <div class="animation-status" id="animationStatus">Ready</div>
                 <div class="info-panel">
                     <h4>Mathematical Analysis</h4>
@@ -693,6 +738,16 @@
         let isInverting = false;
         let inversionProgress = 0;
         let ringRotationSpeeds = {};
+        
+        // Pan and zoom state
+        let panX = 0;
+        let panY = 0;
+        let currentZoom = 1;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let dragStartPanX = 0;
+        let dragStartPanY = 0;
         
         // Prime sieve data storage
         let primeData = {
@@ -1072,9 +1127,147 @@
 
         function updateZoom() {
             const value = document.getElementById('zoomSlider').value;
+            currentZoom = parseFloat(value);
             document.getElementById('zoomValue').textContent = value;
             draw();
         }
+
+        function resetView() {
+            panX = 0;
+            panY = 0;
+            currentZoom = 1;
+            document.getElementById('zoomSlider').value = 1;
+            document.getElementById('zoomValue').textContent = '1.0';
+            updateAnimationStatus('View reset to center');
+            draw();
+        }
+
+        function takeScreenshot() {
+            // Create a temporary canvas with white background for better contrast
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            
+            // Fill with white background
+            tempCtx.fillStyle = 'white';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // Draw the current canvas content on top
+            tempCtx.drawImage(canvas, 0, 0);
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = `modular_rings_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.png`;
+            link.href = tempCanvas.toDataURL();
+            link.click();
+            
+            updateAnimationStatus('Screenshot saved!');
+        }
+
+        // Mouse and touch interaction handlers
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function getTouchPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
+            };
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const pos = getMousePos(e);
+            dragStartX = pos.x;
+            dragStartY = pos.y;
+            dragStartPanX = panX;
+            dragStartPanY = panY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const pos = getMousePos(e);
+            panX = dragStartPanX + (pos.x - dragStartX);
+            panY = dragStartPanY + (pos.y - dragStartY);
+            draw();
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            const pos = getTouchPos(e);
+            dragStartX = pos.x;
+            dragStartY = pos.y;
+            dragStartPanX = panX;
+            dragStartPanY = panY;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isDragging) return;
+            
+            const pos = getTouchPos(e);
+            panX = dragStartPanX + (pos.x - dragStartX);
+            panY = dragStartPanY + (pos.y - dragStartY);
+            draw();
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isDragging = false;
+        });
+
+        // Mouse wheel zoom
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - canvas.width / 2;
+            const mouseY = e.clientY - rect.top - canvas.height / 2;
+            
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            const newZoom = Math.max(0.1, Math.min(50, currentZoom * zoomFactor));
+            
+            // Zoom towards mouse position
+            const zoomRatio = newZoom / currentZoom;
+            panX = (panX - mouseX) * zoomRatio + mouseX;
+            panY = (panY - mouseY) * zoomRatio + mouseY;
+            
+            currentZoom = newZoom;
+            document.getElementById('zoomSlider').value = Math.min(10, newZoom); // Clamp slider to max 10
+            document.getElementById('zoomValue').textContent = newZoom.toFixed(1);
+            
+            draw();
+        });
+
+        // Double-click to reset center
+        canvas.addEventListener('dblclick', () => {
+            panX = 0;
+            panY = 0;
+            updateAnimationStatus('View centered');
+            draw();
+        });
 
         function updateRotation() {
             const value = document.getElementById('rotationSlider').value;
@@ -1536,6 +1729,9 @@
             document.getElementById('enableRotation').checked = false;
             document.getElementById('reverseDirection').checked = false;
             document.getElementById('showUnitCircle').checked = true;
+            document.getElementById('showGcdOne').checked = true;
+            document.getElementById('showNonGcdOne').checked = false;
+            document.getElementById('highlightGcdDifference').checked = false;
             
             // Reset sliders with new defaults (normalized 0-1 values)
             document.getElementById('zoomSlider').value = 1;
@@ -1548,6 +1744,7 @@
             document.getElementById('pointBorder').value = 0.3;
             document.getElementById('globalSpeed').value = 1;
             document.getElementById('inversionSpeed').value = 1;
+            document.getElementById('nonGcdOpacity').value = 0.3;
             document.getElementById('residueColorMode').value = 'hue';
             document.getElementById('liftLineColor').value = '#FFD700';
             document.getElementById('modularLiftColor').value = '#FF6384';
@@ -1565,6 +1762,7 @@
             updatePointBorder();
             updateGlobalSpeed();
             updateInversionSpeed();
+            updateNonGcdOpacity();
             updateColorMode();ation();
             updateThickness();
             updateGapThickness();
@@ -1578,6 +1776,11 @@
             animationFrame = 0;
             inversionProgress = 0;
             ringRotationSpeeds = {};
+            
+            // Reset view state
+            panX = 0;
+            panY = 0;
+            currentZoom = 1;
             
             // Reset prime sieve
             document.getElementById('enablePrimeSieve').checked = false;
@@ -1598,6 +1801,10 @@
             const showDirectLifts = document.getElementById('showDirectLifts').checked;
             const showModularLifts = document.getElementById('showModularLifts').checked;
             const showUnitCircle = document.getElementById('showUnitCircle').checked;
+            const showGcdOne = document.getElementById('showGcdOne').checked;
+            const showNonGcdOne = document.getElementById('showNonGcdOne').checked;
+            const highlightGcdDifference = document.getElementById('highlightGcdDifference').checked;
+            const nonGcdOpacity = parseFloat(document.getElementById('nonGcdOpacity').value);
             const zoom = parseFloat(document.getElementById('zoomSlider').value);
             const rotation = parseFloat(document.getElementById('rotationSlider').value);
             const colorMode = document.getElementById('residueColorMode').value;
@@ -1623,8 +1830,8 @@
             }
 
             ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.scale(zoom, zoom);
+            ctx.translate(canvas.width / 2 + panX, canvas.height / 2 + panY);
+            ctx.scale(currentZoom, currentZoom);
             ctx.rotate((rotation + (animating ? animationFrame * 0.3 : 0)) * Math.PI / 180);
 
             const rings = [];
@@ -1664,9 +1871,10 @@
             sortedRings.forEach((n, index) => {
                 const radius = minRadius + (maxRadius - minRadius) * index / Math.max(1, sortedRings.length - 1);
                 const modulus = configs[n].mod;
-                const residues = getCoprimes(modulus);
+                const coprimes = getCoprimes(modulus);
+                const allResidues = getAllResidues(modulus);
                 
-                rings.push({ n, radius, modulus, residues, index });
+                rings.push({ n, radius, modulus, coprimes, allResidues, index });
             });
 
             // Enhanced ring drawing with special unit circle treatment
@@ -1711,7 +1919,18 @@
                 ctx.setLineDash([]);
 
                 // Enhanced residue points with prime sieve integration
-                ring.residues.forEach(r => {
+                const residuesToDraw = [];
+                
+                // Determine which residues to show based on GCD filtering
+                if (showGcdOne) {
+                    residuesToDraw.push(...ring.coprimes.map(r => ({r, isGcdOne: true})));
+                }
+                if (showNonGcdOne && ring.n !== 'unit') {
+                    const nonCoprimes = ring.allResidues.filter(r => !ring.coprimes.includes(r));
+                    residuesToDraw.push(...nonCoprimes.map(r => ({r, isGcdOne: false})));
+                }
+                
+                residuesToDraw.forEach(({r, isGcdOne}) => {
                     // FIXED: Correct angle calculation to match mathematical convention
                     // For mod M, residue r should be at angle: 2π * (M - r) / M (clockwise from top)
                     // This puts gcd(r,M)=1 residues in their proper mathematical positions
@@ -1762,6 +1981,26 @@
                     ctx.arc(x, y, pointSize, 0, 2 * Math.PI);
                     
                     let color = getResidueColor(r, ring.modulus, ring.index, colorMode);
+                    
+                    // Apply GCD-based styling
+                    if (!isGcdOne) {
+                        if (highlightGcdDifference) {
+                            color = document.getElementById('nonGcdColor').value;
+                        }
+                        // Apply opacity to non-GCD=1 points
+                        const opacity = nonGcdOpacity;
+                        if (color.startsWith('#')) {
+                            const hex = color.slice(1);
+                            const r = parseInt(hex.slice(0, 2), 16);
+                            const g = parseInt(hex.slice(2, 4), 16);
+                            const b = parseInt(hex.slice(4, 6), 16);
+                            color = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                        } else if (color.startsWith('hsl')) {
+                            color = color.replace('hsl(', 'hsla(').replace(')', `, ${opacity})`);
+                        } else if (color.startsWith('rgb')) {
+                            color = color.replace('rgb(', 'rgba(').replace(')', `, ${opacity})`);
+                        }
+                    }
                     
                     // Override color for prime analysis if active
                     if (primeData.isActive && ring.modulus === primeData.modulus) {
@@ -1816,17 +2055,17 @@
                 });
 
                 // Enhanced gap connections (skip for unit circle as it has no gaps)
-                if (ring.n !== 'unit') {
+                if (ring.n !== 'unit' && showGcdOne) {
                     const gapThicknessNorm = parseFloat(document.getElementById('gapLineThickness').value);
                     const gapLineWidth = 0.2 + gapThicknessNorm * 2.8; // Scale 0-1 to 0.2-3.0
                     
                     selectedGaps.forEach((gap, index) => {
                         const hue = (index * 360 / selectedGaps.length) % 360;
                         
-                        ring.residues.forEach(r => {
+                        ring.coprimes.forEach(r => {
                             const r2 = r + gap;
                             const mod = Math.round(ring.modulus);
-                            if (ring.residues.includes(r2 % mod)) {
+                            if (ring.coprimes.includes(r2 % mod)) {
                                 // FIXED: Apply same angle correction for gap connections
                                 const baseAngle1 = 2 * Math.PI * (ring.modulus - r) / ring.modulus;
                                 const baseAngle2 = 2 * Math.PI * (ring.modulus - (r2 % mod)) / ring.modulus;
@@ -1876,9 +2115,9 @@
                             ringRotation2 += Math.sin(inversionPhase2 * Math.PI) * Math.PI;
                         }
                         
-                        ring1.residues.forEach(r => {
+                        ring1.coprimes.forEach(r => {
                             // Enhanced direct lifts with unit circle special handling
-                            if (showDirectLifts && ring2.residues.includes(r)) {
+                            if (showDirectLifts && ring2.coprimes.includes(r)) {
                                 // FIXED: Apply angle correction for lift lines
                                 let baseAngle1, baseAngle2;
                                 if (ring1.n === 'unit') {
@@ -1935,7 +2174,7 @@
                                     
                                     const liftedR = (r + shift) % Math.round(ring2.modulus);
                                     
-                                    if (ring2.residues.includes(liftedR)) {
+                                    if (ring2.coprimes.includes(liftedR)) {
                                         // FIXED: Apply angle correction for modular lifts
                                         const baseAngle1 = 2 * Math.PI * (ring1.modulus - r) / ring1.modulus;
                                         const baseAngle2 = 2 * Math.PI * (ring2.modulus - liftedR) / ring2.modulus;
@@ -1983,7 +2222,7 @@
             rings.forEach((ring, index) => {
                 const config = configs[ring.n];
                 const modLabel = config ? config.label : ring.modulus.toString();
-                totalResidues += ring.residues.length;
+                totalResidues += ring.coprimes.length;
                 
                 let ringTitle;
                 let specialNote = '';
@@ -2008,8 +2247,8 @@
                 html += `<div class="${infoClass}">
                     <strong>${ringTitle}</strong><br>
                     <em class="math-notation">M = ${modLabel}</em><br>
-                    <em class="math-notation">φ(M) = ${ring.residues.length}</em><br>
-                    Residues: [${ring.residues.slice(0, 10).join(', ')}${ring.residues.length > 10 ? '...' : ''}]
+                    <em class="math-notation">φ(M) = ${ring.coprimes.length}</em><br>
+                    Residues: [${ring.coprimes.slice(0, 10).join(', ')}${ring.coprimes.length > 10 ? '...' : ''}]
                     ${specialNote}
                 </div>`;
             });
@@ -2190,4 +2429,4 @@
         draw();
     </script>
 </body>
-                            </html>
+    </html>
