@@ -226,7 +226,7 @@
 
         #canvas {
             border-radius: 15px;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.3) 100%);
+            background: #000000;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         }
 
@@ -498,7 +498,7 @@
                 </div>
 
                 <div class="control-section">
-                    <h3>Lifting Morphisms</h3>
+                    <h3>Display Controls</h3>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r)
                     </div>
@@ -508,7 +508,31 @@
                 </div>
 
                 <div class="control-section">
-                    <h3>Display Controls</h3>
+                    <h3>GCD Filter Controls</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showGcdOne" checked onchange="draw()"> Show GCD(r,M) = 1
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showNonGcdOne" onchange="draw()"> Show GCD(r,M) ≠ 1
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="highlightGcdDifference" onchange="draw()"> Highlight GCD Difference
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>Non-GCD=1 Styling:</strong></label>
+                        <div class="slider-group">
+                            <label>Non-GCD=1 Opacity: <span id="nonGcdOpacityValue">0.3</span></label>
+                            <input type="range" id="nonGcdOpacity" min="0" max="1" step="0.05" value="0.3" oninput="updateNonGcdOpacity()">
+                        </div>
+                        <div class="slider-group">
+                            <label>Non-GCD=1 Color:</label>
+                            <input type="color" id="nonGcdColor" value="#666666" onchange="draw()">
+                        </div>
+                    </div>
+                </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showLabels" checked> Show Residue Labels
                     </div>
@@ -735,6 +759,22 @@
                 if (gcd(r, m) === 1) {
                     residues.push(r);
                 }
+            }
+            return residues;
+        }
+
+        function getAllResidues(modulus) {
+            const residues = [];
+            const m = Math.round(modulus);
+            
+            // Special case for mod 1: only residue is 0
+            if (m === 1) {
+                return [0];
+            }
+            
+            // For all other moduli, return all residues 0 to m-1
+            for (let r = 0; r < m; r++) {
+                residues.push(r);
             }
             return residues;
         }
@@ -1347,6 +1387,12 @@
             document.getElementById('inversionSpeedValue').textContent = value;
         }
 
+        function updateNonGcdOpacity() {
+            const value = document.getElementById('nonGcdOpacity').value;
+            document.getElementById('nonGcdOpacityValue').textContent = value;
+            draw();
+        }
+
         function updateColorMode() {
             const mode = document.getElementById('residueColorMode').value;
             const customGroup = document.getElementById('customColorGroup');
@@ -1491,11 +1537,15 @@
             document.getElementById('reverseDirection').checked = false;
             document.getElementById('showUnitCircle').checked = true;
             
-            // Reset sliders with new defaults
+            // Reset sliders with new defaults (normalized 0-1 values)
             document.getElementById('zoomSlider').value = 1;
             document.getElementById('rotationSlider').value = 90; // Default 90° rotation
-            document.getElementById('lineThickness').value = 2;
-            document.getElementById('gapLineThickness').value = 1.5;
+            document.getElementById('lineThickness').value = 0.5;
+            document.getElementById('gapLineThickness').value = 0.3;
+            document.getElementById('ringThickness').value = 0.2;
+            document.getElementById('unitThickness').value = 0.8;
+            document.getElementById('pointSize').value = 0.4;
+            document.getElementById('pointBorder').value = 0.3;
             document.getElementById('globalSpeed').value = 1;
             document.getElementById('inversionSpeed').value = 1;
             document.getElementById('residueColorMode').value = 'hue';
@@ -1507,6 +1557,15 @@
             // Update displays
             updateZoom();
             updateRotation();
+            updateThickness();
+            updateGapThickness();
+            updateRingThickness();
+            updateUnitThickness();
+            updatePointSize();
+            updatePointBorder();
+            updateGlobalSpeed();
+            updateInversionSpeed();
+            updateColorMode();ation();
             updateThickness();
             updateGapThickness();
             updateGlobalSpeed();
@@ -2131,4 +2190,4 @@
         draw();
     </script>
 </body>
-    </html>
+                            </html>
