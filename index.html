@@ -397,7 +397,10 @@
                             To: <input type="number" id="gapEnd" min="3" step="1" value="20" placeholder="20">
                             <button onclick="addConsecutiveGaps()">Add Range</button>
                         </div>
-                        <button onclick="generateGaps()">Generate Even Gaps</button>
+                        <div class="gap-input">
+                            <button onclick="generateGaps()">Generate Even Gaps</button>
+                            <button class="reset-btn" onclick="clearAllGaps()">Clear All Gaps</button>
+                        </div>
                     </div>
                 </div>
 
@@ -421,6 +424,10 @@
                         </div>
                         <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
                             No limits - explore any modulus range you want!
+                        </div>
+                        <div class="gap-input" style="margin-top: 15px;">
+                            <button class="reset-btn" onclick="clearAllRings()">Clear All Rings</button>
+                            <button class="special-btn" onclick="resetToDefaults()">Reset to M1-M30</button>
                         </div>
                     </div>
                 </div>
@@ -903,6 +910,49 @@
         }
 
         // Enhanced control functions
+        function clearAllGaps() {
+            const gapControls = document.getElementById('gapControls');
+            const checkboxes = gapControls.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            updateAnimationStatus('All gaps cleared');
+            draw();
+        }
+
+        function clearAllRings() {
+            const ringControls = document.getElementById('ringControls');
+            const checkboxes = ringControls.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            updateAnimationStatus('All rings cleared');
+            draw();
+        }
+
+        function resetToDefaults() {
+            // First clear all rings
+            clearAllRings();
+            
+            // Then check only the unit circle and M2-M30 defaults
+            const ringControls = document.getElementById('ringControls');
+            const checkboxes = ringControls.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                const ringId = checkbox.value;
+                if (ringId === 'unit' || ringId.startsWith('default_')) {
+                    checkbox.checked = true;
+                }
+            });
+            
+            updateAnimationStatus('Reset to default rings: Unit Circle + M2-M30');
+            draw();
+        }
+
         function generateGaps() {
             const maxGap = parseInt(document.getElementById('maxGap').value);
             const gapControls = document.getElementById('gapControls');
