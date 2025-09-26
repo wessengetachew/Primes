@@ -49,7 +49,7 @@
 
         .main-grid {
             display: grid;
-            grid-template-columns: 350px 1fr 300px;
+            grid-template-columns: 350px 1fr;
             gap: 30px;
             min-height: 0; /* Prevent grid overflow */
         }
@@ -159,10 +159,8 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .reset-section-btn {
+        .reset-btn {
             background: linear-gradient(45deg, #e74c3c, #c0392b);
-            width: 100%;
-            margin-top: 10px;
         }
 
         .special-btn {
@@ -231,16 +229,6 @@
             box-sizing: border-box;
         }
 
-        .analysis-panel {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 25px;
-            border-radius: 20px;
-            height: fit-content;
-            max-height: 85vh;
-            overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
         #canvas {
             border-radius: 15px;
             background: #000000;
@@ -256,21 +244,19 @@
             cursor: grabbing;
         }
 
-        .info-panel {
-            background: rgba(0, 0, 0, 0.85);
-            padding: 20px;
-            border-radius: 15px;
-            min-width: 220px;
-            max-height: 450px;
-            overflow-y: auto;
+        .analysis-section {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 20px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
         }
 
-        .info-panel h4 {
+        .analysis-section h3 {
             color: #FFD700;
-            margin-bottom: 15px;
-            font-size: 1.1em;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            text-align: center;
         }
 
         .ring-info {
@@ -333,13 +319,6 @@
         @media (max-width: 1400px) {
             .main-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .analysis-panel {
-                position: relative;
-                top: auto;
-                right: auto;
-                margin-top: 20px;
             }
             
             #canvas {
@@ -417,7 +396,6 @@
                             From: <input type="number" id="gapStart" min="2" step="1" value="14" placeholder="14">
                             To: <input type="number" id="gapEnd" min="3" step="1" value="20" placeholder="20">
                             <button onclick="addConsecutiveGaps()">Add Range</button>
-                            <button class="reset-section-btn" onclick="clearAllGaps()">Clear All Gaps</button>
                         </div>
                         <button onclick="generateGaps()">Generate Even Gaps</button>
                     </div>
@@ -440,7 +418,6 @@
                             From: <input type="number" id="modStart" min="1" value="1" placeholder="1">
                             To: <input type="number" id="modEnd" min="2" value="20" placeholder="20">
                             <button onclick="addConsecutiveMods()">Add M₁ to Mₙ</button>
-                            <button class="reset-section-btn" onclick="clearAllMods()">Clear All Mods</button>
                         </div>
                         <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
                             No limits - explore any modulus range you want!
@@ -468,240 +445,6 @@
                     <div class="slider-group" id="customColorGroup" style="display: none;">
                         <label>Custom Residue Color:</label>
                         <input type="color" id="customResidueColor" value="#FF6B6B" onchange="draw()">
-                    </div>
-                    
-                    <div class="slider-group" id="gcdColorGroup" style="display: none;">
-                        <label>Base GCD=1 Color:</label>
-                        <input type="color" id="gcdBaseColor" value="#FF6B6B" onchange="draw()">
-                    </div>
-                    
-                    <div class="slider-group" id="nonGcdColorGroup" style="display: none;">
-                        <label>Non-GCD=1 Color (if any):</label>
-                        <input type="color" id="nonGcdColor" value="#666666" onchange="draw()">
-                    </div>
-                    
-                    <div class="slider-group">
-                        <label>Direct Lift Line Color:</label>
-                        <input type="color" id="liftLineColor" value="#FFD700" onchange="draw()">
-                    </div>
-                    
-                    <div class="slider-group">
-                        <label>Modular Lift Line Color:</label>
-                        <input type="color" id="modularLiftColor" value="#FF6384" onchange="draw()">
-                    </div>
-                    
-                    <div class="slider-group">
-                        <label>Lift Line Thickness: <span id="thicknessValue">0.5</span></label>
-                        <input type="range" id="lineThickness" min="0" max="1" step="0.01" value="0.5" oninput="updateThickness()">
-                    </div>
-                    
-                    <div class="slider-group">
-                        <label>Gap Line Thickness: <span id="gapThicknessValue">0.3</span></label>
-                        <input type="range" id="gapLineThickness" min="0" max="1" step="0.01" value="0.3" oninput="updateGapThickness()">
-                    </div>
-                    
-                    <div class="slider-group">
-                        <label>Ring Circle Thickness: <span id="ringThicknessValue">0.2</span></label>
-                        <input type="range" id="ringThickness" min="0" max="1" step="0.01" value="0.2" oninput="updateRingThickness()">
-                    </div>
-                    
-                    <div class="slider-group">
-                        <label>Unit Circle Thickness: <span id="unitThicknessValue">0.8</span></label>
-                        <input type="range" id="unitThickness" min="0" max="1" step="0.01" value="0.8" oninput="updateUnitThickness()">
-                    </div>
-                    
-                    <div class="slider-group">
-                        <label>Residue Point Size: <span id="pointSizeValue">0.4</span></label>
-                        <input type="range" id="pointSize" min="0" max="1" step="0.01" value="0.4" oninput="updatePointSize()">
-                    </div>
-                    
-                    <div class="slider-group">
-                        <label>Point Border Thickness: <span id="pointBorderValue">0.3</span></label>
-                        <input type="range" id="pointBorder" min="0" max="1" step="0.01" value="0.3" oninput="updatePointBorder()">
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h3>Advanced Animation Engine</h3>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="enableRotation" onchange="toggleRotation()"> Enable Individual Ring Rotation
-                    </div>
-                    <div class="slider-group">
-                        <label>Global Animation Speed: <span id="globalSpeedValue">1.0</span>x</label>
-                        <input type="range" id="globalSpeed" min="0.1" max="8" step="0.1" value="1" oninput="updateGlobalSpeed()">
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="reverseDirection"> Reverse Rotation Direction
-                    </div>
-                    <button class="special-btn" onclick="toggleInversionAnimation()">Mathematical Inversion Process</button>
-                    <div id="inversionControls" style="display: none; margin-top: 15px;">
-                        <div class="slider-group">
-                            <label>Inversion Wave Speed: <span id="inversionSpeedValue">1.0</span>x</label>
-                            <input type="range" id="inversionSpeed" min="0.1" max="5" step="0.1" value="1" oninput="updateInversionSpeed()">
-                        </div>
-                        <button onclick="stopInversionAnimation()">Stop Inversion</button>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h3>Display Controls</h3>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r)
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showModularLifts"> Modular Lifts (r → r + M×2ⁿ)
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h3>GCD Filter Controls</h3>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="showGcdOne" checked onchange="draw()"> Show GCD(r,M) = 1
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="showNonGcdOne" onchange="draw()"> Show GCD(r,M) ≠ 1
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="highlightGcdDifference" onchange="draw()"> Highlight GCD Difference
-                        </div>
-                    </div>
-                    
-                    <div class="custom-gap">
-                        <label><strong>Non-GCD=1 Styling:</strong></label>
-                        <div class="slider-group">
-                            <label>Non-GCD=1 Opacity: <span id="nonGcdOpacityValue">0.3</span></label>
-                            <input type="range" id="nonGcdOpacity" min="0" max="1" step="0.05" value="0.3" oninput="updateNonGcdOpacity()">
-                        </div>
-                        <div class="slider-group">
-                            <label>Non-GCD=1 Color:</label>
-                            <input type="color" id="nonGcdColor" value="#666666" onchange="draw()">
-                        </div>
-                    </div>
-                </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showLabels" checked> Show Residue Labels
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="invertNesting"> Invert Ring Nesting Order
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showUnitCircle" checked> Highlight Unit Circle
-                    </div>
-                    <button class="reset-section-btn" onclick="resetAll()">Reset All Settings</button>
-                </div>
-
-                <div class="control-section">
-                    <h3>Prime Sieve Engine</h3>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="enablePrimeSieve"> Enable Prime Sieve Analysis
-                    </div>
-                    
-                    <div class="custom-gap" id="sieveControls" style="display: none;">
-                        <label><strong>Sieve Parameters:</strong></label>
-                        <div class="gap-input">
-                            Search up to: <input type="number" id="sieveLimit" min="100" value="10000" placeholder="10000">
-                        </div>
-                        <div class="gap-input">
-                            Using modulus: <input type="number" id="sieveModulus" min="2" value="30" placeholder="30">
-                            <button onclick="runPrimeSieve()">Generate Sieve</button>
-                        </div>
-                        <div class="gap-input">
-                            <button onclick="clearPrimeSieve()">Clear Sieve</button>
-                            <button onclick="exportPrimeData()">Export Data</button>
-                        </div>
-                        <div id="sieveProgress" style="display: none; margin-top: 10px;">
-                            <div style="background: rgba(255,255,255,0.2); border-radius: 10px; height: 20px;">
-                                <div id="progressBar" style="background: linear-gradient(45deg, #4ECDC4, #44A08D); height: 100%; border-radius: 10px; width: 0%; transition: width 0.3s;"></div>
-                            </div>
-                            <div id="progressText" style="text-align: center; margin-top: 5px; font-size: 12px;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="custom-gap" id="sieveResults" style="display: none;">
-                        <label><strong>Prime Distribution Analysis:</strong></label>
-                        <div id="primeStats" style="font-size: 13px; margin: 10px 0;"></div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="showPrimeMarkers"> Highlight Primes on Rings
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="showCompositeMarkers"> Show Composite Numbers
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="showPrimeDensity"> Show Density Visualization
-                        </div>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h3>Advanced Prime Analysis</h3>
-                    <div class="custom-gap">
-                        <label><strong>Quick Sieve Presets:</strong></label>
-                        <div class="gap-input">
-                            <button onclick="quickSieve(1000, 6)">Primes to 1K (mod 6)</button>
-                            <button onclick="quickSieve(10000, 30)">Primes to 10K (mod 30)</button>
-                        </div>
-                        <div class="gap-input">
-                            <button onclick="quickSieve(100000, 210)">Primes to 100K (mod 210)</button>
-                            <button onclick="quickSieve(1000000, 2310)">Primes to 1M (mod 2310)</button>
-                        </div>
-                    </div>
-                    
-                    <div class="custom-gap" id="primePatternAnalysis" style="display: none;">
-                        <label><strong>Complete Prime Distribution Analysis:</strong></label>
-                        <div id="residueDistribution" style="font-size: 12px; max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 10px;"></div>
-                        
-                        <div class="gap-input" style="margin-top: 15px;">
-                            <button onclick="exportDetailedPrimeList()">Export All Primes by Residue</button>
-                            <button onclick="togglePrimeSearchMode()">Search Specific Primes</button>
-                        </div>
-                        
-                        <div id="primeSearchControls" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                            <label><strong>Prime Search:</strong></label>
-                            <div class="gap-input">
-                                Prime: <input type="number" id="searchPrime" min="2" max="1000000" placeholder="Enter prime">
-                                <button onclick="findPrimeInResidue()">Find Residue Class</button>
-                            </div>
-                            <div id="searchResult" style="margin-top: 10px; font-size: 13px;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="control-section">
-                    <h3>View Controls</h3>
-                    <div class="slider-group">
-                        <label>Zoom Level: <span id="zoomValue">1.0</span>x</label>
-                        <input type="range" id="zoomSlider" min="0.1" max="10" step="0.1" value="1" oninput="updateZoom()">
-                    </div>
-                    <div class="slider-group">
-                        <label>Manual Rotation: <span id="rotationValue">0°</span></label>
-                        <input type="range" id="rotationSlider" min="0" max="360" step="1" value="0" oninput="updateRotation()">
-                    </div>
-                    <div class="gap-input">
-                        <button onclick="resetView()">Reset View</button>
-                        <button onclick="takeScreenshot()">📸 Screenshot</button>
-                    </div>
-                    <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
-                        <strong>Navigation:</strong><br>
-                        • Click & drag to pan<br>
-                        • Mouse wheel to zoom<br>
-                        • Double-click to reset center
-                    </div>
-                </div>
-            </div>
-
-            <div class="canvas-container">
-                <canvas id="canvas" width="800" height="600"></canvas>
-                <div class="animation-status" id="animationStatus">Ready</div>
-            </div>
-
-            <div class="analysis-panel">
-                <div class="info-panel">
-                    <h4>Mathematical Analysis</h4>
-                    <div id="ringInfo">Select rings to view detailed analysis</div>
-                </div>
-            </div>
-        </div>color" id="customResidueColor" value="#FF6B6B" onchange="draw()">
                     </div>
                     
                     <div class="slider-group" id="gcdColorGroup" style="display: none;">
@@ -927,10 +670,11 @@
             <div class="canvas-container">
                 <canvas id="canvas" width="800" height="600"></canvas>
                 <div class="animation-status" id="animationStatus">Ready</div>
-                <div class="info-panel">
-                    <h4>Mathematical Analysis</h4>
-                    <div id="ringInfo">Select rings to view detailed analysis</div>
-                </div>
+            </div>
+            
+            <div class="analysis-section">
+                <h3>Mathematical Analysis</h3>
+                <div id="ringInfo">Select rings to view detailed analysis</div>
             </div>
         </div>
 
@@ -2674,4 +2418,4 @@
         draw();
     </script>
 </body>
-                                </html>
+    </html>
