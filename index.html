@@ -1140,14 +1140,14 @@
         }
 
         function takeScreenshot() {
-            // Create a temporary canvas with white background for better contrast
+            // Create a temporary canvas with black background
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
             tempCanvas.width = canvas.width;
             tempCanvas.height = canvas.height;
             
-            // Fill with white background
-            tempCtx.fillStyle = 'white';
+            // Fill with black background
+            tempCtx.fillStyle = '#000000';
             tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             
             // Draw the current canvas content on top
@@ -1914,6 +1914,7 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
 
+
                 // Enhanced residue points with prime sieve integration
                 const residuesToDraw = [];
                 
@@ -2027,8 +2028,8 @@
                     ctx.lineWidth = borderThickness;
                     ctx.stroke();
 
-                    // Enhanced labels with prime count information
-                    if (showLabels && (ring.radius > 80 || ring.n === 'unit')) {
+                    // Enhanced labels with prime count information - show ALL residue values when labels are enabled
+                    if (showLabels && (ring.radius > 40 || ring.n === 'unit')) {
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                         let labelText = r.toString();
                         
@@ -2353,4 +2354,4 @@
         draw();
     </script>
 </body>
-                                </html>
+</html>
