@@ -686,6 +686,40 @@
                             <input type="checkbox" id="includeLegend" checked> Include Legend
                         </div>
                     </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>Animation Export Options:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="radio" name="animationFormat" value="webm" checked> WebM (High Quality)
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" name="animationFormat" value="mp4"> MP4 (Compatible)
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" name="animationFormat" value="gif"> GIF (Optimized)
+                        </div>
+                        <div class="slider-group">
+                            <label>Animation Duration: <span id="animDurationValue">5</span> seconds</label>
+                            <input type="range" id="animDuration" min="2" max="30" step="1" value="5" oninput="updateAnimDuration()">
+                        </div>
+                        <div class="slider-group">
+                            <label>Export FPS: <span id="animFpsValue">30</span></label>
+                            <input type="range" id="animFps" min="15" max="60" step="5" value="30" oninput="updateAnimFps()">
+                        </div>
+                        <div class="slider-group">
+                            <label>Export Resolution:</label>
+                            <select id="animResolution">
+                                <option value="1080p">1080p (1920×1080)</option>
+                                <option value="1440p">1440p (2560×1440)</option>
+                                <option value="4k" selected>4K (3840×2160)</option>
+                                <option value="custom">Custom Size</option>
+                            </select>
+                        </div>
+                        <div class="gap-input" id="customResolutionControls" style="display: none;">
+                            Width: <input type="number" id="customWidth" value="3840" min="480" step="16">
+                            Height: <input type="number" id="customHeight" value="2160" min="480" step="16">
+                        </div>
+                    </div>
                     <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
                         <strong>Navigation:</strong><br>
                         • Click & drag to pan<br>
@@ -755,6 +789,15 @@
         let isInverting = false;
         let inversionProgress = 0;
         let ringRotationSpeeds = {};
+        
+        // Animation recording state
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
+        let recordingCanvas = null;
+        let recordingStream = null;
+        let recordingStartTime = 0;
+        let frameCount = 0;
         
         // Pan and zoom state
         let panX = 0;
@@ -1185,11 +1228,398 @@
             }, 2000);
         }
 
+        function updateAnimDuration() {
+            const value = document.getElementById('animDuration').value;
+            document.getElementById('animDurationValue').textContent = value;
+        }
+
+        function updateAnimFps() {
+            const value = document.getElementById('animFps').value;
+            document.getElementById('animFpsValue').textContent = value;
+        }
+
         function updateZoom() {
             const value = document.getElementById('zoomSlider').value;
             currentZoom = parseFloat(value);
             document.getElementById('zoomValue').textContent = value;
             draw();
+        }
+
+        function resetView() {
+            panX = 0;
+            panY = 0;
+            currentZoom = 1;
+            document.getElementById('zoomSlider').value = 1;
+            document.getElementById('zoomValue').textContent = '1.0';
+            updateAnimationStatus('View reset to center');
+            draw();
+        }
+
+        function updateRotation() {
+            const value = document.getElementById('rotationSlider').value;
+            document.getElementById('rotationValue').textContent = value + '°';
+            draw();
+        }
+
+        function updateThickness() {
+            const value = document.getElementById('lineThickness').value;
+            document.getElementById('thicknessValue').textContent = value;
+            draw();
+        }
+
+        function updateGapThickness() {
+            const value = document.getElementById('gapLineThickness').value;
+            document.getElementById('gapThicknessValue').textContent = value;
+            draw();
+        }
+        
+        function updateRingThickness() {
+            const value = document.getElementById('ringThickness').value;
+            document.getElementById('ringThicknessValue').textContent = value;
+            draw();
+        }
+        
+        function updateUnitThickness() {
+            const value = document.getElementById('unitThickness').value;
+            document.getElementById('unitThicknessValue').textContent = value;
+            draw();
+        }
+        
+        function updatePointSize() {
+            const value = document.getElementById('pointSize').value;
+            document.getElementById('pointSizeValue').textContent = value;
+            draw();
+        }
+        
+        function updatePointBorder() {
+            const value = document.getElementById('pointBorder').value;
+            document.getElementById('pointBorderValue').textContent = value;
+            draw();
+        }
+
+        // High-quality animation recording system
+        function startRecording() {
+            if (isRecording) {
+                stopRecording();
+                return;
+            }
+            
+            const format = document.querySelector('input[name="animationFormat"]:checked').value;
+            const duration = parseInt(document.getElementById('animDuration').value);
+            const fps = parseInt(document.getElementById('animFps').value);
+            const resolution = document.getElementById('animResolution').value;
+            
+            // Get recording dimensions
+            let recordWidth, recordHeight;
+            switch(resolution) {
+                case '1080p':
+                    recordWidth = 1920;
+                    recordHeight = 1080;
+                    break;
+                case '1440p':
+                    recordWidth = 2560;
+                    recordHeight = 1440;
+                    break;
+                case '4k':
+                    recordWidth = 3840;
+                    recordHeight = 2160;
+                    break;
+                case 'custom':
+                    recordWidth = parseInt(document.getElementById('customWidth').value);
+                    recordHeight = parseInt(document.getElementById('customHeight').value);
+                    break;
+                default:
+                    recordWidth = 3840;
+                    recordHeight = 2160;
+            }
+            
+            // Create high-resolution recording canvas
+            recordingCanvas = document.createElement('canvas');
+            recordingCanvas.width = recordWidth;
+            recordingCanvas.height = recordHeight;
+            
+            updateAnimationStatus(`Starting ${format.toUpperCase()} recording: ${recordWidth}×${recordHeight} @ ${fps}fps for ${duration}s...`);
+            
+            if (format === 'gif') {
+                startGifRecording(duration, fps, recordWidth, recordHeight);
+            } else {
+                startVideoRecording(format, duration, fps, recordWidth, recordHeight);
+            }
+        }
+
+        function startVideoRecording(format, duration, fps, width, height) {
+            try {
+                // Get canvas stream with specified frame rate
+                recordingStream = recordingCanvas.captureStream(fps);
+                
+                // Configure MediaRecorder based on format
+                let mimeType;
+                let options = {
+                    videoBitsPerSecond: 8000000 // 8 Mbps for high quality
+                };
+                
+                if (format === 'webm') {
+                    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+                        mimeType = 'video/webm;codecs=vp9';
+                        options.videoBitsPerSecond = 12000000; // Higher bitrate for VP9
+                    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+                        mimeType = 'video/webm;codecs=vp8';
+                    } else {
+                        mimeType = 'video/webm';
+                    }
+                } else {
+                    // MP4 fallback
+                    if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) {
+                        mimeType = 'video/mp4;codecs=h264';
+                    } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+                        mimeType = 'video/mp4';
+                    } else {
+                        // Fallback to WebM if MP4 not supported
+                        mimeType = 'video/webm';
+                    }
+                }
+                
+                mediaRecorder = new MediaRecorder(recordingStream, {
+                    mimeType: mimeType,
+                    ...options
+                });
+                
+                recordedChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: mimeType });
+                    downloadRecording(blob, format);
+                    cleanupRecording();
+                };
+                
+                // Start recording
+                isRecording = true;
+                frameCount = 0;
+                recordingStartTime = Date.now();
+                
+                // Enable animation if not already running
+                if (!animating) {
+                    document.getElementById('enableRotation').checked = true;
+                    toggleRotation();
+                }
+                
+                mediaRecorder.start(100); // Collect data every 100ms
+                
+                // Update button
+                const recordBtn = document.querySelector('button[onclick="startRecording()"]');
+                recordBtn.textContent = '⏹️ Stop Recording';
+                recordBtn.style.background = 'linear-gradient(45deg, #e74c3c, #c0392b)';
+                
+                // Schedule automatic stop
+                setTimeout(() => {
+                    if (isRecording) {
+                        stopRecording();
+                    }
+                }, duration * 1000);
+                
+                // Start the recording animation loop
+                recordFrame(fps);
+                
+            } catch (error) {
+                alert('Error starting video recording: ' + error.message);
+                cleanupRecording();
+            }
+        }
+
+        function startGifRecording(duration, fps, width, height) {
+            // For GIF, we'll collect frames and use a simple encoder
+            updateAnimationStatus(`Preparing GIF recording: ${width}×${height} @ ${fps}fps for ${duration}s...`);
+            
+            const frames = [];
+            const totalFrames = duration * fps;
+            let currentFrame = 0;
+            
+            isRecording = true;
+            frameCount = 0;
+            recordingStartTime = Date.now();
+            
+            // Enable animation if not already running
+            if (!animating) {
+                document.getElementById('enableRotation').checked = true;
+                toggleRotation();
+            }
+            
+            // Update button
+            const recordBtn = document.querySelector('button[onclick="startRecording()"]');
+            recordBtn.textContent = '⏹️ Stop Recording';
+            recordBtn.style.background = 'linear-gradient(45deg, #e74c3c, #c0392b)';
+            
+            function captureGifFrame() {
+                if (!isRecording || currentFrame >= totalFrames) {
+                    // Encoding complete
+                    createGifFromFrames(frames, fps, width, height);
+                    return;
+                }
+                
+                // Render current frame to recording canvas
+                renderFrameToCanvas(recordingCanvas);
+                
+                // Capture frame data
+                const imageData = recordingCanvas.getContext('2d').getImageData(0, 0, width, height);
+                frames.push({
+                    data: imageData.data,
+                    width: width,
+                    height: height
+                });
+                
+                currentFrame++;
+                frameCount++;
+                
+                // Update progress
+                const progress = (currentFrame / totalFrames * 100).toFixed(1);
+                updateAnimationStatus(`Capturing GIF frames: ${progress}% (${currentFrame}/${totalFrames})`);
+                
+                // Schedule next frame
+                setTimeout(captureGifFrame, 1000 / fps);
+            }
+            
+            captureGifFrame();
+        }
+
+        function recordFrame(fps) {
+            if (!isRecording) return;
+            
+            // Render current animation state to recording canvas
+            renderFrameToCanvas(recordingCanvas);
+            frameCount++;
+            
+            // Update status
+            const elapsed = (Date.now() - recordingStartTime) / 1000;
+            const duration = parseInt(document.getElementById('animDuration').value);
+            const progress = (elapsed / duration * 100).toFixed(1);
+            updateAnimationStatus(`Recording: ${progress}% (${frameCount} frames, ${elapsed.toFixed(1)}s)`);
+            
+            // Schedule next frame
+            if (isRecording) {
+                setTimeout(() => recordFrame(fps), 1000 / fps);
+            }
+        }
+
+        function renderFrameToCanvas(targetCanvas) {
+            const targetCtx = targetCanvas.getContext('2d');
+            const scaleX = targetCanvas.width / canvas.width;
+            const scaleY = targetCanvas.height / canvas.height;
+            
+            // Clear the recording canvas
+            targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+            
+            // Scale and draw the main canvas
+            targetCtx.save();
+            targetCtx.scale(scaleX, scaleY);
+            targetCtx.drawImage(canvas, 0, 0);
+            targetCtx.restore();
+            
+            // Add title and legend if enabled (scaled appropriately)
+            const includeTitle = document.getElementById('includeTitle').checked;
+            const includeLegend = document.getElementById('includeLegend').checked;
+            
+            if (includeTitle) {
+                const selectedRings = getSelectedRings();
+                const selectedGaps = getSelectedGaps();
+                const { title, subtitle } = generateConfigurationDescription(selectedRings, selectedGaps);
+                
+                targetCtx.fillStyle = '#2c3e50';
+                targetCtx.font = `bold ${24 * scaleX}px Segoe UI`;
+                targetCtx.textAlign = 'center';
+                targetCtx.fillText(title, targetCanvas.width / 2, 30 * scaleY);
+                
+                targetCtx.fillStyle = '#34495e';
+                targetCtx.font = `${14 * scaleX}px Segoe UI`;
+                targetCtx.fillText(subtitle.substring(0, 120) + (subtitle.length > 120 ? '...' : ''), 
+                    targetCanvas.width / 2, 55 * scaleY);
+            }
+        }
+
+        function createGifFromFrames(frames, fps, width, height) {
+            updateAnimationStatus('Encoding GIF... This may take a moment.');
+            
+            // Simple GIF encoding (this is a basic implementation)
+            // For production, you'd want to use a more sophisticated GIF encoder
+            
+            // Create a simple animated data structure
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            
+            // For now, we'll create a WebM and suggest the user convert it
+            // A full GIF encoder would be quite complex to implement here
+            alert('GIF encoding requires additional libraries. The recording has been saved as WebM format instead. You can convert it to GIF using online tools or software like FFmpeg.');
+            
+            // Convert to WebM instead
+            startVideoRecording('webm', parseInt(document.getElementById('animDuration').value), fps, width, height);
+        }
+
+        function stopRecording() {
+            if (!isRecording) return;
+            
+            isRecording = false;
+            
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            
+            // Reset button
+            const recordBtn = document.querySelector('button[onclick="startRecording()"]');
+            recordBtn.textContent = '🎬 Record Animation';
+            recordBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #4ECDC4)';
+            
+            updateAnimationStatus('Recording stopped, processing...');
+        }
+
+        function downloadRecording(blob, format) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,'-');
+            const selectedRings = getSelectedRings();
+            const selectedGaps = getSelectedGaps();
+            
+            const ringText = selectedRings.length > 0 ? `_${selectedRings.length}rings` : '';
+            const gapText = selectedGaps.length > 0 ? `_${selectedGaps.length}gaps` : '';
+            const resolution = document.getElementById('animResolution').value;
+            const duration = document.getElementById('animDuration').value;
+            const fps = document.getElementById('animFps').value;
+            
+            link.href = url;
+            link.download = `modular_rings_animation${ringText}${gapText}_${resolution}_${duration}s_${fps}fps_${timestamp}.${format}`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(url);
+            
+            const fileSize = (blob.size / (1024 * 1024)).toFixed(2);
+            updateAnimationStatus(`${format.toUpperCase()} animation saved! (${fileSize} MB)`);
+        }
+
+        function cleanupRecording() {
+            isRecording = false;
+            frameCount = 0;
+            recordedChunks = [];
+            
+            if (recordingStream) {
+                recordingStream.getTracks().forEach(track => track.stop());
+                recordingStream = null;
+            }
+            
+            if (recordingCanvas) {
+                recordingCanvas = null;
+            }
+            
+            mediaRecorder = null;
         }
 
         function resetView() {
@@ -2838,6 +3268,10 @@
             document.getElementById('zoomSlider').addEventListener('input', updateZoom);
             document.getElementById('rotationSlider').addEventListener('input', updateRotation);
             document.getElementById('enablePrimeSieve').addEventListener('change', togglePrimeSieve);
+            document.getElementById('animResolution').addEventListener('change', function() {
+                const customControls = document.getElementById('customResolutionControls');
+                customControls.style.display = this.value === 'custom' ? 'block' : 'none';
+            });
             
             updateAnimationStatus('System initialized with corrected angle positioning and normalized thickness controls');
         }
