@@ -528,6 +528,2819 @@
                 </div>
 
                 <div class="control-section">
+                    <h3>Display Controls</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r)
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showModularLifts"> Modular Lifts (r → r + M×2ⁿ)
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>GCD Filter Controls</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showGcdOne" checked onchange="draw()"> Show GCD(r,M) = 1
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showNonGcdOne" onchange="draw()"> Show GCD(r,M) ≠ 1
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="highlightGcdDifference" onchange="draw()"> Highlight GCD Difference
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>Non-GCD=1 Styling:</strong></label>
+                        <div class="slider-group">
+                            <label>Non-GCD=1 Opacity: <span id="nonGcdOpacityValue">0.3</span></label>
+                            <input type="range" id="nonGcdOpacity" min="0" max="1" step="0.05" value="0.3" oninput="updateNonGcdOpacity()">
+                        </div>
+                        <div class="slider-group">
+                            <label>Non-GCD=1 Color:</label>
+                            <input type="color" id="nonGcdColor" value="#666666" onchange="draw()">
+                        </div>
+                    </div>
+                </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showLabels" checked> Show Residue Labels
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="invertNesting"> Invert Ring Nesting Order
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showUnitCircle" checked> Highlight Unit Circle
+                    </div>
+                    <button class="reset-btn" onclick="resetAll()">Reset All Settings</button>
+                </div>
+
+                <div class="control-section">
+                    <h3>Prime Sieve Engine</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enablePrimeSieve"> Enable Prime Sieve Analysis
+                    </div>
+                    
+                    <div class="custom-gap" id="sieveControls" style="display: none;">
+                        <label><strong>Sieve Parameters:</strong></label>
+                        <div class="gap-input">
+                            Search up to: <input type="number" id="sieveLimit" min="100" value="10000" placeholder="10000">
+                        </div>
+                        <div class="gap-input">
+                            Using modulus: <input type="number" id="sieveModulus" min="2" value="30" placeholder="30">
+                            <button onclick="runPrimeSieve()">Generate Sieve</button>
+                        </div>
+                        <div class="gap-input">
+                            <button onclick="clearPrimeSieve()">Clear Sieve</button>
+                            <button onclick="exportPrimeData()">Export Data</button>
+                        </div>
+                        <div id="sieveProgress" style="display: none; margin-top: 10px;">
+                            <div style="background: rgba(255,255,255,0.2); border-radius: 10px; height: 20px;">
+                                <div id="progressBar" style="background: linear-gradient(45deg, #4ECDC4, #44A08D); height: 100%; border-radius: 10px; width: 0%; transition: width 0.3s;"></div>
+                            </div>
+                            <div id="progressText" style="text-align: center; margin-top: 5px; font-size: 12px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap" id="sieveResults" style="display: none;">
+                        <label><strong>Prime Distribution Analysis:</strong></label>
+                        <div id="primeStats" style="font-size: 13px; margin: 10px 0;"></div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showPrimeMarkers"> Highlight Primes on Rings
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showCompositeMarkers"> Show Composite Numbers
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showPrimeDensity"> Show Density Visualization
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Advanced Prime Analysis</h3>
+                    <div class="custom-gap">
+                        <label><strong>Quick Sieve Presets:</strong></label>
+                        <div class="gap-input">
+                            <button onclick="quickSieve(1000, 6)">Primes to 1K (mod 6)</button>
+                            <button onclick="quickSieve(10000, 30)">Primes to 10K (mod 30)</button>
+                        </div>
+                        <div class="gap-input">
+                            <button onclick="quickSieve(100000, 210)">Primes to 100K (mod 210)</button>
+                            <button onclick="quickSieve(1000000, 2310)">Primes to 1M (mod 2310)</button>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap" id="primePatternAnalysis" style="display: none;">
+                        <label><strong>Complete Prime Distribution Analysis:</strong></label>
+                        <div id="residueDistribution" style="font-size: 12px; max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 10px;"></div>
+                        
+                        <div class="gap-input" style="margin-top: 15px;">
+                            <button onclick="exportDetailedPrimeList()">Export All Primes by Residue</button>
+                            <button onclick="togglePrimeSearchMode()">Search Specific Primes</button>
+                        </div>
+                        
+                        <div id="primeSearchControls" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                            <label><strong>Prime Search:</strong></label>
+                            <div class="gap-input">
+                                Prime: <input type="number" id="searchPrime" min="2" max="1000000" placeholder="Enter prime">
+                                <button onclick="findPrimeInResidue()">Find Residue Class</button>
+                            </div>
+                            <div id="searchResult" style="margin-top: 10px; font-size: 13px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>View Controls</h3>
+                    <div class="slider-group">
+                        <label>Zoom Level: <span id="zoomValue">1.0</span>x</label>
+                        <input type="range" id="zoomSlider" min="0.1" max="10" step="0.1" value="1" oninput="updateZoom()">
+                    </div>
+                    <div class="slider-group">
+                        <label>Manual Rotation: <span id="rotationValue">0°</span></label>
+                        <input type="range" id="rotationSlider" min="0" max="360" step="1" value="0" oninput="updateRotation()">
+                    </div>
+                    <div class="gap-input">
+                        <button onclick="resetView()">Reset View</button>
+                        <button onclick="takeScreenshot()">📸 Screenshot</button>
+                    </div>
+                    <div class="custom-gap">
+                        <label><strong>Screenshot Options:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="radio" name="screenshotResolution" value="standard" checked> Standard (800x600)
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" name="screenshotResolution" value="4k"> 4K Ultra HD (3840x2160)
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" name="screenshotBg" value="white" checked> White Background
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" name="screenshotBg" value="black"> Black Background
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="includeTitle" checked> Include Title & Subtitle
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="includeLegend" checked> Include Legend
+                        </div>
+                    </div>
+                    <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
+                        <strong>Navigation:</strong><br>
+                        • Click & drag to pan<br>
+                        • Mouse wheel to zoom<br>
+                        • Double-click to reset center
+                    </div>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="canvas" width="800" height="600"></canvas>
+                <div class="animation-status" id="animationStatus">Ready</div>
+            </div>
+            
+            <div class="analysis-section">
+                <h3>Mathematical Analysis</h3>
+                <div id="ringInfo">Select rings to view detailed analysis</div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <h3>Mathematical Legend & Notation</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(45deg, #FFD700, #FFA500);"></div>
+                    <span><strong>Unit Circle (M=1)</strong> - Leonhard Euler's foundation</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FF6B6B;"></div>
+                    <span><em class="math-notation">gcd(r,M) = 1</em> - Euler's totient function φ(M)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4ECDC4;"></div>
+                    <span>Prime gap connections within Euler's rings</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FFD700;"></div>
+                    <span>Direct lifts: <em class="math-notation">r ↦ r</em> (Euler homomorphism)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FFD700; opacity: 0.4;"></div>
+                    <span>Skip-level lifts: <em class="math-notation">r ↦ r</em> (extended morphism)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FF6384; border-style: dashed;"></div>
+                    <span>Modular lifts: <em class="math-notation">r ↦ r + M×2ⁿ</em> (Chinese Remainder)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #9b59b6;"></div>
+                    <span>Custom moduli explorations</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(45deg, #667eea, #764ba2);"></div>
+                    <span><em class="math-notation">Mₙ = 30 × 2ⁿ</em> series (Euler's multiplicative function)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced global state management
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let animating = false;
+        let animationFrame = 0;
+        let customRingCounter = 1000;
+        let isInverting = false;
+        let inversionProgress = 0;
+        let ringRotationSpeeds = {};
+        
+        // Pan and zoom state
+        let panX = 0;
+        let panY = 0;
+        let currentZoom = 1;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let dragStartPanX = 0;
+        let dragStartPanY = 0;
+        
+        // Prime sieve data storage
+        let primeData = {
+            primes: [],
+            modulus: null,
+            limit: null,
+            residueDistribution: {},
+            totalPrimes: 0,
+            isActive: false
+        };
+
+        // Enhanced modulus configurations with unit circle foundation
+        const configs = {
+            'unit': { mod: 1, label: '1', description: 'Unit Circle - Fundamental mathematical foundation' },
+            '-5': { mod: 30/32, label: '30/32', description: 'M₋₅ = 30/32 ≈ 0.9375' },
+            '-4': { mod: 30/16, label: '30/16', description: 'M₋₄ = 30/16 = 1.875' },
+            '-3': { mod: 30/8, label: '30/8', description: 'M₋₃ = 30/8 = 3.75' },
+            '-2': { mod: 30/4, label: '30/4', description: 'M₋₂ = 30/4 = 7.5' },
+            '-1': { mod: 30/2, label: '15', description: 'M₋₁ = 15' },
+            '0': { mod: 30, label: '30', description: 'M₀ = 30 (Base modulus)' },
+            '1': { mod: 60, label: '60', description: 'M₁ = 60' },
+            '2': { mod: 120, label: '120', description: 'M₂ = 120' },
+            '3': { mod: 240, label: '240', description: 'M₃ = 240' },
+            '4': { mod: 480, label: '480', description: 'M₄ = 480' },
+            '5': { mod: 960, label: '960', description: 'M₅ = 960' },
+            '6': { mod: 1920, label: '1920', description: 'M₆ = 1920' },
+            '7': { mod: 3840, label: '3840', description: 'M₇ = 3840' },
+            '8': { mod: 7680, label: '7680', description: 'M₈ = 7680' },
+            '9': { mod: 15360, label: '15360', description: 'M₉ = 15360' },
+            '10': { mod: 30720, label: '30720', description: 'M₁₀ = 30720' }
+        };
+
+        // Enhanced mathematical utility functions
+        function gcd(a, b) {
+            while (b !== 0) {
+                let temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+
+        function isPrime(n) {
+            if (n < 2) return false;
+            if (n === 2) return true;
+            if (n % 2 === 0) return false;
+            for (let i = 3; i <= Math.sqrt(n); i += 2) {
+                if (n % i === 0) return false;
+            }
+            return true;
+        }
+
+        function getCoprimes(modulus) {
+            const residues = [];
+            const m = Math.round(modulus);
+            
+            // Special case for mod 1: only residue is 0, and gcd(0,1) = 1
+            if (m === 1) {
+                return [0];
+            }
+            
+            // For all other moduli, find residues coprime to m
+            for (let r = 1; r < m; r++) {
+                if (gcd(r, m) === 1) {
+                    residues.push(r);
+                }
+            }
+            return residues;
+        }
+
+        function getAllResidues(modulus) {
+            const residues = [];
+            const m = Math.round(modulus);
+            
+            // Special case for mod 1: only residue is 0
+            if (m === 1) {
+                return [0];
+            }
+            
+            // For all other moduli, return all residues 0 to m-1
+            for (let r = 0; r < m; r++) {
+                residues.push(r);
+            }
+            return residues;
+        }
+
+        function getResidueColor(r, modulus, ringIndex, colorMode) {
+            const customColor = document.getElementById('customResidueColor').value;
+            const gcdBaseColor = document.getElementById('gcdBaseColor').value;
+            const nonGcdColor = document.getElementById('nonGcdColor').value;
+            
+            // Special handling for unit circle
+            if (modulus === 1) {
+                return 'rgba(255, 215, 0, 0.9)'; // Golden color for unit circle
+            }
+            
+            // Check if residue is coprime to modulus
+            const isGcdOne = gcd(r, Math.round(modulus)) === 1;
+            
+            switch(colorMode) {
+                case 'hue':
+                    return `hsl(${(r * 360 / modulus) % 360}, 75%, 65%)`;
+                case 'value':
+                    return `hsl(${(r * 37) % 360}, 80%, 70%)`;
+                case 'modulo':
+                    return `hsl(${(ringIndex * 67) % 360}, 78%, 62%)`;
+                case 'prime':
+                    return isPrime(r) ? '#FF6B6B' : '#4ECDC4';
+                case 'gcd_unified':
+                    // All GCD=1 residues get same color, non-GCD=1 get different color
+                    return isGcdOne ? gcdBaseColor : nonGcdColor;
+                case 'gcd_per_mod':
+                    // Each modulus gets its own hue for GCD=1 residues
+                    if (isGcdOne) {
+                        const modHue = (Math.round(modulus) * 67) % 360;
+                        return `hsl(${modHue}, 85%, 70%)`;
+                    } else {
+                        return nonGcdColor;
+                    }
+                case 'gcd_per_residue':
+                    // Each unique GCD=1 residue value gets its own color across all moduli
+                    if (isGcdOne) {
+                        const residueHue = (r * 43 + 123) % 360; // Offset to avoid common angles
+                        return `hsl(${residueHue}, 78%, 68%)`;
+                    } else {
+                        return nonGcdColor;
+                    }
+                case 'gcd_mathematical':
+                    // Mathematical progression based on φ(n) and residue position
+                    if (isGcdOne) {
+                        const phi = getCoprimes(Math.round(modulus)).length;
+                        const position = getCoprimes(Math.round(modulus)).indexOf(r);
+                        const mathHue = (position * 360 / phi + Math.round(modulus) * 7) % 360;
+                        return `hsl(${mathHue}, 82%, 66%)`;
+                    } else {
+                        return nonGcdColor;
+                    }
+                case 'gcd_spectrum':
+                    // Spectral distribution based on modulus size and residue density
+                    if (isGcdOne) {
+                        const phi = getCoprimes(Math.round(modulus)).length;
+                        const density = phi / Math.round(modulus); // Euler's totient density
+                        const spectralHue = (density * 240 + r * 15) % 360; // Blue-to-red spectrum
+                        const saturation = 60 + density * 30; // Higher density = more saturated
+                        return `hsl(${spectralHue}, ${saturation}%, 65%)`;
+                    } else {
+                        return nonGcdColor;
+                    }
+                case 'custom':
+                    return customColor;
+                default:
+                    return `hsl(${(r * 360 / modulus) % 360}, 75%, 65%)`;
+            }
+        }
+
+        function getSelectedGaps() {
+            const checked = document.querySelectorAll('#gapControls input:checked');
+            return Array.from(checked).map(cb => parseInt(cb.value));
+        }
+
+        function getSelectedRings() {
+            const checked = document.querySelectorAll('#ringControls input:checked');
+            return Array.from(checked).map(cb => cb.value);
+        }
+
+        // Enhanced control functions
+        function clearAllGaps() {
+            const gapControls = document.getElementById('gapControls');
+            const checkboxes = gapControls.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            updateAnimationStatus('All gaps cleared');
+            draw();
+        }
+
+        function clearAllRings() {
+            const ringControls = document.getElementById('ringControls');
+            const checkboxes = ringControls.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            updateAnimationStatus('All rings cleared');
+            draw();
+        }
+
+        function resetToDefaults() {
+            // First clear all rings
+            clearAllRings();
+            
+            // Then check only the unit circle and M2-M30 defaults
+            const ringControls = document.getElementById('ringControls');
+            const checkboxes = ringControls.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                const ringId = checkbox.value;
+                if (ringId === 'unit' || ringId.startsWith('default_')) {
+                    checkbox.checked = true;
+                }
+            });
+            
+            updateAnimationStatus('Reset to default rings: Unit Circle + M2-M30');
+            draw();
+        }
+
+        function generateGaps() {
+            const maxGap = parseInt(document.getElementById('maxGap').value);
+            const gapControls = document.getElementById('gapControls');
+            
+            gapControls.innerHTML = '';
+            
+            for (let gap = 2; gap <= maxGap; gap += 2) {
+                addGapControl(gap);
+            }
+            
+            updateAnimationStatus(`Generated even gaps 2 to ${maxGap}`);
+            draw();
+        }
+
+        function addConsecutiveGaps() {
+            const gapStart = parseInt(document.getElementById('gapStart').value);
+            const gapEnd = parseInt(document.getElementById('gapEnd').value);
+            
+            if (gapStart >= gapEnd) {
+                alert('Start gap must be less than end gap');
+                return;
+            }
+            
+            if (gapStart < 1) {
+                alert('Gap start must be at least 1');
+                return;
+            }
+            
+            const gapControls = document.getElementById('gapControls');
+            let addedCount = 0;
+            
+            for (let gap = gapStart; gap <= gapEnd; gap++) {
+                // Check if gap already exists
+                if (!document.querySelector(`#gapControls input[value="${gap}"]`)) {
+                    addGapControl(gap, true); // Auto-check new gaps
+                    addedCount++;
+                }
+            }
+            
+            updateAnimationStatus(`Added ${addedCount} consecutive gaps (${gapStart}-${gapEnd})`);
+            draw();
+        }
+
+        function addGapControl(gap, checked = false) {
+            const gapControls = document.getElementById('gapControls');
+            
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = gap;
+            checkbox.checked = checked || gap <= 12;
+            checkbox.addEventListener('change', draw);
+            
+            const label = document.createElement('span');
+            let name = '';
+            if (gap === 2) name = ' (Twin Primes)';
+            else if (gap === 4) name = ' (Cousin Primes)';
+            else if (gap === 6) name = ' (Sexy Primes)';
+            label.textContent = `Gap ${gap}${name}`;
+            
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            gapControls.appendChild(div);
+        }
+
+        function addConsecutiveMods() {
+            const modStart = parseInt(document.getElementById('modStart').value);
+            const modEnd = parseInt(document.getElementById('modEnd').value);
+            
+            if (modStart >= modEnd) {
+                alert('Start modulus must be less than end modulus');
+                return;
+            }
+            
+            if (modStart < 1) {
+                alert('Modulus start must be at least 1');
+                return;
+            }
+            
+            // Only warn for extremely large ranges
+            if ((modEnd - modStart) > 1000) {
+                if (!confirm(`This will add ${modEnd - modStart + 1} rings. This may impact performance. Continue?`)) {
+                    return;
+                }
+            }
+            
+            let addedCount = 0;
+            let skippedCount = 0;
+            
+            for (let mod = modStart; mod <= modEnd; mod++) {
+                // Check if modulus already exists
+                const existing = Object.values(configs).find(config => config.mod === mod);
+                if (!existing) {
+                    const customId = `custom_${customRingCounter++}`;
+                    configs[customId] = { 
+                        mod: mod, 
+                        label: mod.toString(),
+                        description: `Custom modulus ${mod}`
+                    };
+                    
+                    addRingControl(customId, `M${mod}`, true); // Auto-check new rings
+                    addedCount++;
+                } else {
+                    skippedCount++;
+                }
+            }
+            
+            updateAnimationStatus(`Added ${addedCount} rings (M${modStart}-M${modEnd}), skipped ${skippedCount} existing`);
+            draw();
+        }
+
+        function addCustomRing() {
+            const modValue = parseInt(document.getElementById('customMod').value);
+            
+            if (modValue < 1) {
+                alert('Please enter a modulus of at least 1');
+                return;
+            }
+            
+            // Only warn for extremely large moduli that might impact performance
+            if (modValue > 100000) {
+                if (!confirm(`Modulus ${modValue} is very large and may impact performance. Continue?`)) {
+                    return;
+                }
+            }
+            
+            const existing = Object.values(configs).find(config => config.mod === modValue);
+            if (existing) {
+                alert(`Modulus ${modValue} already exists in the ring system`);
+                return;
+            }
+            
+            const customId = `custom_${customRingCounter++}`;
+            configs[customId] = { 
+                mod: modValue, 
+                label: modValue.toString(),
+                description: `Custom modulus ${modValue}`
+            };
+            
+            addRingControl(customId, `M${modValue}`, true);
+            updateAnimationStatus(`Added single custom ring M${modValue}`);
+            draw();
+        }
+
+        function addRingControl(ringId, displayText, checked = false) {
+            const ringControls = document.getElementById('ringControls');
+            
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+            div.id = `ring_${ringId}`;
+            
+            // Special styling for unit circle
+            if (ringId === 'unit') {
+                div.classList.add('unit-circle-highlight');
+            }
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = ringId;
+            checkbox.checked = checked;
+            checkbox.addEventListener('change', draw);
+            
+            const label = document.createElement('span');
+            label.textContent = displayText;
+            
+            if (ringId.startsWith('custom_')) {
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '×';
+                removeBtn.style.marginLeft = '10px';
+                removeBtn.style.padding = '4px 8px';
+                removeBtn.style.fontSize = '12px';
+                removeBtn.style.background = '#e74c3c';
+                removeBtn.style.minWidth = '24px';
+                removeBtn.onclick = () => removeCustomRing(ringId);
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                div.appendChild(removeBtn);
+            } else {
+                div.appendChild(checkbox);
+                div.appendChild(label);
+            }
+            
+            ringControls.appendChild(div);
+        }
+
+        function removeCustomRing(ringId) {
+            delete configs[ringId];
+            const element = document.getElementById(`ring_${ringId}`);
+            if (element) {
+                element.remove();
+            }
+            updateAnimationStatus('Removed custom ring');
+            draw();
+        }
+
+        function updateAnimationStatus(message) {
+            const status = document.getElementById('animationStatus');
+            status.textContent = message;
+            setTimeout(() => {
+                if (isInverting) {
+                    status.textContent = 'Inversion Active';
+                } else if (animating) {
+                    status.textContent = 'Animating';
+                } else {
+                    status.textContent = 'Ready';
+                }
+            }, 2000);
+        }
+
+        function updateZoom() {
+            const value = document.getElementById('zoomSlider').value;
+            currentZoom = parseFloat(value);
+            document.getElementById('zoomValue').textContent = value;
+            draw();
+        }
+
+        function resetView() {
+            panX = 0;
+            panY = 0;
+            currentZoom = 1;
+            document.getElementById('zoomSlider').value = 1;
+            document.getElementById('zoomValue').textContent = '1.0';
+            updateAnimationStatus('View reset to center');
+            draw();
+        }
+
+        function generateConfigurationDescription(selectedRings, selectedGaps) {
+            const ringCount = selectedRings.length;
+            const gapCount = selectedGaps.length;
+            const hasUnitCircle = selectedRings.includes('unit');
+            
+            let title = 'Interactive Modular Lifting Rings';
+            let subtitle = '';
+            
+            // Generate detailed arrangement description
+            if (ringCount === 0) {
+                subtitle = 'No rings selected';
+            } else {
+                // Count different types of rings
+                const defaultRings = selectedRings.filter(r => r.startsWith('default_')).length;
+                const customRings = selectedRings.filter(r => r.startsWith('custom_')).length;
+                const seriesRings = selectedRings.filter(r => !r.startsWith('default_') && !r.startsWith('custom_') && r !== 'unit').length;
+                const sieveRings = selectedRings.filter(r => r.startsWith('sieve_')).length;
+                
+                let ringDescription = '';
+                if (hasUnitCircle) {
+                    ringDescription = 'Unit Circle';
+                    if (ringCount > 1) {
+                        ringDescription += ' + ';
+                        
+                        const otherParts = [];
+                        if (defaultRings > 0) otherParts.push(`M1-M${defaultRings + 1}`);
+                        if (seriesRings > 0) otherParts.push(`${seriesRings} Series Rings`);
+                        if (customRings > 0) otherParts.push(`${customRings} Custom`);
+                        if (sieveRings > 0) otherParts.push(`${sieveRings} Sieve`);
+                        
+                        ringDescription += otherParts.join(' + ');
+                    }
+                } else {
+                    const parts = [];
+                    if (defaultRings > 0) parts.push(`M1-M${defaultRings + 1}`);
+                    if (seriesRings > 0) parts.push(`${seriesRings} Series`);
+                    if (customRings > 0) parts.push(`${customRings} Custom`);
+                    if (sieveRings > 0) parts.push(`${sieveRings} Sieve`);
+                    
+                    ringDescription = parts.join(' + ') || `${ringCount} Rings`;
+                }
+                
+                subtitle = ringDescription;
+                
+                // Add gap analysis info
+                if (gapCount > 0) {
+                    if (gapCount === 1) {
+                        const gap = selectedGaps[0];
+                        let gapName = '';
+                        if (gap === 2) gapName = ' (Twin Primes)';
+                        else if (gap === 4) gapName = ' (Cousin Primes)';
+                        else if (gap === 6) gapName = ' (Sexy Primes)';
+                        subtitle += ` • Gap ${gap}${gapName}`;
+                    } else {
+                        const minGap = Math.min(...selectedGaps);
+                        const maxGap = Math.max(...selectedGaps);
+                        if (selectedGaps.length <= 3) {
+                            subtitle += ` • Gaps [${selectedGaps.join(', ')}]`;
+                        } else {
+                            subtitle += ` • ${gapCount} Gaps (${minGap}-${maxGap})`;
+                        }
+                    }
+                }
+                
+                // Add prime sieve info
+                if (primeData.isActive) {
+                    subtitle += ` • Prime Sieve (mod ${primeData.modulus}, ${primeData.totalPrimes} primes)`;
+                }
+                
+                // Add configuration details
+                const colorMode = document.getElementById('residueColorMode').value;
+                const showLifts = document.getElementById('showDirectLifts').checked;
+                const showModular = document.getElementById('showModularLifts').checked;
+                const gcdFilter = document.getElementById('showGcdOne').checked;
+                
+                let configDetails = [];
+                if (colorMode !== 'hue') {
+                    const modeNames = {
+                        'value': 'Value Coloring',
+                        'modulo': 'Ring Coloring',
+                        'prime': 'Prime Analysis',
+                        'gcd_unified': 'GCD Unified',
+                        'gcd_per_mod': 'GCD per Ring',
+                        'gcd_per_residue': 'GCD per Residue',
+                        'custom': 'Custom Color'
+                    };
+                    configDetails.push(modeNames[colorMode] || colorMode);
+                }
+                
+                if (showLifts) configDetails.push('Direct Lifts');
+                if (showModular) configDetails.push('Modular Lifts');
+                if (!gcdFilter) configDetails.push('All Residues');
+                
+                if (configDetails.length > 0) {
+                    subtitle += ` • ${configDetails.join(' + ')}`;
+                }
+            }
+            
+            return { title, subtitle };
+        }
+
+        function takeScreenshot() {
+            const selectedRings = getSelectedRings();
+            const selectedGaps = getSelectedGaps();
+            const includeTitle = document.getElementById('includeTitle').checked;
+            const includeLegend = document.getElementById('includeLegend').checked;
+            const backgroundChoice = document.querySelector('input[name="screenshotBg"]:checked').value;
+            const resolutionChoice = document.querySelector('input[name="screenshotResolution"]:checked').value;
+            
+            // Determine canvas dimensions
+            let baseWidth, baseHeight, scaleFactor;
+            if (resolutionChoice === '4k') {
+                baseWidth = 3840;
+                baseHeight = 2160;
+                scaleFactor = baseWidth / canvas.width;
+                updateAnimationStatus('Generating 4K screenshot...');
+            } else {
+                baseWidth = canvas.width;
+                baseHeight = canvas.height;
+                scaleFactor = 1;
+            }
+            
+            // Calculate layout dimensions
+            const titleHeight = includeTitle ? 120 * scaleFactor : 0;
+            const legendWidth = includeLegend ? 400 * scaleFactor : 0;
+            const padding = 40 * scaleFactor;
+            
+            // Create enhanced screenshot canvas
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = baseWidth + legendWidth + (includeLegend ? padding : 0);
+            tempCanvas.height = baseHeight + titleHeight;
+            
+            // Set background
+            tempCtx.fillStyle = backgroundChoice === 'white' ? '#ffffff' : '#000000';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            const textColor = backgroundChoice === 'white' ? '#2c3e50' : '#ffffff';
+            const accentColor = backgroundChoice === 'white' ? '#e67e22' : '#f39c12';
+            const subtleColor = backgroundChoice === 'white' ? '#7f8c8d' : '#bdc3c7';
+            
+            // Draw title and subtitle
+            if (includeTitle) {
+                const { title, subtitle } = generateConfigurationDescription(selectedRings, selectedGaps);
+                
+                // Main title
+                tempCtx.fillStyle = accentColor;
+                tempCtx.font = `bold ${32 * scaleFactor}px Segoe UI`;
+                tempCtx.textAlign = 'center';
+                tempCtx.fillText(title, tempCanvas.width / 2, 40 * scaleFactor);
+                
+                // Subtitle with better formatting
+                tempCtx.fillStyle = textColor;
+                tempCtx.font = `${18 * scaleFactor}px Segoe UI`;
+                
+                // Handle long subtitles by wrapping
+                const maxSubtitleWidth = tempCanvas.width - (legendWidth + padding * 2);
+                const words = subtitle.split(' ');
+                let line = '';
+                let y = 75 * scaleFactor;
+                const lineHeight = 25 * scaleFactor;
+                
+                for (let i = 0; i < words.length; i++) {
+                    const testLine = line + words[i] + ' ';
+                    const metrics = tempCtx.measureText(testLine);
+                    const testWidth = metrics.width;
+                    
+                    if (testWidth > maxSubtitleWidth && line !== '') {
+                        tempCtx.fillText(line.trim(), tempCanvas.width / 2, y);
+                        line = words[i] + ' ';
+                        y += lineHeight;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                tempCtx.fillText(line.trim(), tempCanvas.width / 2, y);
+            }
+            
+            // Draw main canvas content
+            const mainCanvasX = 0;
+            const mainCanvasY = titleHeight;
+            
+            // Scale and draw the main canvas
+            tempCtx.save();
+            tempCtx.translate(mainCanvasX, mainCanvasY);
+            tempCtx.scale(scaleFactor, scaleFactor);
+            tempCtx.drawImage(canvas, 0, 0);
+            tempCtx.restore();
+            
+            // Draw comprehensive legend on the right side
+            if (includeLegend) {
+                const legendX = baseWidth + padding;
+                const legendY = titleHeight + padding;
+                const legendContentWidth = legendWidth - padding * 2;
+                
+                // Legend background
+                tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(248, 249, 250, 0.95)' : 'rgba(20, 20, 20, 0.95)';
+                tempCtx.fillRect(legendX, legendY, legendContentWidth, baseHeight - padding * 2);
+                tempCtx.strokeStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
+                tempCtx.lineWidth = 2 * scaleFactor;
+                tempCtx.strokeRect(legendX, legendY, legendContentWidth, baseHeight - padding * 2);
+                
+                // Legend title
+                tempCtx.fillStyle = accentColor;
+                tempCtx.font = `bold ${20 * scaleFactor}px Segoe UI`;
+                tempCtx.textAlign = 'left';
+                let currentY = legendY + 35 * scaleFactor;
+                tempCtx.fillText('Mathematical Legend', legendX + 20 * scaleFactor, currentY);
+                
+                currentY += 35 * scaleFactor;
+                
+                // Comprehensive legend items
+                const legendItems = [
+                    { color: '#FFD700', text: 'Unit Circle (M=1)', description: 'Fundamental foundation' },
+                    { color: '#FF6B6B', text: 'gcd(r,M) = 1 residues', description: "Euler's totient function φ(M)" },
+                    { color: '#4ECDC4', text: 'Prime gap connections', description: 'Twin, cousin, sexy primes' }
+                ];
+                
+                // Add active features to legend
+                if (document.getElementById('showDirectLifts').checked) {
+                    legendItems.push({ 
+                        color: document.getElementById('liftLineColor').value, 
+                        text: 'Direct lifts', 
+                        description: 'r ↦ r homomorphism' 
+                    });
+                }
+                
+                if (document.getElementById('showModularLifts').checked) {
+                    legendItems.push({ 
+                        color: document.getElementById('modularLiftColor').value, 
+                        text: 'Modular lifts', 
+                        description: 'r ↦ r + M×2ⁿ transformation',
+                        dashed: true
+                    });
+                }
+                
+                // Color mode information
+                const colorMode = document.getElementById('residueColorMode').value;
+                const colorModeDescriptions = {
+                    'hue': 'Rainbow by angular position',
+                    'value': 'Color by residue value',
+                    'modulo': 'Color by ring (modulus)',
+                    'prime': 'Prime vs composite analysis',
+                    'gcd_unified': 'Unified color for gcd(r,M)=1',
+                    'gcd_per_mod': 'Unique color per modulus',
+                    'gcd_per_residue': 'Unique color per residue',
+                    'custom': 'Custom single color'
+                };
+                
+                if (colorModeDescriptions[colorMode]) {
+                    legendItems.push({
+                        color: 'linear-gradient(45deg, #667eea, #764ba2)',
+                        text: 'Color Scheme',
+                        description: colorModeDescriptions[colorMode]
+                    });
+                }
+                
+                // Prime sieve information
+                if (primeData.isActive) {
+                    legendItems.push({
+                        color: '#FFD700',
+                        text: 'Prime Sieve Active',
+                        description: `mod ${primeData.modulus}, ${primeData.totalPrimes} primes to ${primeData.limit}`
+                    });
+                }
+                
+                // Ring configuration summary
+                if (selectedRings.length > 0) {
+                    const eulerSum = selectedRings.reduce((sum, ringId) => {
+                        const config = configs[ringId];
+                        if (config) {
+                            return sum + getCoprimes(config.mod).length;
+                        }
+                        return sum;
+                    }, 0);
+                    
+                    legendItems.push({
+                        color: subtleColor,
+                        text: 'System Summary',
+                        description: `${selectedRings.length} rings, Σφ(M) = ${eulerSum} residues`
+                    });
+                }
+                
+                // Mathematical notation section
+                legendItems.push({
+                    color: '#9b59b6',
+                    text: 'Mathematical Foundation',
+                    description: 'Leonhard Euler\'s modular arithmetic theory'
+                });
+                
+                // Draw legend items
+                tempCtx.font = `${14 * scaleFactor}px Segoe UI`;
+                const itemHeight = 45 * scaleFactor;
+                const colorBoxSize = 16 * scaleFactor;
+                
+                legendItems.forEach((item, index) => {
+                    const itemY = currentY + index * itemHeight;
+                    const colorX = legendX + 20 * scaleFactor;
+                    const textX = colorX + colorBoxSize + 15 * scaleFactor;
+                    
+                    // Color indicator
+                    tempCtx.fillStyle = item.color;
+                    tempCtx.fillRect(colorX, itemY - colorBoxSize/2, colorBoxSize, colorBoxSize);
+                    
+                    if (item.dashed) {
+                        tempCtx.strokeStyle = item.color;
+                        tempCtx.lineWidth = 3 * scaleFactor;
+                        tempCtx.setLineDash([6 * scaleFactor, 4 * scaleFactor]);
+                        tempCtx.strokeRect(colorX, itemY - colorBoxSize/2, colorBoxSize, colorBoxSize);
+                        tempCtx.setLineDash([]);
+                    }
+                    
+                    // Main text
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.font = `bold ${14 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText(item.text, textX, itemY - 5 * scaleFactor);
+                    
+                    // Description
+                    tempCtx.fillStyle = subtleColor;
+                    tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
+                    
+                    // Word wrap for descriptions
+                    const maxWidth = legendContentWidth - (textX - legendX) - 20 * scaleFactor;
+                    const words = item.description.split(' ');
+                    let line = '';
+                    let lineY = itemY + 12 * scaleFactor;
+                    
+                    for (let i = 0; i < words.length; i++) {
+                        const testLine = line + words[i] + ' ';
+                        const metrics = tempCtx.measureText(testLine);
+                        
+                        if (metrics.width > maxWidth && line !== '') {
+                            tempCtx.fillText(line.trim(), textX, lineY);
+                            line = words[i] + ' ';
+                            lineY += 15 * scaleFactor;
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    tempCtx.fillText(line.trim(), textX, lineY);
+                });
+                
+                // Add mathematical notation at bottom
+                const notationY = legendY + baseHeight - padding * 3;
+                tempCtx.fillStyle = subtleColor;
+                tempCtx.font = `italic ${11 * scaleFactor}px Times New Roman`;
+                tempCtx.fillText('φ(n) = n∏(1 - 1/p)', legendX + 20 * scaleFactor, notationY);
+                tempCtx.fillText('gcd(a,b) = 1', legendX + 20 * scaleFactor, notationY + 20 * scaleFactor);
+                tempCtx.fillText('Z/nZ ≅ (Z/nZ)*', legendX + 20 * scaleFactor, notationY + 40 * scaleFactor);
+            }
+            
+            // Add watermark
+            tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+            tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
+            tempCtx.textAlign = 'right';
+            tempCtx.fillText('Built by Wessen Getachew | Created by Leonhard Euler', 
+                tempCanvas.width - 20 * scaleFactor, tempCanvas.height - 15 * scaleFactor);
+            
+            // Generate enhanced filename
+            const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,'-');
+            const ringText = selectedRings.length > 0 ? `_${selectedRings.length}rings` : '';
+            const gapText = selectedGaps.length > 0 ? `_${selectedGaps.length}gaps` : '';
+            const resText = resolutionChoice === '4k' ? '_4K' : '';
+            const filename = `modular_rings${ringText}${gapText}${resText}_${timestamp}.png`;
+            
+            // Create download link with optimized quality
+            const link = document.createElement('a');
+            link.download = filename;
+            
+            if (resolutionChoice === '4k') {
+                // For 4K, use maximum quality
+                link.href = tempCanvas.toDataURL('image/png', 1.0);
+                updateAnimationStatus('4K Ultra HD screenshot saved!');
+            } else {
+                link.href = tempCanvas.toDataURL('image/png', 0.95);
+                updateAnimationStatus('Enhanced screenshot saved!');
+            }
+            
+            link.click();
+        }
+
+        // Mouse and touch interaction handlers
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function getTouchPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
+            };
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const pos = getMousePos(e);
+            dragStartX = pos.x;
+            dragStartY = pos.y;
+            dragStartPanX = panX;
+            dragStartPanY = panY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const pos = getMousePos(e);
+            panX = dragStartPanX + (pos.x - dragStartX);
+            panY = dragStartPanY + (pos.y - dragStartY);
+            draw();
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            const pos = getTouchPos(e);
+            dragStartX = pos.x;
+            dragStartY = pos.y;
+            dragStartPanX = panX;
+            dragStartPanY = panY;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isDragging) return;
+            
+            const pos = getTouchPos(e);
+            panX = dragStartPanX + (pos.x - dragStartX);
+            panY = dragStartPanY + (pos.y - dragStartY);
+            draw();
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isDragging = false;
+        });
+
+        // Mouse wheel zoom
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - canvas.width / 2;
+            const mouseY = e.clientY - rect.top - canvas.height / 2;
+            
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            const newZoom = Math.max(0.1, Math.min(50, currentZoom * zoomFactor));
+            
+            // Zoom towards mouse position
+            const zoomRatio = newZoom / currentZoom;
+            panX = (panX - mouseX) * zoomRatio + mouseX;
+            panY = (panY - mouseY) * zoomRatio + mouseY;
+            
+            currentZoom = newZoom;
+            document.getElementById('zoomSlider').value = Math.min(10, newZoom); // Clamp slider to max 10
+            document.getElementById('zoomValue').textContent = newZoom.toFixed(1);
+            
+            draw();
+        });
+
+        // Double-click to reset center
+        canvas.addEventListener('dblclick', () => {
+            panX = 0;
+            panY = 0;
+            updateAnimationStatus('View centered');
+            draw();
+        });
+
+        function updateRotation() {
+            const value = document.getElementById('rotationSlider').value;
+            document.getElementById('rotationValue').textContent = value + '°';
+            draw();
+        }
+
+        function updateThickness() {
+            const value = document.getElementById('lineThickness').value;
+            document.getElementById('thicknessValue').textContent = value;
+            draw();
+        }
+
+        function updateGapThickness() {
+            const value = document.getElementById('gapLineThickness').value;
+            document.getElementById('gapThicknessValue').textContent = value;
+            draw();
+        }
+        
+        function updateRingThickness() {
+            const value = document.getElementById('ringThickness').value;
+            document.getElementById('ringThicknessValue').textContent = value;
+            draw();
+        }
+        
+        function updateUnitThickness() {
+            const value = document.getElementById('unitThickness').value;
+            document.getElementById('unitThicknessValue').textContent = value;
+            draw();
+        }
+        
+        function updatePointSize() {
+            const value = document.getElementById('pointSize').value;
+            document.getElementById('pointSizeValue').textContent = value;
+            draw();
+        }
+        
+        function updatePointBorder() {
+            const value = document.getElementById('pointBorder').value;
+            document.getElementById('pointBorderValue').textContent = value;
+            draw();
+        }
+
+        // Advanced prime sieve implementation
+        function sieveOfEratosthenes(limit) {
+            const sieve = new Array(limit + 1).fill(true);
+            sieve[0] = sieve[1] = false;
+            
+            for (let i = 2; i * i <= limit; i++) {
+                if (sieve[i]) {
+                    for (let j = i * i; j <= limit; j += i) {
+                        sieve[j] = false;
+                    }
+                }
+            }
+            
+            const primes = [];
+            for (let i = 2; i <= limit; i++) {
+                if (sieve[i]) primes.push(i);
+            }
+            return primes;
+        }
+
+        function analyzePrimeDistribution(primes, modulus) {
+            const distribution = {};
+            const coprimes = getCoprimes(modulus);
+            
+            // Initialize distribution for all coprime residues
+            coprimes.forEach(r => {
+                distribution[r] = { count: 0, primes: [], percentage: 0 };
+            });
+            
+            // Count primes in each residue class
+            primes.forEach(prime => {
+                const residue = prime % modulus;
+                if (distribution[residue]) {
+                    distribution[residue].count++;
+                    distribution[residue].primes.push(prime);
+                }
+            });
+            
+            // Calculate percentages
+            const totalPrimesInCoprimes = Object.values(distribution).reduce((sum, data) => sum + data.count, 0);
+            Object.keys(distribution).forEach(residue => {
+                distribution[residue].percentage = totalPrimesInCoprimes > 0 
+                    ? (distribution[residue].count / totalPrimesInCoprimes * 100).toFixed(2)
+                    : 0;
+            });
+            
+            return distribution;
+        }
+
+        async function runPrimeSieve() {
+            const limit = parseInt(document.getElementById('sieveLimit').value);
+            const modulus = parseInt(document.getElementById('sieveModulus').value);
+            
+            if (limit < 2) {
+                alert('Please enter a limit of at least 2');
+                return;
+            }
+            
+            if (modulus < 2) {
+                alert('Please enter a modulus of at least 2');
+                return;
+            }
+            
+            // Warning for very large computations
+            if (limit > 10000000) {
+                if (!confirm(`Computing primes up to ${limit.toLocaleString()} may take significant time and memory. Continue?`)) {
+                    return;
+                }
+            }
+            
+            // Show progress bar
+            document.getElementById('sieveProgress').style.display = 'block';
+            document.getElementById('sieveResults').style.display = 'none';
+            
+            updateProgress(0, 'Initializing sieve...');
+            
+            // Use setTimeout to allow UI updates
+            setTimeout(() => {
+                try {
+                    updateProgress(25, 'Generating primes...');
+                    
+                    setTimeout(() => {
+                        const primes = sieveOfEratosthenes(limit);
+                        updateProgress(60, 'Analyzing distribution...');
+                        
+                        setTimeout(() => {
+                            const distribution = analyzePrimeDistribution(primes, modulus);
+                            
+                            // Store results
+                            primeData.primes = primes;
+                            primeData.modulus = modulus;
+                            primeData.limit = limit;
+                            primeData.residueDistribution = distribution;
+                            primeData.totalPrimes = primes.length;
+                            primeData.isActive = true;
+                            
+                            updateProgress(90, 'Updating visualization...');
+                            
+                            setTimeout(() => {
+                                updatePrimeAnalysisDisplay();
+                                updateProgress(100, 'Complete!');
+                                
+                                setTimeout(() => {
+                                    document.getElementById('sieveProgress').style.display = 'none';
+                                    document.getElementById('sieveResults').style.display = 'block';
+                                    document.getElementById('primePatternAnalysis').style.display = 'block';
+                                    
+                                    // Auto-add the sieve modulus as a ring if not present
+                                    addSieveModulusRing(modulus);
+                                    
+                                    updateAnimationStatus(`Sieve complete: ${primes.length} primes found up to ${limit} (mod ${modulus})`);
+                                    draw();
+                                }, 500);
+                            }, 100);
+                        }, 100);
+                    }, 100);
+                } catch (error) {
+                    alert('Error running sieve: ' + error.message);
+                    document.getElementById('sieveProgress').style.display = 'none';
+                }
+            }, 50);
+        }
+
+        function updateProgress(percentage, text) {
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function addSieveModulusRing(modulus) {
+            // Check if this modulus already exists
+            const existing = Object.values(configs).find(config => config.mod === modulus);
+            if (!existing) {
+                const customId = `sieve_${customRingCounter++}`;
+                configs[customId] = { 
+                    mod: modulus, 
+                    label: modulus.toString(),
+                    description: `Sieve modulus ${modulus}`
+                };
+                addRingControl(customId, `Sieve M${modulus}`, true);
+            } else {
+                // Find and check the existing ring
+                const ringControls = document.querySelectorAll('#ringControls input[type="checkbox"]');
+                ringControls.forEach(checkbox => {
+                    const config = configs[checkbox.value];
+                    if (config && config.mod === modulus) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+        }
+
+        function updatePrimeAnalysisDisplay() {
+            const stats = document.getElementById('primeStats');
+            const distribution = document.getElementById('residueDistribution');
+            
+            if (!primeData.isActive) return;
+            
+            const coprimes = getCoprimes(primeData.modulus);
+            const eulerPhi = coprimes.length;
+            
+            stats.innerHTML = `
+                <strong>Sieve Results (mod ${primeData.modulus}):</strong><br>
+                • Total primes up to ${primeData.limit}: ${primeData.totalPrimes}<br>
+                • φ(${primeData.modulus}) = ${eulerPhi} coprime residue classes<br>
+                • Expected uniform distribution: ${(100/eulerPhi).toFixed(2)}% per class<br>
+                • Prime density: ${((primeData.totalPrimes / primeData.limit) * 100).toFixed(3)}%
+            `;
+            
+            let distributionHTML = '<strong>Prime Distribution by Residue Class:</strong><br>';
+            const sortedResidues = Object.keys(primeData.residueDistribution).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            sortedResidues.forEach(residue => {
+                const data = primeData.residueDistribution[residue];
+                const expectedPercent = (100 / eulerPhi).toFixed(2);
+                const deviation = (parseFloat(data.percentage) - parseFloat(expectedPercent)).toFixed(2);
+                const deviationColor = deviation > 0 ? '#4ECDC4' : '#FF6B6B';
+                
+                // Format all primes for display - group in rows of 10 for readability
+                let primesDisplay = '';
+                if (data.count === 0) {
+                    primesDisplay = '<em>No primes in this residue class</em>';
+                } else if (data.count <= 50) {
+                    // Show all primes if 50 or fewer
+                    const rows = [];
+                    for (let i = 0; i < data.primes.length; i += 10) {
+                        rows.push(data.primes.slice(i, i + 10).join(', '));
+                    }
+                    primesDisplay = `[${rows.join(',<br>&nbsp;&nbsp;')}]`;
+                } else {
+                    // For large counts, show first 30, then last 10
+                    const firstPrimes = data.primes.slice(0, 30);
+                    const lastPrimes = data.primes.slice(-10);
+                    const firstRows = [];
+                    const lastRows = [];
+                    
+                    for (let i = 0; i < firstPrimes.length; i += 10) {
+                        firstRows.push(firstPrimes.slice(i, i + 10).join(', '));
+                    }
+                    for (let i = 0; i < lastPrimes.length; i += 10) {
+                        lastRows.push(lastPrimes.slice(i, i + 10).join(', '));
+                    }
+                    
+                    primesDisplay = `[${firstRows.join(',<br>&nbsp;&nbsp;')},<br>&nbsp;&nbsp;...(${data.count - 40} more)...,<br>&nbsp;&nbsp;${lastRows.join(',<br>&nbsp;&nbsp;')}]`;
+                }
+                
+                distributionHTML += `
+                    <div style="margin: 5px 0; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                        <strong>r ≡ ${residue} (mod ${primeData.modulus}):</strong><br>
+                        Count: ${data.count} primes (${data.percentage}%)<br>
+                        <span style="color: ${deviationColor};">Deviation: ${deviation > 0 ? '+' : ''}${deviation}%</span><br>
+                        <div style="font-family: monospace; font-size: 11px; margin-top: 5px; max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 3px;">
+                            ${primesDisplay}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            distribution.innerHTML = distributionHTML;
+        }
+
+        function quickSieve(limit, modulus) {
+            document.getElementById('sieveLimit').value = limit;
+            document.getElementById('sieveModulus').value = modulus;
+            document.getElementById('enablePrimeSieve').checked = true;
+            togglePrimeSieve();
+            runPrimeSieve();
+        }
+
+        function togglePrimeSieve() {
+            const enabled = document.getElementById('enablePrimeSieve').checked;
+            document.getElementById('sieveControls').style.display = enabled ? 'block' : 'none';
+            
+            if (!enabled) {
+                stopInversionAnimation();
+            updateAnimationStatus('All settings reset to defaults');
+            draw();
+            }
+        }
+
+        function clearPrimeSieve() {
+            primeData = {
+                primes: [],
+                modulus: null,
+                limit: null,
+                residueDistribution: {},
+                totalPrimes: 0,
+                isActive: false
+            };
+            
+            document.getElementById('sieveResults').style.display = 'none';
+            document.getElementById('primePatternAnalysis').style.display = 'none';
+            document.getElementById('showPrimeMarkers').checked = false;
+            document.getElementById('showCompositeMarkers').checked = false;
+            document.getElementById('showPrimeDensity').checked = false;
+            
+            updateAnimationStatus('Prime sieve data cleared');
+            draw();
+        }
+
+        function updateGlobalSpeed() {
+            const value = document.getElementById('globalSpeed').value;
+            document.getElementById('globalSpeedValue').textContent = value;
+        }
+
+        function updateInversionSpeed() {
+            const value = document.getElementById('inversionSpeed').value;
+            document.getElementById('inversionSpeedValue').textContent = value;
+        }
+
+        function updateNonGcdOpacity() {
+            const value = document.getElementById('nonGcdOpacity').value;
+            document.getElementById('nonGcdOpacityValue').textContent = value;
+            draw();
+        }
+
+        function updateColorMode() {
+            const mode = document.getElementById('residueColorMode').value;
+            const customGroup = document.getElementById('customColorGroup');
+            const gcdColorGroup = document.getElementById('gcdColorGroup');
+            const nonGcdColorGroup = document.getElementById('nonGcdColorGroup');
+            
+            // Hide all color option groups first
+            customGroup.style.display = 'none';
+            gcdColorGroup.style.display = 'none';
+            nonGcdColorGroup.style.display = 'none';
+            
+            // Show relevant color options based on mode
+            if (mode === 'custom') {
+                customGroup.style.display = 'block';
+            } else if (mode.startsWith('gcd_')) {
+                gcdColorGroup.style.display = 'block';
+                nonGcdColorGroup.style.display = 'block';
+            }
+            
+            draw();
+        }
+
+        function toggleRotation() {
+            const enabled = document.getElementById('enableRotation').checked;
+            if (enabled && !animating) {
+                animating = true;
+                updateAnimationStatus('Ring rotation enabled');
+                animate();
+            } else if (!enabled && animating && !isInverting) {
+                animating = false;
+                updateAnimationStatus('Animation paused');
+            }
+        }
+
+        function toggleInversionAnimation() {
+            isInverting = !isInverting;
+            inversionProgress = 0;
+            
+            const controls = document.getElementById('inversionControls');
+            controls.style.display = isInverting ? 'block' : 'none';
+            
+            if (isInverting) {
+                updateAnimationStatus('Mathematical inversion started');
+                if (!animating) {
+                    animating = true;
+                    animate();
+                }
+            } else {
+                updateAnimationStatus('Inversion stopped');
+            }
+        }
+
+        function stopInversionAnimation() {
+            isInverting = false;
+            inversionProgress = 0;
+            document.getElementById('inversionControls').style.display = 'none';
+            
+            if (!document.getElementById('enableRotation').checked) {
+                animating = false;
+            }
+            updateAnimationStatus('Inversion stopped');
+        }
+
+        function animate() {
+            if (!animating && !isInverting) return;
+            
+            const enableRotation = document.getElementById('enableRotation').checked;
+            const globalSpeed = parseFloat(document.getElementById('globalSpeed').value);
+            const reverseDirection = document.getElementById('reverseDirection').checked;
+            
+            if (enableRotation) {
+                animationFrame += globalSpeed * (reverseDirection ? -1 : 1);
+            }
+            
+            if (isInverting) {
+                const inversionSpeed = parseFloat(document.getElementById('inversionSpeed').value);
+                inversionProgress += 0.008 * inversionSpeed;
+                if (inversionProgress >= 1) {
+                    inversionProgress = 0; // Loop the inversion
+                }
+            }
+            
+            if (!enableRotation && !isInverting) {
+                animating = false;
+                return;
+            }
+            
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        function resetAll() {
+            // Reset gap controls with new system
+            document.getElementById('maxGap').value = 12;
+            document.getElementById('gapStart').value = 14;
+            document.getElementById('gapEnd').value = 20;
+            generateGaps();
+            
+            // Reset modulus controls
+            document.getElementById('customMod').value = 42;
+            document.getElementById('modStart').value = 31;
+            document.getElementById('modEnd').value = 50;
+            
+            // Remove custom rings and rebuild with new defaults
+            Object.keys(configs).forEach(key => {
+                if (key.startsWith('custom_') || key.startsWith('default_')) {
+                    delete configs[key];
+                }
+            });
+            
+            // Rebuild ring controls with unit circle first, then M1-M30 by default
+            const ringControls = document.getElementById('ringControls');
+            ringControls.innerHTML = '';
+            
+            // Add unit circle first (always checked)
+            addRingControl('unit', 'Unit Circle (M=1)', true);
+            
+            // Add M1-M30 by default (all checked)
+            for (let mod = 2; mod <= 30; mod++) {
+                const customId = `default_${mod}`;
+                configs[customId] = { 
+                    mod: mod, 
+                    label: mod.toString(),
+                    description: `Default modulus ${mod}`
+                };
+                addRingControl(customId, `M${mod}`, true);
+            }
+            
+            // Add standard series (unchecked by default now)
+            Object.keys(configs).forEach(n => {
+                if (!n.startsWith('custom_') && !n.startsWith('default_') && n !== 'unit') {
+                    addRingControl(n, `n=${n} (M=${configs[n].label})`, false);
+                }
+            });
+            
+            // Reset controls to new defaults
+            document.getElementById('showLabels').checked = true;
+            document.getElementById('invertNesting').checked = false;
+            document.getElementById('showDirectLifts').checked = false; // Default off
+            document.getElementById('showModularLifts').checked = false;
+            document.getElementById('enableRotation').checked = false;
+            document.getElementById('reverseDirection').checked = false;
+            document.getElementById('showUnitCircle').checked = true;
+            document.getElementById('showGcdOne').checked = true;
+            document.getElementById('showNonGcdOne').checked = false;
+            document.getElementById('highlightGcdDifference').checked = false;
+            
+            // Reset sliders with new defaults (normalized 0-1 values)
+            document.getElementById('zoomSlider').value = 1;
+            document.getElementById('rotationSlider').value = 90; // Default 90° rotation
+            document.getElementById('lineThickness').value = 0.5;
+            document.getElementById('gapLineThickness').value = 0.3;
+            document.getElementById('ringThickness').value = 0.2;
+            document.getElementById('unitThickness').value = 0.8;
+            document.getElementById('pointSize').value = 0.4;
+            document.getElementById('pointBorder').value = 0.3;
+            document.getElementById('globalSpeed').value = 1;
+            document.getElementById('inversionSpeed').value = 1;
+            document.getElementById('nonGcdOpacity').value = 0.3;
+            document.getElementById('residueColorMode').value = 'hue';
+            document.getElementById('liftLineColor').value = '#FFD700';
+            document.getElementById('modularLiftColor').value = '#FF6384';
+            document.getElementById('gcdBaseColor').value = '#FF6B6B';
+            document.getElementById('nonGcdColor').value = '#666666';
+            
+            // Update displays
+            updateZoom();
+            updateRotation();
+            updateThickness();
+            updateGapThickness();
+            updateRingThickness();
+            updateUnitThickness();
+            updatePointSize();
+            updatePointBorder();
+            updateGlobalSpeed();
+            updateInversionSpeed();
+            updateNonGcdOpacity();
+            updateColorMode();ation();
+            updateThickness();
+            updateGapThickness();
+            updateGlobalSpeed();
+            updateInversionSpeed();
+            updateColorMode();
+            
+            // Reset animation state
+            animating = false;
+            isInverting = false;
+            animationFrame = 0;
+            inversionProgress = 0;
+            ringRotationSpeeds = {};
+            
+            // Reset view state
+            panX = 0;
+            panY = 0;
+            currentZoom = 1;
+            
+            // Reset prime sieve
+            document.getElementById('enablePrimeSieve').checked = false;
+            document.getElementById('sieveLimit').value = 10000;
+            document.getElementById('sieveModulus').value = 30;
+            document.getElementById('showPrimeMarkers').checked = false;
+            document.getElementById('showCompositeMarkers').checked = false;
+            document.getElementById('showPrimeDensity').checked = false;
+            clearPrimeSieve();
+        }
+
+        // Enhanced main drawing function
+        function draw() {
+            const selectedRings = getSelectedRings();
+            const selectedGaps = getSelectedGaps();
+            const showLabels = document.getElementById('showLabels').checked;
+            const invertNesting = document.getElementById('invertNesting').checked;
+            const showDirectLifts = document.getElementById('showDirectLifts').checked;
+            const showModularLifts = document.getElementById('showModularLifts').checked;
+            const showUnitCircle = document.getElementById('showUnitCircle').checked;
+            const showGcdOne = document.getElementById('showGcdOne').checked;
+            const showNonGcdOne = document.getElementById('showNonGcdOne').checked;
+            const highlightGcdDifference = document.getElementById('highlightGcdDifference').checked;
+            const nonGcdOpacity = parseFloat(document.getElementById('nonGcdOpacity').value);
+            const zoom = parseFloat(document.getElementById('zoomSlider').value);
+            const rotation = parseFloat(document.getElementById('rotationSlider').value);
+            const colorMode = document.getElementById('residueColorMode').value;
+            const lineThickness = parseFloat(document.getElementById('lineThickness').value);
+            const gapLineThickness = parseFloat(document.getElementById('gapLineThickness').value);
+            const enableRotation = document.getElementById('enableRotation').checked;
+            const liftLineColor = document.getElementById('liftLineColor').value;
+            const modularLiftColor = document.getElementById('modularLiftColor').value;
+
+            // Clear canvas with enhanced background
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (selectedRings.length === 0) {
+                // Draw a helpful message
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '24px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Select rings to begin exploration', canvas.width / 2, canvas.height / 2);
+                ctx.font = '16px Segoe UI';
+                ctx.fillText('Try adding consecutive moduli M₁ to M₂₀ for complete foundation', canvas.width / 2, canvas.height / 2 + 30);
+                updateInfo([]);
+                return;
+            }
+
+            ctx.save();
+            ctx.translate(canvas.width / 2 + panX, canvas.height / 2 + panY);
+            ctx.scale(currentZoom, currentZoom);
+            ctx.rotate((rotation + (animating ? animationFrame * 0.3 : 0)) * Math.PI / 180);
+
+            const rings = [];
+            const sortedRings = [...selectedRings].sort((a, b) => {
+                // Always put unit circle first (innermost)
+                if (a === 'unit') return invertNesting ? 1 : -1;
+                if (b === 'unit') return invertNesting ? -1 : 1;
+                
+                // Sort custom rings numerically by their modulus value
+                const aConfig = configs[a];
+                const bConfig = configs[b];
+                
+                if (aConfig && bConfig) {
+                    const aMod = aConfig.mod;
+                    const bMod = bConfig.mod;
+                    return invertNesting ? bMod - aMod : aMod - bMod;
+                }
+                
+                return invertNesting ? b.localeCompare(a, undefined, {numeric: true}) : a.localeCompare(b, undefined, {numeric: true});
+            });
+
+            const maxRadius = 280;
+            const minRadius = showUnitCircle && selectedRings.includes('unit') ? 25 : 60;
+
+            // Initialize enhanced ring rotation speeds
+            sortedRings.forEach((n, index) => {
+                if (!ringRotationSpeeds[n]) {
+                    const modulus = configs[n].mod;
+                    if (n === 'unit') {
+                        ringRotationSpeeds[n] = 3.0; // Unit circle rotates faster
+                    } else {
+                        ringRotationSpeeds[n] = Math.max(0.3, 2.5 - Math.log10(modulus + 1));
+                    }
+                }
+            });
+
+            sortedRings.forEach((n, index) => {
+                const radius = minRadius + (maxRadius - minRadius) * index / Math.max(1, sortedRings.length - 1);
+                const modulus = configs[n].mod;
+                const coprimes = getCoprimes(modulus);
+                const allResidues = getAllResidues(modulus);
+                
+                rings.push({ n, radius, modulus, coprimes, allResidues, index });
+            });
+
+            // Enhanced ring drawing with special unit circle treatment
+            rings.forEach(ring => {
+                // Calculate individual ring rotation
+                let ringRotation = 0;
+                if (enableRotation) {
+                    ringRotation = animationFrame * ringRotationSpeeds[ring.n] * Math.PI / 180;
+                }
+                
+                // Enhanced inversion animation with wave effects
+                if (isInverting) {
+                    const waveOffset = ring.index * 0.15;
+                    const inversionPhase = Math.max(0, Math.min(1, inversionProgress * 3 - waveOffset));
+                    const waveIntensity = Math.sin(inversionPhase * Math.PI);
+                    ringRotation += waveIntensity * Math.PI;
+                    
+                    // Add visual pulsing during inversion
+                    ctx.globalAlpha = 0.7 + 0.3 * Math.sin(inversionProgress * Math.PI * 4 + ring.index);
+                } else {
+                    ctx.globalAlpha = 1.0;
+                }
+
+                // Enhanced ring circle drawing with normalized thickness controls
+                ctx.beginPath();
+                ctx.arc(0, 0, ring.radius, 0, 2 * Math.PI);
+                
+                const ringThicknessNorm = parseFloat(document.getElementById('ringThickness').value);
+                const unitThicknessNorm = parseFloat(document.getElementById('unitThickness').value);
+                
+                if (ring.n === 'unit' && showUnitCircle) {
+                    // Special styling for unit circle with normalized thickness
+                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+                    ctx.lineWidth = 0.5 + unitThicknessNorm * 4.5; // Scale 0-1 to 0.5-5.0
+                    ctx.setLineDash([]);
+                } else {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                    ctx.lineWidth = 0.2 + ringThicknessNorm * 1.8; // Scale 0-1 to 0.2-2.0
+                    ctx.setLineDash([2, 4]);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Enhanced residue points with prime sieve integration
+                const residuesToDraw = [];
+                
+                // Determine which residues to show based on GCD filtering
+                if (showGcdOne) {
+                    residuesToDraw.push(...ring.coprimes.map(r => ({r, isGcdOne: true})));
+                }
+                if (showNonGcdOne && ring.n !== 'unit') {
+                    const nonCoprimes = ring.allResidues.filter(r => !ring.coprimes.includes(r));
+                    residuesToDraw.push(...nonCoprimes.map(r => ({r, isGcdOne: false})));
+                }
+                
+                residuesToDraw.forEach(({r, isGcdOne}) => {
+                    // FIXED: Correct angle calculation to match mathematical convention
+                    // For mod M, residue r should be at angle: 2π * (M - r) / M (clockwise from top)
+                    // This puts gcd(r,M)=1 residues in their proper mathematical positions
+                    let baseAngle;
+                    if (ring.n === 'unit') {
+                        baseAngle = 0; // Unit circle residue 0 at 0° (3 o'clock position)
+                    } else {
+                        // Reverse the angle calculation so gcd=1 residues align correctly
+                        baseAngle = 2 * Math.PI * (ring.modulus - r) / ring.modulus;
+                    }
+                    
+                    const angle = baseAngle + ringRotation;
+                    const x = ring.radius * Math.cos(angle);
+                    const y = ring.radius * Math.sin(angle);
+
+                    // Enhanced point drawing with normalized thickness controls
+                    ctx.beginPath();
+                    const pointSizeNorm = parseFloat(document.getElementById('pointSize').value);
+                    const basePointSize = ring.n === 'unit' ? 8 : (ring.radius > 150 ? 6 : 4);
+                    let pointSize = basePointSize * (0.2 + pointSizeNorm * 1.8); // Scale 0-1 to 0.2-2.0
+                    
+                    // Prime sieve visualization enhancements
+                    if (primeData.isActive && ring.modulus === primeData.modulus) {
+                        const showPrimeMarkers = document.getElementById('showPrimeMarkers').checked;
+                        const showCompositeMarkers = document.getElementById('showCompositeMarkers').checked;
+                        const showPrimeDensity = document.getElementById('showPrimeDensity').checked;
+                        
+                        if (primeData.residueDistribution[r]) {
+                            const residueData = primeData.residueDistribution[r];
+                            
+                            if (showPrimeDensity) {
+                                // Enhance point size based on prime density in this residue class
+                                const density = residueData.count / primeData.totalPrimes;
+                                pointSize = Math.max(pointSize, pointSize + density * 8);
+                            }
+                            
+                            if (showPrimeMarkers && residueData.count > 0) {
+                                // Add golden ring around residue classes containing primes
+                                ctx.arc(x, y, pointSize + 3, 0, 2 * Math.PI);
+                                ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+                                ctx.lineWidth = 2;
+                                ctx.stroke();
+                                ctx.beginPath();
+                            }
+                        }
+                    }
+                    
+                    ctx.arc(x, y, pointSize, 0, 2 * Math.PI);
+                    
+                    let color = getResidueColor(r, ring.modulus, ring.index, colorMode);
+                    
+                    // Apply GCD-based styling
+                    if (!isGcdOne) {
+                        if (highlightGcdDifference) {
+                            color = document.getElementById('nonGcdColor').value;
+                        }
+                        // Apply opacity to non-GCD=1 points
+                        const opacity = nonGcdOpacity;
+                        if (color.startsWith('#')) {
+                            const hex = color.slice(1);
+                            const r = parseInt(hex.slice(0, 2), 16);
+                            const g = parseInt(hex.slice(2, 4), 16);
+                            const b = parseInt(hex.slice(4, 6), 16);
+                            color = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                        } else if (color.startsWith('hsl')) {
+                            color = color.replace('hsl(', 'hsla(').replace(')', `, ${opacity})`);
+                        } else if (color.startsWith('rgb')) {
+                            color = color.replace('rgb(', 'rgba(').replace(')', `, ${opacity})`);
+                        }
+                    }
+                    
+                    // Override color for prime analysis if active
+                    if (primeData.isActive && ring.modulus === primeData.modulus) {
+                        const showPrimeMarkers = document.getElementById('showPrimeMarkers').checked;
+                        const showCompositeMarkers = document.getElementById('showCompositeMarkers').checked;
+                        
+                        if (showPrimeMarkers || showCompositeMarkers) {
+                            if (primeData.residueDistribution[r] && primeData.residueDistribution[r].count > 0) {
+                                if (showPrimeMarkers) {
+                                    const primeCount = primeData.residueDistribution[r].count;
+                                    const maxCount = Math.max(...Object.values(primeData.residueDistribution).map(d => d.count));
+                                    const intensity = primeCount / maxCount;
+                                    color = `hsla(60, 100%, ${50 + intensity * 30}%, 0.9)`; // Gold gradient
+                                }
+                            } else if (showCompositeMarkers) {
+                                color = 'rgba(128, 128, 128, 0.6)'; // Gray for residue classes with no primes
+                            }
+                        }
+                    }
+                    
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    
+                    // Enhanced border for better visibility with normalized thickness
+                    const pointBorderNorm = parseFloat(document.getElementById('pointBorder').value);
+                    const borderThickness = 0.5 + pointBorderNorm * 2.5; // Scale 0-1 to 0.5-3.0
+                    ctx.strokeStyle = ring.n === 'unit' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)';
+                    ctx.lineWidth = borderThickness;
+                    ctx.stroke();
+
+                    // Enhanced labels with prime count information
+                    if (showLabels && (ring.radius > 80 || ring.n === 'unit')) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                        let labelText = r.toString();
+                        
+                        // Add prime count to label if sieve is active
+                        if (primeData.isActive && ring.modulus === primeData.modulus && primeData.residueDistribution[r]) {
+                            const count = primeData.residueDistribution[r].count;
+                            if (count > 0 && document.getElementById('showPrimeMarkers').checked) {
+                                labelText = `${r}(${count})`;
+                            }
+                        }
+                        
+                        ctx.font = ring.n === 'unit' ? 'bold 14px Segoe UI' : '11px Segoe UI';
+                        ctx.textAlign = 'center';
+                        ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                        ctx.lineWidth = 3;
+                        const labelY = y - (ring.n === 'unit' ? 12 : 8);
+                        ctx.strokeText(labelText, x, labelY);
+                        ctx.fillText(labelText, x, labelY);
+                    }
+                });
+
+                // Enhanced gap connections (skip for unit circle as it has no gaps)
+                if (ring.n !== 'unit' && showGcdOne) {
+                    const gapThicknessNorm = parseFloat(document.getElementById('gapLineThickness').value);
+                    const gapLineWidth = 0.2 + gapThicknessNorm * 2.8; // Scale 0-1 to 0.2-3.0
+                    
+                    selectedGaps.forEach((gap, index) => {
+                        const hue = (index * 360 / selectedGaps.length) % 360;
+                        
+                        ring.coprimes.forEach(r => {
+                            const r2 = r + gap;
+                            const mod = Math.round(ring.modulus);
+                            if (ring.coprimes.includes(r2 % mod)) {
+                                // FIXED: Apply same angle correction for gap connections
+                                const baseAngle1 = 2 * Math.PI * (ring.modulus - r) / ring.modulus;
+                                const baseAngle2 = 2 * Math.PI * (ring.modulus - (r2 % mod)) / ring.modulus;
+                                const angle1 = baseAngle1 + ringRotation;
+                                const angle2 = baseAngle2 + ringRotation;
+                                const x1 = ring.radius * Math.cos(angle1);
+                                const y1 = ring.radius * Math.sin(angle1);
+                                const x2 = ring.radius * Math.cos(angle2);
+                                const y2 = ring.radius * Math.sin(angle2);
+
+                                ctx.beginPath();
+                                ctx.moveTo(x1, y1);
+                                ctx.lineTo(x2, y2);
+                                ctx.strokeStyle = `hsla(${hue}, 75%, 65%, 0.6)`;
+                                ctx.lineWidth = gapLineWidth;
+                                ctx.stroke();
+                            }
+                        });
+                    });
+                }
+            });
+
+            // Enhanced lift line drawing with unit circle support and normalized thickness
+            if ((showDirectLifts || showModularLifts) && rings.length > 1) {
+                const liftThicknessNorm = parseFloat(document.getElementById('lineThickness').value);
+                const baseLiftThickness = 0.5 + liftThicknessNorm * 3.5; // Scale 0-1 to 0.5-4.0
+                
+                for (let i = 0; i < rings.length; i++) {
+                    for (let j = i + 1; j < rings.length; j++) {
+                        const ring1 = rings[i];
+                        const ring2 = rings[j];
+                        
+                        // Calculate rotations for both rings
+                        let ringRotation1 = 0;
+                        let ringRotation2 = 0;
+                        if (enableRotation) {
+                            ringRotation1 = animationFrame * ringRotationSpeeds[ring1.n] * Math.PI / 180;
+                            ringRotation2 = animationFrame * ringRotationSpeeds[ring2.n] * Math.PI / 180;
+                        }
+                        
+                        if (isInverting) {
+                            const waveOffset1 = ring1.index * 0.15;
+                            const waveOffset2 = ring2.index * 0.15;
+                            const inversionPhase1 = Math.max(0, Math.min(1, inversionProgress * 3 - waveOffset1));
+                            const inversionPhase2 = Math.max(0, Math.min(1, inversionProgress * 3 - waveOffset2));
+                            ringRotation1 += Math.sin(inversionPhase1 * Math.PI) * Math.PI;
+                            ringRotation2 += Math.sin(inversionPhase2 * Math.PI) * Math.PI;
+                        }
+                        
+                        ring1.coprimes.forEach(r => {
+                            // Enhanced direct lifts with unit circle special handling
+                            if (showDirectLifts && ring2.coprimes.includes(r)) {
+                                // FIXED: Apply angle correction for lift lines
+                                let baseAngle1, baseAngle2;
+                                if (ring1.n === 'unit') {
+                                    baseAngle1 = 0; // Unit circle at 0°
+                                } else {
+                                    baseAngle1 = 2 * Math.PI * (ring1.modulus - r) / ring1.modulus;
+                                }
+                                
+                                if (ring2.n === 'unit') {
+                                    baseAngle2 = 0; // Unit circle at 0°
+                                } else {
+                                    baseAngle2 = 2 * Math.PI * (ring2.modulus - r) / ring2.modulus;
+                                }
+                                
+                                const angle1 = baseAngle1 + ringRotation1;
+                                const angle2 = baseAngle2 + ringRotation2;
+                                const x1 = ring1.radius * Math.cos(angle1);
+                                const y1 = ring1.radius * Math.sin(angle1);
+                                const x2 = ring2.radius * Math.cos(angle2);
+                                const y2 = ring2.radius * Math.sin(angle2);
+
+                                ctx.beginPath();
+                                ctx.moveTo(x1, y1);
+                                ctx.lineTo(x2, y2);
+                                
+                                const isConsecutive = (j === i + 1);
+                                const hasUnitCircle = ring1.n === 'unit' || ring2.n === 'unit';
+                                
+                                if (hasUnitCircle) {
+                                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)'; // Golden for unit circle connections
+                                    ctx.lineWidth = baseLiftThickness * 1.2;
+                                } else {
+                                    ctx.strokeStyle = isConsecutive ? liftLineColor : liftLineColor + '66';
+                                    ctx.lineWidth = isConsecutive ? baseLiftThickness : baseLiftThickness * 0.7;
+                                }
+                                ctx.stroke();
+                            }
+
+                            // Enhanced modular lifts (skip for unit circle)
+                            if (showModularLifts && ring1.n !== 'unit' && ring2.n !== 'unit') {
+                                const n1 = parseInt(ring1.n);
+                                const n2 = parseInt(ring2.n);
+                                
+                                if (!isNaN(n1) && !isNaN(n2) && n2 > n1) {
+                                    const nDiff = n2 - n1;
+                                    const baseModulus = Math.round(ring1.modulus);
+                                    
+                                    let shift;
+                                    if (nDiff === 1) {
+                                        shift = baseModulus;
+                                    } else {
+                                        shift = baseModulus * Math.pow(2, nDiff - 1);
+                                    }
+                                    
+                                    const liftedR = (r + shift) % Math.round(ring2.modulus);
+                                    
+                                    if (ring2.coprimes.includes(liftedR)) {
+                                        // FIXED: Apply angle correction for modular lifts
+                                        const baseAngle1 = 2 * Math.PI * (ring1.modulus - r) / ring1.modulus;
+                                        const baseAngle2 = 2 * Math.PI * (ring2.modulus - liftedR) / ring2.modulus;
+                                        const angle1 = baseAngle1 + ringRotation1;
+                                        const angle2 = baseAngle2 + ringRotation2;
+                                        const x1 = ring1.radius * Math.cos(angle1);
+                                        const y1 = ring1.radius * Math.sin(angle1);
+                                        const x2 = ring2.radius * Math.cos(angle2);
+                                        const y2 = ring2.radius * Math.sin(angle2);
+
+                                        ctx.beginPath();
+                                        ctx.moveTo(x1, y1);
+                                        ctx.lineTo(x2, y2);
+                                        
+                                        const isConsecutive = (j === i + 1);
+                                        ctx.strokeStyle = isConsecutive ? modularLiftColor : modularLiftColor + '55';
+                                        ctx.lineWidth = isConsecutive ? baseLiftThickness * 0.9 : baseLiftThickness * 0.6;
+                                        ctx.setLineDash(isConsecutive ? [6, 4] : [3, 6]);
+                                        ctx.stroke();
+                                        ctx.setLineDash([]);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            ctx.restore();
+            updateInfo(rings);
+        }
+
+        // Enhanced info panel update with prime sieve integration
+        function updateInfo(rings) {
+            const info = document.getElementById('ringInfo');
+            
+            if (rings.length === 0) {
+                info.innerHTML = '<em>No rings selected</em><br><br><strong>Tip:</strong> Try adding consecutive moduli M₁ to M₂₀ for systematic exploration starting from the mathematical foundation.';
+                return;
+            }
+
+            let html = '';
+            let totalResidues = 0;
+            
+            rings.forEach((ring, index) => {
+                const config = configs[ring.n];
+                const modLabel = config ? config.label : ring.modulus.toString();
+                totalResidues += ring.coprimes.length;
+                
+                let ringTitle;
+                let specialNote = '';
+                
+                if (ring.n === 'unit') {
+                    ringTitle = 'Unit Circle';
+                    specialNote = '<br><em>Fundamental mathematical foundation</em><br><em>Contains residue 0 where gcd(0,1) = 1</em>';
+                } else if (ring.n.startsWith('custom_') || ring.n.startsWith('sieve_')) {
+                    ringTitle = ring.n.startsWith('sieve_') ? 'Sieve Ring' : 'Custom Ring';
+                } else {
+                    ringTitle = `Ring M<sub>${ring.n}</sub>`;
+                }
+                
+                // Add prime sieve information if applicable
+                if (primeData.isActive && ring.modulus === primeData.modulus) {
+                    specialNote += '<br><strong style="color: #FFD700;">🎯 Prime Sieve Active</strong>';
+                    const totalPrimesInRing = Object.values(primeData.residueDistribution).reduce((sum, data) => sum + data.count, 0);
+                    specialNote += `<br><em>Contains ${totalPrimesInRing} of ${primeData.totalPrimes} primes up to ${primeData.limit}</em>`;
+                }
+                
+                const infoClass = ring.n === 'unit' ? 'unit-circle-info' : 'ring-info';
+                html += `<div class="${infoClass}">
+                    <strong>${ringTitle}</strong><br>
+                    <em class="math-notation">M = ${modLabel}</em><br>
+                    <em class="math-notation">φ(M) = ${ring.coprimes.length}</em><br>
+                    Residues: [${ring.coprimes.slice(0, 10).join(', ')}${ring.coprimes.length > 10 ? '...' : ''}]
+                    ${specialNote}
+                </div>`;
+            });
+
+            const gaps = getSelectedGaps();
+            if (gaps.length > 0) {
+                html += `<div class="ring-info">
+                    <strong>Active Gap Analysis:</strong><br>
+                    Gaps: [${gaps.join(', ')}]<br>
+                    <em>Exploring prime gap patterns across ${rings.length} ring${rings.length > 1 ? 's' : ''}</em>
+                </div>`;
+            }
+
+            // Add prime sieve summary if active
+            if (primeData.isActive) {
+                const eulerPhi = getCoprimes(primeData.modulus).length;
+                const avgPrimesPerResidue = (primeData.totalPrimes / eulerPhi).toFixed(1);
+                
+                html += `<div class="ring-info" style="border-left: 3px solid #FFD700;">
+                    <strong>Prime Sieve Analysis:</strong><br>
+                    Modulus: ${primeData.modulus}, Limit: ${primeData.limit}<br>
+                    Total Primes: ${primeData.totalPrimes}<br>
+                    Avg per residue: ${avgPrimesPerResidue}<br>
+                    <em>Distribution across φ(${primeData.modulus}) = ${eulerPhi} classes</em>
+                </div>`;
+            }
+
+            html += `<div class="ring-info">
+                <strong>System Summary:</strong><br>
+                Total Rings: ${rings.length}<br>
+                Total Residues: ${totalResidues}<br>
+                <em class="math-notation">∑φ(M<sub>i</sub>) = ${totalResidues}</em>
+            </div>`;
+
+            info.innerHTML = html;
+        }
+
+        // Add missing prime search and export functions
+        function exportDetailedPrimeList() {
+            if (!primeData.isActive) {
+                alert('No prime data to export. Run a sieve first.');
+                return;
+            }
+            
+            let exportText = `Complete Prime Distribution Analysis\n`;
+            exportText += `Modulus: ${primeData.modulus}, Limit: ${primeData.limit}\n`;
+            exportText += `Total Primes: ${primeData.totalPrimes}\n`;
+            exportText += `Generated: ${new Date().toISOString()}\n\n`;
+            
+            const sortedResidues = Object.keys(primeData.residueDistribution).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            sortedResidues.forEach(residue => {
+                const data = primeData.residueDistribution[residue];
+                exportText += `\n=== Residue Class r ≡ ${residue} (mod ${primeData.modulus}) ===\n`;
+                exportText += `Count: ${data.count} primes (${data.percentage}%)\n`;
+                
+                if (data.count === 0) {
+                    exportText += `No primes in this residue class\n`;
+                } else {
+                    exportText += `All ${data.count} primes: `;
+                    // Format in rows of 15 for readability
+                    for (let i = 0; i < data.primes.length; i += 15) {
+                        if (i > 0) exportText += '\n                     ';
+                        exportText += data.primes.slice(i, i + 15).join(', ');
+                        if (i + 15 < data.primes.length) exportText += ',';
+                    }
+                    exportText += '\n';
+                }
+            });
+            
+            const dataBlob = new Blob([exportText], {type: 'text/plain'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `complete_prime_distribution_mod${primeData.modulus}_to_${primeData.limit}.txt`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            updateAnimationStatus('Complete prime distribution exported');
+        }
+        
+        function togglePrimeSearchMode() {
+            const controls = document.getElementById('primeSearchControls');
+            const isVisible = controls.style.display !== 'none';
+            controls.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                document.getElementById('searchPrime').focus();
+            }
+        }
+        
+        function findPrimeInResidue() {
+            const searchPrime = parseInt(document.getElementById('searchPrime').value);
+            const result = document.getElementById('searchResult');
+            
+            if (!primeData.isActive) {
+                result.innerHTML = '<span style="color: #FF6B6B;">No sieve data available. Run a prime sieve first.</span>';
+                return;
+            }
+            
+            if (!searchPrime || searchPrime < 2) {
+                result.innerHTML = '<span style="color: #FF6B6B;">Please enter a valid prime number ≥ 2.</span>';
+                return;
+            }
+            
+            if (!isPrime(searchPrime)) {
+                result.innerHTML = `<span style="color: #FF6B6B;">${searchPrime} is not a prime number.</span>`;
+                return;
+            }
+            
+            if (searchPrime > primeData.limit) {
+                result.innerHTML = `<span style="color: #FFA500;">Prime ${searchPrime} is beyond sieve limit ${primeData.limit}. Cannot verify presence in residue classes.</span>`;
+                return;
+            }
+            
+            const residue = searchPrime % primeData.modulus;
+            const residueData = primeData.residueDistribution[residue];
+            
+            if (residueData && residueData.primes.includes(searchPrime)) {
+                const position = residueData.primes.indexOf(searchPrime) + 1;
+                result.innerHTML = `
+                    <span style="color: #4ECDC4;"><strong>✓ Found!</strong></span><br>
+                    Prime ${searchPrime} ≡ ${residue} (mod ${primeData.modulus})<br>
+                    Position ${position} of ${residueData.count} primes in this residue class<br>
+                    <em>This residue class contains ${residueData.percentage}% of all primes up to ${primeData.limit}</em>
+                `;
+            } else if (gcd(residue, primeData.modulus) !== 1) {
+                result.innerHTML = `
+                    <span style="color: #FF6B6B;"><strong>Impossible!</strong></span><br>
+                    Prime ${searchPrime} ≡ ${residue} (mod ${primeData.modulus})<br>
+                    But gcd(${residue}, ${primeData.modulus}) = ${gcd(residue, primeData.modulus)} ≠ 1<br>
+                    <em>This residue class cannot contain primes (except possibly small exceptions)</em>
+                `;
+            } else {
+                result.innerHTML = `
+                    <span style="color: #FFA500;"><strong>Not found in sieve data</strong></span><br>
+                    Prime ${searchPrime} should be ≡ ${residue} (mod ${primeData.modulus})<br>
+                    <em>This may indicate the prime is beyond the sieve limit or there's a calculation error</em>
+                `;
+            }
+        }
+
+        // Enhanced initialization
+        function initControls() {
+            // Add unit circle first (highlighted and checked by default)
+            addRingControl('unit', 'Unit Circle (M=1)', true);
+            
+            // Add consecutive moduli 1-30 by default
+            for (let mod = 2; mod <= 30; mod++) {
+                const customId = `default_${mod}`;
+                configs[customId] = { 
+                    mod: mod, 
+                    label: mod.toString(),
+                    description: `Default modulus ${mod}`
+                };
+                addRingControl(customId, `M${mod}`, true);
+            }
+            
+            // Add standard M_n series (unchecked by default)
+            Object.keys(configs).forEach(n => {
+                if (!n.startsWith('custom_') && !n.startsWith('default_') && n !== 'unit') {
+                    addRingControl(n, `n=${n} (M=${configs[n].label})`, false);
+                }
+            });
+
+            // Enhanced event listeners
+            document.addEventListener('change', draw);
+            document.getElementById('zoomSlider').addEventListener('input', updateZoom);
+            document.getElementById('rotationSlider').addEventListener('input', updateRotation);
+            document.getElementById('enablePrimeSieve').addEventListener('change', togglePrimeSieve);
+            
+            updateAnimationStatus('System initialized with corrected angle positioning and normalized thickness controls');
+        }
+
+        // Initialize the enhanced system
+        initControls();
+        draw();
+    </script>
+</body>
+</html>            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            font-weight: 300;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            min-height: 0; /* Prevent grid overflow */
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 20px;
+            height: fit-content;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-section h3 {
+            color: #FFD700;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            transform: scale(1.3);
+            accent-color: #FFD700;
+        }
+
+        .unit-circle-highlight {
+            background: linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            font-weight: bold;
+        }
+
+        .custom-gap {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gap-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .gap-input input {
+            width: 70px;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .gap-input input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            margin: 3px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .special-btn {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+
+        .slider-group {
+            margin: 15px 0;
+        }
+
+        .slider-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .slider-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #FFD700;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .slider-group select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+        }
+
+        .slider-group input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .canvas-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        #canvas {
+            border-radius: 15px;
+            background: #000000;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            max-width: 100%;
+            max-height: 700px;
+            width: auto;
+            height: auto;
+            cursor: grab;
+        }
+
+        #canvas:active {
+            cursor: grabbing;
+        }
+
+        .analysis-section {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .analysis-section h3 {
+            color: #FFD700;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            text-align: center;
+        }
+
+        .ring-info {
+            margin: 10px 0;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 13px;
+            border-left: 3px solid #FFD700;
+        }
+
+        .unit-circle-info {
+            background: linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            border-left: 3px solid #FFD700;
+            font-weight: bold;
+        }
+
+        .legend {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .legend h3 {
+            color: #FFD700;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid white;
+            flex-shrink: 0;
+        }
+
+        .math-notation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+
+        @media (max-width: 1400px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            #canvas {
+                width: 100%;
+                max-width: 90vw;
+                height: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .canvas-container {
+                padding: 15px;
+            }
+            
+            #canvas {
+                max-width: 95vw;
+                max-height: 500px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+
+        .animation-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Modular Lifting Rings</h1>
+        <div class="subtitle">Built by Wessen Getachew | Created by Leonhard Euler<br>
+        <em class="math-notation">φ(n) = n∏(1 - 1/p) | gcd(a,b) = 1 | Z/nZ ≅ (Z/nZ)* | r ≡ s (mod m)</em></div>
+
+        <div class="main-grid">
+            <div class="controls">
+                <div class="control-section">
+                    <h3>Gap Analysis</h3>
+                    <div class="checkbox-group" id="gapControls">
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="2" checked> Gap 2 (Twin Primes)
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="4"> Gap 4 (Cousin Primes)
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="6"> Gap 6 (Sexy Primes)
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="8"> Gap 8
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="10"> Gap 10
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" value="12"> Gap 12
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>Dynamic Gap Generation:</strong></label>
+                        <div class="gap-input">
+                            Max Gap: <input type="number" id="maxGap" min="2" step="2" value="12" placeholder="12">
+                        </div>
+                        <div class="gap-input">
+                            <strong>Add Consecutive Range:</strong><br>
+                            From: <input type="number" id="gapStart" min="2" step="1" value="14" placeholder="14">
+                            To: <input type="number" id="gapEnd" min="3" step="1" value="20" placeholder="20">
+                            <button onclick="addConsecutiveGaps()">Add Range</button>
+                        </div>
+                        <div class="gap-input">
+                            <button onclick="generateGaps()">Generate Even Gaps</button>
+                            <button class="reset-btn" onclick="clearAllGaps()">Clear All Gaps</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Modular Ring System</h3>
+                    <div class="checkbox-group" id="ringControls">
+                        <!-- Generated by JavaScript -->
+                    </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>Custom Modulus Explorer:</strong></label>
+                        <div class="gap-input">
+                            Single: <input type="number" id="customMod" min="2" value="42" placeholder="42">
+                            <button onclick="addCustomRing()">Add Single</button>
+                        </div>
+                        <div class="gap-input">
+                            <strong>Add Consecutive Range:</strong><br>
+                            From: <input type="number" id="modStart" min="1" value="1" placeholder="1">
+                            To: <input type="number" id="modEnd" min="2" value="20" placeholder="20">
+                            <button onclick="addConsecutiveMods()">Add M₁ to Mₙ</button>
+                        </div>
+                        <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
+                            No limits - explore any modulus range you want!
+                        </div>
+                        <div class="gap-input" style="margin-top: 15px;">
+                            <button class="reset-btn" onclick="clearAllRings()">Clear All Rings</button>
+                            <button class="special-btn" onclick="resetToDefaults()">Reset to M1-M30</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Visual Customization</h3>
+                    <div class="slider-group">
+                        <label>Residue Coloring Scheme:</label>
+                        <select id="residueColorMode" onchange="updateColorMode()">
+                            <option value="hue">Rainbow by Angular Position</option>
+                            <option value="value">By Residue Value</option>
+                            <option value="modulo">By Ring (Modulus)</option>
+                            <option value="prime">Prime vs Composite</option>
+                            <option value="gcd_unified">GCD=1: Unified Color</option>
+                            <option value="gcd_per_mod">GCD=1: Unique Color per Modulus</option>
+                            <option value="gcd_per_residue">GCD=1: Unique Color per Residue Value</option>
+                            <option value="gcd_mathematical">GCD=1: Mathematical Progression</option>
+                            <option value="gcd_spectrum">GCD=1: Spectral Distribution</option>
+                            <option value="custom">Custom Single Color</option>
+                        </select>
+                    </div>
+                    <div class="slider-group" id="customColorGroup" style="display: none;">
+                        <label>Custom Residue Color:</label>
+                        <input type="color" id="customResidueColor" value="#FF6B6B" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group" id="gcdColorGroup" style="display: none;">
+                        <label>Base GCD=1 Color:</label>
+                        <input type="color" id="gcdBaseColor" value="#FF6B6B" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group" id="nonGcdColorGroup" style="display: none;">
+                        <label>Non-GCD=1 Color (if any):</label>
+                        <input type="color" id="nonGcdColor" value="#666666" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Direct Lift Line Color:</label>
+                        <input type="color" id="liftLineColor" value="#FFD700" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Modular Lift Line Color:</label>
+                        <input type="color" id="modularLiftColor" value="#FF6384" onchange="draw()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Lift Line Thickness: <span id="thicknessValue">0.5</span></label>
+                        <input type="range" id="lineThickness" min="0" max="1" step="0.01" value="0.5" oninput="updateThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Gap Line Thickness: <span id="gapThicknessValue">0.3</span></label>
+                        <input type="range" id="gapLineThickness" min="0" max="1" step="0.01" value="0.3" oninput="updateGapThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Ring Circle Thickness: <span id="ringThicknessValue">0.2</span></label>
+                        <input type="range" id="ringThickness" min="0" max="1" step="0.01" value="0.2" oninput="updateRingThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Unit Circle Thickness: <span id="unitThicknessValue">0.8</span></label>
+                        <input type="range" id="unitThickness" min="0" max="1" step="0.01" value="0.8" oninput="updateUnitThickness()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Residue Point Size: <span id="pointSizeValue">0.4</span></label>
+                        <input type="range" id="pointSize" min="0" max="1" step="0.01" value="0.4" oninput="updatePointSize()">
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label>Point Border Thickness: <span id="pointBorderValue">0.3</span></label>
+                        <input type="range" id="pointBorder" min="0" max="1" step="0.01" value="0.3" oninput="updatePointBorder()">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Advanced Animation Engine</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enableRotation" onchange="toggleRotation()"> Enable Individual Ring Rotation
+                    </div>
+                    <div class="slider-group">
+                        <label>Global Animation Speed: <span id="globalSpeedValue">1.0</span>x</label>
+                        <input type="range" id="globalSpeed" min="0.1" max="8" step="0.1" value="1" oninput="updateGlobalSpeed()">
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="reverseDirection"> Reverse Rotation Direction
+                    </div>
+                    <button class="special-btn" onclick="toggleInversionAnimation()">Mathematical Inversion Process</button>
+                    <div id="inversionControls" style="display: none; margin-top: 15px;">
+                        <div class="slider-group">
+                            <label>Inversion Wave Speed: <span id="inversionSpeedValue">1.0</span>x</label>
+                            <input type="range" id="inversionSpeed" min="0.1" max="5" step="0.1" value="1" oninput="updateInversionSpeed()">
+                        </div>
+                        <button onclick="stopInversionAnimation()">Stop Inversion</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
                     <h3>Label Controls</h3>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showLabels" checked> Show Residue Labels
