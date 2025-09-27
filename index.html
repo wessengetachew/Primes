@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Modular Lifting Rings </title>
+    <title>Interactive Modular Lifting Rings v8.0</title>
     <style>
         * {
             margin: 0;
@@ -517,13 +517,80 @@
                     <div class="checkbox-item">
                         <input type="checkbox" id="reverseDirection"> Reverse Rotation Direction
                     </div>
-                    <button class="special-btn" onclick="toggleInversionAnimation()">Mathematical Inversion Process</button>
-                    <div id="inversionControls" style="display: none; margin-top: 15px;">
-                        <div class="slider-group">
-                            <label>Inversion Wave Speed: <span id="inversionSpeedValue">1.0</span>x</label>
-                            <input type="range" id="inversionSpeed" min="0.1" max="5" step="0.1" value="1" oninput="updateInversionSpeed()">
+                    
+                    <div class="custom-gap">
+                        <label><strong>Ring Inversion Animation:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="enableInversion" onchange="toggleInversionAnimation()"> Enable Ring Inversion
                         </div>
-                        <button onclick="stopInversionAnimation()">Stop Inversion</button>
+                        <div id="inversionControls" style="display: none;">
+                            <div class="slider-group">
+                                <label>Inversion Wave Speed: <span id="inversionSpeedValue">1.0</span>x</label>
+                                <input type="range" id="inversionSpeed" min="0.1" max="5" step="0.1" value="1" oninput="updateInversionSpeed()">
+                            </div>
+                            <div class="slider-group">
+                                <label>Inversion Wave Intensity: <span id="inversionIntensityValue">1.0</span>x</label>
+                                <input type="range" id="inversionIntensity" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateInversionIntensity()">
+                            </div>
+                            <div class="slider-group">
+                                <label>Inversion Pattern:</label>
+                                <select id="inversionPattern" onchange="draw()">
+                                    <option value="wave">Mathematical Wave</option>
+                                    <option value="spiral">Spiral Transform</option>
+                                    <option value="pulse">Radial Pulse</option>
+                                    <option value="twist">Ring Twist</option>
+                                </select>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="inversionLoop" checked> Loop Inversion Continuously
+                            </div>
+                            <button onclick="stopInversionAnimation()">Stop Inversion</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Label Controls</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showLabels" checked> Show Residue Labels
+                    </div>
+                    
+                    <div class="custom-gap" id="labelControls">
+                        <label><strong>Selective Labeling:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="labelUnitCircle" checked> Label Unit Circle
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="labelGcdOne" checked> Label GCD=1 Residues
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="labelNonGcdOne"> Label GCD≠1 Residues
+                        </div>
+                        
+                        <div class="gap-input">
+                            <strong>Label Specific Moduli:</strong><br>
+                            Moduli: <input type="text" id="labelSpecificMods" placeholder="2,3,5,30" style="width: 120px;">
+                            <button onclick="updateSpecificLabels()">Apply</button>
+                        </div>
+                        
+                        <div class="gap-input">
+                            Min Ring Radius: <input type="number" id="labelMinRadius" min="0" value="80" placeholder="80">
+                            <button onclick="draw()">Update</button>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Label Size: <span id="labelSizeValue">1.0</span>x</label>
+                            <input type="range" id="labelSize" min="0.3" max="3.0" step="0.1" value="1.0" oninput="updateLabelSize()">
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Label Opacity: <span id="labelOpacityValue">0.95</span></label>
+                            <input type="range" id="labelOpacity" min="0.1" max="1.0" step="0.05" value="0.95" oninput="updateLabelOpacity()">
+                        </div>
+                        
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="labelShowPrimeCounts" checked> Show Prime Counts (when sieve active)
+                        </div>
                     </div>
                 </div>
 
@@ -534,6 +601,9 @@
                     </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showModularLifts"> Modular Lifts (r → r + M×2ⁿ)
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showUnitCircle" checked> Highlight Unit Circle
                     </div>
                 </div>
 
@@ -568,9 +638,6 @@
                     </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="invertNesting"> Invert Ring Nesting Order
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showUnitCircle" checked> Highlight Unit Circle
                     </div>
                     <button class="reset-btn" onclick="resetAll()">Reset All Settings</button>
                 </div>
@@ -789,6 +856,8 @@
         let isInverting = false;
         let inversionProgress = 0;
         let ringRotationSpeeds = {};
+        let specificLabelMods = new Set();
+        let inversionIntensity = 1.0;
         
         // Animation recording state
         let mediaRecorder = null;
@@ -1294,6 +1363,43 @@
         function updatePointBorder() {
             const value = document.getElementById('pointBorder').value;
             document.getElementById('pointBorderValue').textContent = value;
+            draw();
+        }
+
+        function updateLabelSize() {
+            const value = document.getElementById('labelSize').value;
+            document.getElementById('labelSizeValue').textContent = value;
+            draw();
+        }
+
+        function updateLabelOpacity() {
+            const value = document.getElementById('labelOpacity').value;
+            document.getElementById('labelOpacityValue').textContent = value;
+            draw();
+        }
+
+        function updateInversionIntensity() {
+            const value = document.getElementById('inversionIntensity').value;
+            document.getElementById('inversionIntensityValue').textContent = value;
+            inversionIntensity = parseFloat(value);
+            draw();
+        }
+
+        function updateSpecificLabels() {
+            const input = document.getElementById('labelSpecificMods').value;
+            specificLabelMods.clear();
+            
+            if (input.trim()) {
+                const mods = input.split(',').map(s => s.trim()).filter(s => s);
+                mods.forEach(mod => {
+                    const num = parseInt(mod);
+                    if (!isNaN(num) && num > 0) {
+                        specificLabelMods.add(num);
+                    }
+                });
+            }
+            
+            updateAnimationStatus(`Specific labeling applied to moduli: [${Array.from(specificLabelMods).join(', ')}]`);
             draw();
         }
 
@@ -2469,11 +2575,12 @@
         }
 
         function toggleInversionAnimation() {
-            isInverting = !isInverting;
+            const enabled = document.getElementById('enableInversion').checked;
+            isInverting = enabled;
             inversionProgress = 0;
             
             const controls = document.getElementById('inversionControls');
-            controls.style.display = isInverting ? 'block' : 'none';
+            controls.style.display = enabled ? 'block' : 'none';
             
             if (isInverting) {
                 updateAnimationStatus('Mathematical inversion started');
@@ -2510,9 +2617,20 @@
             
             if (isInverting) {
                 const inversionSpeed = parseFloat(document.getElementById('inversionSpeed').value);
+                const inversionLoop = document.getElementById('inversionLoop').checked;
+                
                 inversionProgress += 0.008 * inversionSpeed;
+                
                 if (inversionProgress >= 1) {
-                    inversionProgress = 0; // Loop the inversion
+                    if (inversionLoop) {
+                        inversionProgress = 0; // Loop the inversion
+                    } else {
+                        inversionProgress = 1;
+                        isInverting = false;
+                        document.getElementById('enableInversion').checked = false;
+                        document.getElementById('inversionControls').style.display = 'none';
+                        updateAnimationStatus('Inversion cycle completed');
+                    }
                 }
             }
             
@@ -2571,10 +2689,17 @@
             
             // Reset controls to new defaults
             document.getElementById('showLabels').checked = true;
+            document.getElementById('labelUnitCircle').checked = true;
+            document.getElementById('labelGcdOne').checked = true;
+            document.getElementById('labelNonGcdOne').checked = false;
+            document.getElementById('labelShowPrimeCounts').checked = true;
+            document.getElementById('labelMinRadius').value = 80;
+            document.getElementById('labelSpecificMods').value = '';
             document.getElementById('invertNesting').checked = false;
             document.getElementById('showDirectLifts').checked = false; // Default off
             document.getElementById('showModularLifts').checked = false;
             document.getElementById('enableRotation').checked = false;
+            document.getElementById('enableInversion').checked = false;
             document.getElementById('reverseDirection').checked = false;
             document.getElementById('showUnitCircle').checked = true;
             document.getElementById('showGcdOne').checked = true;
@@ -2590,8 +2715,13 @@
             document.getElementById('unitThickness').value = 0.8;
             document.getElementById('pointSize').value = 0.4;
             document.getElementById('pointBorder').value = 0.3;
+            document.getElementById('labelSize').value = 1.0;
+            document.getElementById('labelOpacity').value = 0.95;
             document.getElementById('globalSpeed').value = 1;
             document.getElementById('inversionSpeed').value = 1;
+            document.getElementById('inversionIntensity').value = 1.0;
+            document.getElementById('inversionPattern').value = 'wave';
+            document.getElementById('inversionLoop').checked = true;
             document.getElementById('nonGcdOpacity').value = 0.3;
             document.getElementById('residueColorMode').value = 'hue';
             document.getElementById('liftLineColor').value = '#FFD700';
@@ -2614,8 +2744,11 @@
             updateColorMode();ation();
             updateThickness();
             updateGapThickness();
+            updateLabelSize();
+            updateLabelOpacity();
             updateGlobalSpeed();
             updateInversionSpeed();
+            updateInversionIntensity();
             updateColorMode();
             
             // Reset animation state
@@ -2733,12 +2866,32 @@
                     ringRotation = animationFrame * ringRotationSpeeds[ring.n] * Math.PI / 180;
                 }
                 
-                // Enhanced inversion animation with wave effects
+                // Enhanced inversion animation with multiple patterns
                 if (isInverting) {
                     const waveOffset = ring.index * 0.15;
                     const inversionPhase = Math.max(0, Math.min(1, inversionProgress * 3 - waveOffset));
-                    const waveIntensity = Math.sin(inversionPhase * Math.PI);
-                    ringRotation += waveIntensity * Math.PI;
+                    const pattern = document.getElementById('inversionPattern').value;
+                    
+                    let inversionEffect = 0;
+                    
+                    switch(pattern) {
+                        case 'wave':
+                            inversionEffect = Math.sin(inversionPhase * Math.PI) * Math.PI * inversionIntensity;
+                            break;
+                        case 'spiral':
+                            inversionEffect = inversionPhase * Math.PI * 2 * inversionIntensity;
+                            break;
+                        case 'pulse':
+                            const pulseIntensity = Math.sin(inversionPhase * Math.PI * 4);
+                            inversionEffect = pulseIntensity * Math.PI * 0.5 * inversionIntensity;
+                            break;
+                        case 'twist':
+                            const twistFactor = ring.radius / maxRadius;
+                            inversionEffect = inversionPhase * Math.PI * twistFactor * inversionIntensity;
+                            break;
+                    }
+                    
+                    ringRotation += inversionEffect;
                     
                     // Add visual pulsing during inversion
                     ctx.globalAlpha = 0.7 + 0.3 * Math.sin(inversionProgress * Math.PI * 4 + ring.index);
@@ -2879,26 +3032,57 @@
                     ctx.lineWidth = borderThickness;
                     ctx.stroke();
 
-                    // Enhanced labels with prime count information
-                    if (showLabels && (ring.radius > 80 || ring.n === 'unit')) {
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                        let labelText = r.toString();
+                    // Enhanced labels with selective control and sizing
+                    if (showLabels) {
+                        const labelUnitCircle = document.getElementById('labelUnitCircle').checked;
+                        const labelGcdOne = document.getElementById('labelGcdOne').checked;
+                        const labelNonGcdOne = document.getElementById('labelNonGcdOne').checked;
+                        const labelShowPrimeCounts = document.getElementById('labelShowPrimeCounts').checked;
+                        const labelMinRadius = parseInt(document.getElementById('labelMinRadius').value);
+                        const labelSize = parseFloat(document.getElementById('labelSize').value);
+                        const labelOpacity = parseFloat(document.getElementById('labelOpacity').value);
                         
-                        // Add prime count to label if sieve is active
-                        if (primeData.isActive && ring.modulus === primeData.modulus && primeData.residueDistribution[r]) {
-                            const count = primeData.residueDistribution[r].count;
-                            if (count > 0 && document.getElementById('showPrimeMarkers').checked) {
-                                labelText = `${r}(${count})`;
+                        // Check if this ring should have labels
+                        let shouldLabel = false;
+                        
+                        if (ring.n === 'unit' && labelUnitCircle) {
+                            shouldLabel = true;
+                        } else if (ring.n !== 'unit') {
+                            // Check specific moduli list first
+                            if (specificLabelMods.size > 0) {
+                                shouldLabel = specificLabelMods.has(Math.round(ring.modulus));
+                            } else {
+                                // Use GCD-based filtering and radius check
+                                if (ring.radius >= labelMinRadius) {
+                                    if (isGcdOne && labelGcdOne) shouldLabel = true;
+                                    if (!isGcdOne && labelNonGcdOne) shouldLabel = true;
+                                }
                             }
                         }
                         
-                        ctx.font = ring.n === 'unit' ? 'bold 14px Segoe UI' : '11px Segoe UI';
-                        ctx.textAlign = 'center';
-                        ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-                        ctx.lineWidth = 3;
-                        const labelY = y - (ring.n === 'unit' ? 12 : 8);
-                        ctx.strokeText(labelText, x, labelY);
-                        ctx.fillText(labelText, x, labelY);
+                        if (shouldLabel) {
+                            ctx.fillStyle = `rgba(255, 255, 255, ${labelOpacity})`;
+                            let labelText = r.toString();
+                            
+                            // Add prime count to label if sieve is active
+                            if (primeData.isActive && ring.modulus === primeData.modulus && 
+                                primeData.residueDistribution[r] && labelShowPrimeCounts) {
+                                const count = primeData.residueDistribution[r].count;
+                                if (count > 0 && document.getElementById('showPrimeMarkers').checked) {
+                                    labelText = `${r}(${count})`;
+                                }
+                            }
+                            
+                            const baseFontSize = ring.n === 'unit' ? 14 : 11;
+                            const fontSize = baseFontSize * labelSize;
+                            ctx.font = ring.n === 'unit' ? `bold ${fontSize}px Segoe UI` : `${fontSize}px Segoe UI`;
+                            ctx.textAlign = 'center';
+                            ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                            ctx.lineWidth = Math.max(1, fontSize * 0.2);
+                            const labelY = y - (ring.n === 'unit' ? fontSize * 0.8 : fontSize * 0.6);
+                            ctx.strokeText(labelText, x, labelY);
+                            ctx.fillText(labelText, x, labelY);
+                        }
                     }
                 });
 
@@ -2959,8 +3143,30 @@
                             const waveOffset2 = ring2.index * 0.15;
                             const inversionPhase1 = Math.max(0, Math.min(1, inversionProgress * 3 - waveOffset1));
                             const inversionPhase2 = Math.max(0, Math.min(1, inversionProgress * 3 - waveOffset2));
-                            ringRotation1 += Math.sin(inversionPhase1 * Math.PI) * Math.PI;
-                            ringRotation2 += Math.sin(inversionPhase2 * Math.PI) * Math.PI;
+                            const pattern = document.getElementById('inversionPattern').value;
+                            
+                            switch(pattern) {
+                                case 'wave':
+                                    ringRotation1 += Math.sin(inversionPhase1 * Math.PI) * Math.PI * inversionIntensity;
+                                    ringRotation2 += Math.sin(inversionPhase2 * Math.PI) * Math.PI * inversionIntensity;
+                                    break;
+                                case 'spiral':
+                                    ringRotation1 += inversionPhase1 * Math.PI * 2 * inversionIntensity;
+                                    ringRotation2 += inversionPhase2 * Math.PI * 2 * inversionIntensity;
+                                    break;
+                                case 'pulse':
+                                    const pulse1 = Math.sin(inversionPhase1 * Math.PI * 4);
+                                    const pulse2 = Math.sin(inversionPhase2 * Math.PI * 4);
+                                    ringRotation1 += pulse1 * Math.PI * 0.5 * inversionIntensity;
+                                    ringRotation2 += pulse2 * Math.PI * 0.5 * inversionIntensity;
+                                    break;
+                                case 'twist':
+                                    const twist1 = ring1.radius / maxRadius;
+                                    const twist2 = ring2.radius / maxRadius;
+                                    ringRotation1 += inversionPhase1 * Math.PI * twist1 * inversionIntensity;
+                                    ringRotation2 += inversionPhase2 * Math.PI * twist2 * inversionIntensity;
+                                    break;
+                            }
                         }
                         
                         ring1.coprimes.forEach(r => {
