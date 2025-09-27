@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Modular Lifting Rings v8.0</title>
+    <title>Interactive Modular Lifting Rings </title>
     <style>
         * {
             margin: 0;
@@ -1602,18 +1602,50 @@
                     toggleRotation();
                 }
                 
-                // Set up canvas stream
-                const stream = canvas.captureStream(30); // 30 FPS
+                // Temporarily scale up canvas to 4K for recording
+                const originalWidth = canvas.width;
+                const originalHeight = canvas.height;
+                
+                // Scale to 4K (3840x2160) while maintaining aspect ratio
+                const aspectRatio = originalWidth / originalHeight;
+                let recordWidth, recordHeight;
+                
+                if (aspectRatio > (3840/2160)) {
+                    recordWidth = 3840;
+                    recordHeight = Math.round(3840 / aspectRatio);
+                } else {
+                    recordHeight = 2160;
+                    recordWidth = Math.round(2160 * aspectRatio);
+                }
+                
+                // Create high-resolution recording canvas
+                const recordCanvas = document.createElement('canvas');
+                recordCanvas.width = recordWidth;
+                recordCanvas.height = recordHeight;
+                const recordCtx = recordCanvas.getContext('2d');
+                
+                // Set up high-quality canvas stream
+                const stream = recordCanvas.captureStream(60); // 60 FPS for ultra smooth
                 
                 const options = {
                     mimeType: 'video/webm;codecs=vp9',
-                    videoBitsPerSecond: 8000000 // 8 Mbps for high quality
+                    videoBitsPerSecond: 25000000 // 25 Mbps for 4K quality
                 };
                 
-                // Fallback to VP8 if VP9 not supported
+                // Fallback options for different browser support
                 if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                     options.mimeType = 'video/webm;codecs=vp8';
+                    options.videoBitsPerSecond = 20000000; // 20 Mbps for VP8
                 }
+                
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options.mimeType = 'video/webm';
+                    options.videoBitsPerSecond = 15000000; // 15 Mbps fallback
+                }
+                
+                // Store reference to high-res canvas for drawing
+                window.recordingCanvas = recordCanvas;
+                window.recordingCtx = recordCtx;
                 
                 mediaRecorder = new MediaRecorder(stream, options);
                 recordedChunks = [];
@@ -1625,6 +1657,10 @@
                 };
                 
                 mediaRecorder.onstop = () => {
+                    // Clean up recording canvas
+                    window.recordingCanvas = null;
+                    window.recordingCtx = null;
+                    
                     const blob = new Blob(recordedChunks, { type: 'video/webm' });
                     downloadVideo(blob);
                 };
@@ -1639,7 +1675,7 @@
                 
                 // Start recording
                 mediaRecorder.start();
-                updateAnimationStatus('Recording video...');
+                updateAnimationStatus('Recording 4K video at 60fps...');
                 
                 // Start progress tracking
                 updateRecordingProgress(duration);
@@ -1651,7 +1687,7 @@
                 
             } catch (error) {
                 console.error('Error starting video recording:', error);
-                alert('Failed to start video recording. Please check browser compatibility.');
+                alert('Failed to start 4K video recording. Your browser may not support high-resolution recording.');
                 resetRecordingUI();
             }
         }
@@ -2337,6 +2373,16 @@
 
         // Enhanced main drawing function
         function draw() {
+            // Draw to main canvas
+            drawToCanvas(canvas, ctx);
+            
+            // Also draw to recording canvas if recording
+            if (isRecording && window.recordingCanvas && window.recordingCtx) {
+                drawToCanvas(window.recordingCanvas, window.recordingCtx);
+            }
+        }
+        
+        function drawToCanvas(targetCanvas, targetCtx) {
             const selectedRings = getSelectedRings();
             const selectedGaps = getSelectedGaps();
             const showLabels = document.getElementById('showLabels').checked;
@@ -2358,24 +2404,24 @@
             const modularLiftColor = document.getElementById('modularLiftColor').value;
 
             // Clear canvas with enhanced background
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
             
             if (selectedRings.length === 0) {
                 // Draw a helpful message
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-                ctx.font = '24px Segoe UI';
-                ctx.textAlign = 'center';
-                ctx.fillText('Select rings to begin exploration', canvas.width / 2, canvas.height / 2);
-                ctx.font = '16px Segoe UI';
-                ctx.fillText('Try adding consecutive moduli M₁ to M₂₀ for complete foundation', canvas.width / 2, canvas.height / 2 + 30);
-                updateInfo([]);
+                targetCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                targetCtx.font = `${24 * (targetCanvas.width / 800)}px Segoe UI`;
+                targetCtx.textAlign = 'center';
+                targetCtx.fillText('Select rings to begin exploration', targetCanvas.width / 2, targetCanvas.height / 2);
+                targetCtx.font = `${16 * (targetCanvas.width / 800)}px Segoe UI`;
+                targetCtx.fillText('Try adding consecutive moduli M₁ to M₂₀ for complete foundation', targetCanvas.width / 2, targetCanvas.height / 2 + 30 * (targetCanvas.width / 800));
+                if (targetCanvas === canvas) updateInfo([]);
                 return;
             }
 
-            ctx.save();
-            ctx.translate(canvas.width / 2 + panX, canvas.height / 2 + panY);
-            ctx.scale(currentZoom, currentZoom);
-            ctx.rotate((rotation + (animating ? animationFrame * 0.3 : 0)) * Math.PI / 180);
+            targetCtx.save();
+            targetCtx.translate(targetCanvas.width / 2 + panX * (targetCanvas.width / canvas.width), targetCanvas.height / 2 + panY * (targetCanvas.height / canvas.height));
+            targetCtx.scale(currentZoom * (targetCanvas.width / canvas.width), currentZoom * (targetCanvas.height / canvas.height));
+            targetCtx.rotate((rotation + (animating ? animationFrame * 0.3 : 0)) * Math.PI / 180);
 
             const rings = [];
             const sortedRings = [...selectedRings].sort((a, b) => {
@@ -2396,8 +2442,8 @@
                 return invertNesting ? b.localeCompare(a, undefined, {numeric: true}) : a.localeCompare(b, undefined, {numeric: true});
             });
 
-            const maxRadius = 280;
-            const minRadius = showUnitCircle && selectedRings.includes('unit') ? 25 : 60;
+            const maxRadius = 280 * (targetCanvas.width / canvas.width);
+            const minRadius = (showUnitCircle && selectedRings.includes('unit') ? 25 : 60) * (targetCanvas.width / canvas.width);
 
             // Initialize enhanced ring rotation speeds
             sortedRings.forEach((n, index) => {
@@ -2436,30 +2482,31 @@
                     ringRotation += waveIntensity * Math.PI;
                     
                     // Add visual pulsing during inversion
-                    ctx.globalAlpha = 0.7 + 0.3 * Math.sin(inversionProgress * Math.PI * 4 + ring.index);
+                    targetCtx.globalAlpha = 0.7 + 0.3 * Math.sin(inversionProgress * Math.PI * 4 + ring.index);
                 } else {
-                    ctx.globalAlpha = 1.0;
+                    targetCtx.globalAlpha = 1.0;
                 }
 
                 // Enhanced ring circle drawing with normalized thickness controls
-                ctx.beginPath();
-                ctx.arc(0, 0, ring.radius, 0, 2 * Math.PI);
+                targetCtx.beginPath();
+                targetCtx.arc(0, 0, ring.radius, 0, 2 * Math.PI);
                 
                 const ringThicknessNorm = parseFloat(document.getElementById('ringThickness').value);
                 const unitThicknessNorm = parseFloat(document.getElementById('unitThickness').value);
+                const scaleFactor = targetCanvas.width / canvas.width;
                 
                 if (ring.n === 'unit' && showUnitCircle) {
                     // Special styling for unit circle with normalized thickness
-                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
-                    ctx.lineWidth = 0.5 + unitThicknessNorm * 4.5; // Scale 0-1 to 0.5-5.0
-                    ctx.setLineDash([]);
+                    targetCtx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+                    targetCtx.lineWidth = (0.5 + unitThicknessNorm * 4.5) * scaleFactor; // Scale for resolution
+                    targetCtx.setLineDash([]);
                 } else {
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-                    ctx.lineWidth = 0.2 + ringThicknessNorm * 1.8; // Scale 0-1 to 0.2-2.0
-                    ctx.setLineDash([2, 4]);
+                    targetCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                    targetCtx.lineWidth = (0.2 + ringThicknessNorm * 1.8) * scaleFactor; // Scale for resolution
+                    targetCtx.setLineDash([2 * scaleFactor, 4 * scaleFactor]);
                 }
-                ctx.stroke();
-                ctx.setLineDash([]);
+                targetCtx.stroke();
+                targetCtx.setLineDash([]);
 
                 // Enhanced residue points with prime sieve integration
                 const residuesToDraw = [];
@@ -2490,10 +2537,10 @@
                     const y = ring.radius * Math.sin(angle);
 
                     // Enhanced point drawing with normalized thickness controls
-                    ctx.beginPath();
+                    targetCtx.beginPath();
                     const pointSizeNorm = parseFloat(document.getElementById('pointSize').value);
-                    const basePointSize = ring.n === 'unit' ? 8 : (ring.radius > 150 ? 6 : 4);
-                    let pointSize = basePointSize * (0.2 + pointSizeNorm * 1.8); // Scale 0-1 to 0.2-2.0
+                    const basePointSize = ring.n === 'unit' ? 8 : (ring.radius > 150 * scaleFactor ? 6 : 4);
+                    let pointSize = basePointSize * (0.2 + pointSizeNorm * 1.8) * scaleFactor; // Scale for resolution
                     
                     // Prime sieve visualization enhancements
                     if (primeData.isActive && ring.modulus === primeData.modulus) {
@@ -2512,16 +2559,16 @@
                             
                             if (showPrimeMarkers && residueData.count > 0) {
                                 // Add golden ring around residue classes containing primes
-                                ctx.arc(x, y, pointSize + 3, 0, 2 * Math.PI);
-                                ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
-                                ctx.lineWidth = 2;
-                                ctx.stroke();
-                                ctx.beginPath();
+                                targetCtx.arc(x, y, pointSize + 3 * scaleFactor, 0, 2 * Math.PI);
+                                targetCtx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+                                targetCtx.lineWidth = 2 * scaleFactor;
+                                targetCtx.stroke();
+                                targetCtx.beginPath();
                             }
                         }
                     }
                     
-                    ctx.arc(x, y, pointSize, 0, 2 * Math.PI);
+                    targetCtx.arc(x, y, pointSize, 0, 2 * Math.PI);
                     
                     let color = getResidueColor(r, ring.modulus, ring.index, colorMode);
                     
@@ -2564,19 +2611,19 @@
                         }
                     }
                     
-                    ctx.fillStyle = color;
-                    ctx.fill();
+                    targetCtx.fillStyle = color;
+                    targetCtx.fill();
                     
                     // Enhanced border for better visibility with normalized thickness
                     const pointBorderNorm = parseFloat(document.getElementById('pointBorder').value);
-                    const borderThickness = 0.5 + pointBorderNorm * 2.5; // Scale 0-1 to 0.5-3.0
-                    ctx.strokeStyle = ring.n === 'unit' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)';
-                    ctx.lineWidth = borderThickness;
-                    ctx.stroke();
+                    const borderThickness = (0.5 + pointBorderNorm * 2.5) * scaleFactor; // Scale for resolution
+                    targetCtx.strokeStyle = ring.n === 'unit' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)';
+                    targetCtx.lineWidth = borderThickness;
+                    targetCtx.stroke();
 
                     // Enhanced labels with prime count information
-                    if (showLabels && (ring.radius > 80 || ring.n === 'unit')) {
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                    if (showLabels && (ring.radius > 80 * scaleFactor || ring.n === 'unit')) {
+                        targetCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                         let labelText = r.toString();
                         
                         // Add prime count to label if sieve is active
@@ -2587,20 +2634,20 @@
                             }
                         }
                         
-                        ctx.font = ring.n === 'unit' ? 'bold 14px Segoe UI' : '11px Segoe UI';
-                        ctx.textAlign = 'center';
-                        ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-                        ctx.lineWidth = 3;
-                        const labelY = y - (ring.n === 'unit' ? 12 : 8);
-                        ctx.strokeText(labelText, x, labelY);
-                        ctx.fillText(labelText, x, labelY);
+                        targetCtx.font = ring.n === 'unit' ? `bold ${14 * scaleFactor}px Segoe UI` : `${11 * scaleFactor}px Segoe UI`;
+                        targetCtx.textAlign = 'center';
+                        targetCtx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                        targetCtx.lineWidth = 3 * scaleFactor;
+                        const labelY = y - (ring.n === 'unit' ? 12 : 8) * scaleFactor;
+                        targetCtx.strokeText(labelText, x, labelY);
+                        targetCtx.fillText(labelText, x, labelY);
                     }
                 });
 
                 // Enhanced gap connections (skip for unit circle as it has no gaps)
                 if (ring.n !== 'unit' && showGcdOne) {
                     const gapThicknessNorm = parseFloat(document.getElementById('gapLineThickness').value);
-                    const gapLineWidth = 0.2 + gapThicknessNorm * 2.8; // Scale 0-1 to 0.2-3.0
+                    const gapLineWidth = (0.2 + gapThicknessNorm * 2.8) * scaleFactor; // Scale for resolution
                     
                     selectedGaps.forEach((gap, index) => {
                         const hue = (index * 360 / selectedGaps.length) % 360;
@@ -2619,12 +2666,12 @@
                                 const x2 = ring.radius * Math.cos(angle2);
                                 const y2 = ring.radius * Math.sin(angle2);
 
-                                ctx.beginPath();
-                                ctx.moveTo(x1, y1);
-                                ctx.lineTo(x2, y2);
-                                ctx.strokeStyle = `hsla(${hue}, 75%, 65%, 0.6)`;
-                                ctx.lineWidth = gapLineWidth;
-                                ctx.stroke();
+                                targetCtx.beginPath();
+                                targetCtx.moveTo(x1, y1);
+                                targetCtx.lineTo(x2, y2);
+                                targetCtx.strokeStyle = `hsla(${hue}, 75%, 65%, 0.6)`;
+                                targetCtx.lineWidth = gapLineWidth;
+                                targetCtx.stroke();
                             }
                         });
                     });
@@ -2972,4 +3019,4 @@
         draw();
     </script>
 </body>
-</html>
+    </html>
