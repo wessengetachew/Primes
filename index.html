@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Modular Lifting Rings</title>
+    <title>Interactive Modular Lifting Rings v8.0</title>
     <style>
         * {
             margin: 0;
@@ -528,7 +528,50 @@
                 </div>
 
                 <div class="control-section">
-                    <h3>Display Controls</h3>
+                    <h3>Label Controls</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showLabels" checked> Show Residue Labels
+                    </div>
+                    
+                    <div class="custom-gap" id="labelControls">
+                        <label><strong>Selective Modulus Labeling:</strong></label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="labelUnitCircle" checked> Label Unit Circle (M=1)
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="labelSmallMods" checked> Label Small Moduli (M ≤ 12)
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="labelMediumMods"> Label Medium Moduli (12 < M ≤ 50)
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="labelLargeMods"> Label Large Moduli (M > 50)
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="labelCustomMods" checked> Label Custom Moduli
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="labelSieveMods" checked> Label Sieve Moduli
+                            </div>
+                        </div>
+                        
+                        <div class="gap-input" style="margin-top: 15px;">
+                            <label><strong>Custom Range Labeling:</strong></label><br>
+                            Label M from: <input type="number" id="labelRangeStart" min="1" value="" placeholder="Min">
+                            to: <input type="number" id="labelRangeEnd" min="1" value="" placeholder="Max">
+                            <button onclick="updateLabelFilters()">Apply Range</button>
+                        </div>
+                        
+                        <div class="gap-input">
+                            <button onclick="labelAllVisible()">Label All Visible</button>
+                            <button onclick="labelNone()">Label None</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>View & Export Controls</h3>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r)
                     </div>
@@ -563,9 +606,6 @@
                         </div>
                     </div>
                 </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showLabels" checked> Show Residue Labels
-                    </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="invertNesting"> Invert Ring Nesting Order
                     </div>
@@ -675,6 +715,16 @@
                         </div>
                         <div class="checkbox-item">
                             <input type="checkbox" id="includeTitle" checked> Include Title & Legend
+                        </div>
+                        <div class="slider-group" style="margin-top: 15px;">
+                            <label>Screenshot Resolution:</label>
+                            <select id="screenshotResolution">
+                                <option value="1x">Standard (800×600)</option>
+                                <option value="2x">HD (1600×1200)</option>
+                                <option value="4x">4K (3200×2400)</option>
+                                <option value="8x">8K (6400×4800)</option>
+                                <option value="16x">Ultra 16K (12800×9600)</option>
+                            </select>
                         </div>
                     </div>
                     <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
@@ -921,7 +971,70 @@
             return Array.from(checked).map(cb => cb.value);
         }
 
-        // Enhanced control functions
+        // Enhanced labeling control functions
+        function shouldShowLabel(ringN, modulus) {
+            const showLabels = document.getElementById('showLabels').checked;
+            if (!showLabels) return false;
+            
+            // Check specific modulus type controls
+            if (ringN === 'unit') {
+                return document.getElementById('labelUnitCircle').checked;
+            }
+            
+            if (ringN.startsWith('custom_')) {
+                return document.getElementById('labelCustomMods').checked;
+            }
+            
+            if (ringN.startsWith('sieve_')) {
+                return document.getElementById('labelSieveMods').checked;
+            }
+            
+            // Check size-based controls
+            if (modulus <= 12) {
+                return document.getElementById('labelSmallMods').checked;
+            } else if (modulus <= 50) {
+                return document.getElementById('labelMediumMods').checked;
+            } else {
+                return document.getElementById('labelLargeMods').checked;
+            }
+        }
+        
+        function checkCustomRange(modulus) {
+            const rangeStart = parseInt(document.getElementById('labelRangeStart').value);
+            const rangeEnd = parseInt(document.getElementById('labelRangeEnd').value);
+            
+            if (rangeStart && rangeEnd && !isNaN(rangeStart) && !isNaN(rangeEnd)) {
+                return modulus >= rangeStart && modulus <= rangeEnd;
+            }
+            return false;
+        }
+        
+        function updateLabelFilters() {
+            updateAnimationStatus('Custom label range applied');
+            draw();
+        }
+        
+        function labelAllVisible() {
+            document.getElementById('labelUnitCircle').checked = true;
+            document.getElementById('labelSmallMods').checked = true;
+            document.getElementById('labelMediumMods').checked = true;
+            document.getElementById('labelLargeMods').checked = true;
+            document.getElementById('labelCustomMods').checked = true;
+            document.getElementById('labelSieveMods').checked = true;
+            updateAnimationStatus('All visible rings will show labels');
+            draw();
+        }
+        
+        function labelNone() {
+            document.getElementById('labelUnitCircle').checked = false;
+            document.getElementById('labelSmallMods').checked = false;
+            document.getElementById('labelMediumMods').checked = false;
+            document.getElementById('labelLargeMods').checked = false;
+            document.getElementById('labelCustomMods').checked = false;
+            document.getElementById('labelSieveMods').checked = false;
+            updateAnimationStatus('All labels hidden');
+            draw();
+        }
         function clearAllGaps() {
             const gapControls = document.getElementById('gapControls');
             const checkboxes = gapControls.querySelectorAll('input[type="checkbox"]');
@@ -2594,4 +2707,4 @@
         draw();
     </script>
 </body>
-</html>
+    </html>
