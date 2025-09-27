@@ -786,6 +786,10 @@
                             Width: <input type="number" id="customWidth" value="3840" min="480" step="16">
                             Height: <input type="number" id="customHeight" value="2160" min="480" step="16">
                         </div>
+                        <div class="gap-input" style="margin-top: 15px;">
+                            <button onclick="startRecording()" id="recordButton">🎬 Record Animation</button>
+                            <button onclick="stopRecording()">⏹️ Stop Recording</button>
+                        </div>
                     </div>
                     <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
                         <strong>Navigation:</strong><br>
@@ -1518,7 +1522,7 @@
                 mediaRecorder.start(100); // Collect data every 100ms
                 
                 // Update button
-                const recordBtn = document.querySelector('button[onclick="startRecording()"]');
+                const recordBtn = document.getElementById('recordButton');
                 recordBtn.textContent = '⏹️ Stop Recording';
                 recordBtn.style.background = 'linear-gradient(45deg, #e74c3c, #c0392b)';
                 
@@ -1557,7 +1561,7 @@
             }
             
             // Update button
-            const recordBtn = document.querySelector('button[onclick="startRecording()"]');
+            const recordBtn = document.getElementById('recordButton');
             recordBtn.textContent = '⏹️ Stop Recording';
             recordBtn.style.background = 'linear-gradient(45deg, #e74c3c, #c0392b)';
             
@@ -1677,7 +1681,7 @@
             }
             
             // Reset button
-            const recordBtn = document.querySelector('button[onclick="startRecording()"]');
+            const recordBtn = document.getElementById('recordButton');
             recordBtn.textContent = '🎬 Record Animation';
             recordBtn.style.background = 'linear-gradient(45deg, #FF6B6B, #4ECDC4)';
             
@@ -3487,4 +3491,4 @@
         draw();
     </script>
 </body>
-    </html>
+                        </html>
