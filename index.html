@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Modular Lifting Rings v8.0</title>
+    <title>Interactive Modular Lifting Rings </title>
     <style>
         * {
             margin: 0;
@@ -668,10 +668,10 @@
                     <div class="custom-gap">
                         <label><strong>Screenshot Options:</strong></label>
                         <div class="checkbox-item">
-                            <input type="radio" name="screenshotResolution" value="standard" checked> Enhanced Standard (1250x938)
+                            <input type="radio" name="screenshotResolution" value="standard" checked> Standard
                         </div>
                         <div class="checkbox-item">
-                            <input type="radio" name="screenshotResolution" value="4k"> Enhanced 4K Ultra HD (4800x2700)
+                            <input type="radio" name="screenshotResolution" value="4k"> 4K
                         </div>
                         <div class="checkbox-item">
                             <input type="radio" name="screenshotBg" value="white" checked> White Background
@@ -1314,8 +1314,8 @@
             // Determine canvas dimensions - increased by 25%
             let baseWidth, baseHeight, scaleFactor;
             if (resolutionChoice === '4k') {
-                baseWidth = 4800;  // 25% larger than 3840
-                baseHeight = 2700; // 25% larger than 2160
+                baseWidth = 4800;  // Square 4K format
+                baseHeight = 4800; // Square 4K format
                 scaleFactor = baseWidth / canvas.width;
                 updateAnimationStatus('Generating 4K screenshot...');
             } else {
