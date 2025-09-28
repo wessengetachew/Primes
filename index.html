@@ -352,25 +352,26 @@
 
         .legend-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: 1fr;
             gap: 15px;
         }
 
         .legend-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
-            padding: 8px;
+            padding: 12px;
             border-radius: 6px;
             background: rgba(255, 255, 255, 0.03);
         }
 
         .legend-color {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             border: 2px solid white;
             flex-shrink: 0;
+            margin-top: 2px;
         }
 
         .math-notation {
@@ -930,48 +931,206 @@
             <div class="legend-grid">
                 <div class="legend-item">
                     <div class="legend-color" style="background: #48BB78;"></div>
-                    <span><strong>RH Critical Line:</strong> <em class="math-notation">Re(s) = 1/2</em> for L-function zeros</span>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showRhCriticalLine" checked onchange="draw()">
+                            <strong>RH Critical Line:</strong> <em class="math-notation">Re(s) = 1/2</em>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Generalized Riemann Hypothesis predicts all non-trivial zeros of L-functions lie on this line. Controls visibility of critical line indicators in the visualization.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="legend-item">
                     <div class="legend-color" style="background: #9b59b6;"></div>
-                    <span>Prime equidistribution testing (GRH predictions)</span>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showPrimeEquidistribution" checked onchange="draw()">
+                            <strong>Prime Equidistribution Testing</strong>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            GRH implies uniform distribution of primes across coprime residue classes. Toggle statistical analysis overlays showing deviation from expected uniform distribution.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FF6384;"></div>
-                    <span><strong>Validated:</strong> Mathematical tests confirm RH connections</span>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showValidationMarkers" checked onchange="draw()">
+                            <strong>Validated:</strong> Mathematical tests confirm RH connections
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Displays verification markers for Euler totient calculations, character support validations, and homomorphism correctness. Shows mathematical accuracy indicators.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="legend-item">
-                    <div class="legend-color" style="background: linear-gradient(45deg, #FFD700, #FFA500);"></div>
-                    <span><strong>Unit Circle (M=1)</strong> - Leonhard Euler's foundation</span>
+                    <div class="legend-color" style="background: linear-gradient(45deg, #a0aec0, #cbd5e0);"></div>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showUnitCircleFoundation" checked onchange="draw()">
+                            <strong>Unit Circle (M=1)</strong> - Leonhard Euler's foundation
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            The mathematical foundation where gcd(0,1)=1. Controls special highlighting and enhanced rendering of the unit circle with golden accent coloring.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FF6B6B;"></div>
-                    <span><em class="math-notation">gcd(r,M) = 1</em> - Euler's totient function φ(M)</span>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showEulerTotient" checked onchange="draw()">
+                            <strong>Euler's Totient Function:</strong> <em class="math-notation">gcd(r,M) = 1</em>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Highlights residues coprime to modulus M. These form the character support for Dirichlet characters χ(r) ≠ 0, fundamental to L-function theory.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="legend-item">
                     <div class="legend-color" style="background: #4ECDC4;"></div>
-                    <span>Prime gap connections within Euler's rings</span>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showPrimeGapConnections" checked onchange="draw()">
+                            <strong>Prime Gap Connections</strong>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Visualizes twin primes (gap 2), cousin primes (gap 4), sexy primes (gap 6), and other prime gap patterns within Euler's modular rings.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #FFD700;"></div>
-                    <span>Direct lifts: <em class="math-notation">r ↦ r</em> (Euler homomorphism)</span>
+                    <div class="legend-color" style="background: #a0aec0;"></div>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showDirectLifts" checked onchange="draw()">
+                            <strong>Direct Lifts:</strong> <em class="math-notation">r ↦ r</em>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Ring homomorphisms preserving residue values across different moduli. Fundamental to understanding L-function relationships and character compatibility.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #FFD700; opacity: 0.4;"></div>
-                    <span>Skip-level lifts: <em class="math-notation">r ↦ r</em> (extended morphism)</span>
+                    <div class="legend-color" style="background: #a0aec0; opacity: 0.4;"></div>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showSkipLevelLifts" onchange="draw()">
+                            <strong>Skip-Level Lifts:</strong> <em class="math-notation">r ↦ r</em>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Extended morphisms connecting non-adjacent rings. Shows deeper structural relationships in the modular system beyond immediate neighbors.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #FF6384; border-style: dashed;"></div>
-                    <span>Modular lifts: <em class="math-notation">r ↦ r + M×2ⁿ</em> (Chinese Remainder)</span>
+                    <div class="legend-color" style="background: #FF6384; border-style: dashed; border-width: 2px;"></div>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showModularLifts" onchange="draw()">
+                            <strong>Modular Lifts:</strong> <em class="math-notation">r ↦ r + M×2ⁿ</em>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Chinese Remainder Theorem transformations. Maps residues to shifted positions, revealing multiplicative structure in the ring tower system.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #9b59b6;"></div>
-                    <span>Custom moduli explorations</span>
+                    <div class="legend-color" style="background: #805ad5;"></div>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showCustomModuli" checked onchange="draw()">
+                            <strong>Custom Moduli Exploration</strong>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            User-defined modulus values for exploring specific mathematical relationships. Enables investigation of arbitrary modular arithmetic structures.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="legend-item">
-                    <div class="legend-color" style="background: linear-gradient(45deg, #667eea, #764ba2);"></div>
-                    <span><em class="math-notation">Mₙ = 30 × 2ⁿ</em> series (Euler's multiplicative function)</span>
+                    <div class="legend-color" style="background: linear-gradient(45deg, #4a5568, #5a6478);"></div>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showEulerSeries" checked onchange="draw()">
+                            <strong>Euler Series:</strong> <em class="math-notation">Mₙ = 30 × 2ⁿ</em>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Systematic modulus progression based on Euler's multiplicative function theory. Shows how modular structures scale with powers of 2.
+                        </div>
+                    </div>
                 </div>
+                
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e53e3e;"></div>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showCharacterVanishing" onchange="draw()">
+                            <strong>Character Vanishing:</strong> <em class="math-notation">χ(r) = 0</em>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Residues where Dirichlet characters vanish (gcd(r,M) > 1). Critical for understanding L-function domains and character orthogonality relations.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #38b2ac;"></div>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showLFunctionZeros" onchange="draw()">
+                            <strong>L-Function Critical Zeros</strong>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Visualization of predicted zero locations for Dirichlet L-functions. Shows connection between character support and critical line behavior.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f56565;"></div>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showPrimeSieveData" onchange="draw()">
+                            <strong>Prime Sieve Visualization</strong>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            When prime sieve is active, shows actual prime distribution data overlaid on theoretical predictions. Compares real vs expected distributions.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #d69e2e;"></div>
+                    <div>
+                        <div>
+                            <input type="checkbox" id="showMathematicalFormulas" checked onchange="draw()">
+                            <strong>Mathematical Formulas & Notation</strong>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.8; margin-top: 3px;">
+                            Displays key mathematical relationships: φ(n) = n∏(1-1/p), character orthogonality, and L-function definitions overlaid on visualization.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 3px solid #a0aec0;">
+                <strong>Mathematical Foundation:</strong><br>
+                <em class="math-notation">φ(n) = n∏(1 - 1/p)</em> where p|n<br>
+                <em class="math-notation">gcd(a,b) = 1 ⟺ χ(a) ≠ 0</em> for Dirichlet characters χ<br>
+                <em class="math-notation">L(s,χ) = ∑χ(n)n⁻ˢ</em> with critical line <em class="math-notation">Re(s) = 1/2</em><br>
+                <em class="math-notation">Z/nZ ≅ (Z/nZ)*</em> ring isomorphism for units
             </div>
         </div>
     </div>
@@ -3608,7 +3767,7 @@
                 
                 // Add prime sieve information if applicable
                 if (primeData.isActive && ring.modulus === primeData.modulus) {
-                    specialNote += '<br><strong style="color: #FFD700;">🎯 Prime Sieve Active</strong>';
+                    specialNote += '<br><strong style="color: #FFD700;"> Prime Sieve Active</strong>';
                     const totalPrimesInRing = Object.values(primeData.residueDistribution).reduce((sum, data) => sum + data.count, 0);
                     specialNote += `<br><em>Contains ${totalPrimesInRing} of ${primeData.totalPrimes} primes up to ${primeData.limit}</em>`;
                 }
@@ -3803,4 +3962,4 @@
         draw();
     </script>
 </body>
-    </html>
+</html>
