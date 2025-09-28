@@ -929,51 +929,79 @@
         </div>
 
         <div class="legend">
-            <h3>Mathematical Legend & Notation</h3>
+            <h3>Mathematical Legend & Advanced Theory</h3>
             <div class="legend-grid">
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #48BB78;"></div>
-                    <span><strong>RH Critical Line:</strong> <em class="math-notation">Re(s) = 1/2</em> for L-function zeros</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #9b59b6;"></div>
-                    <span>Prime equidistribution testing (GRH predictions)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #FF6384;"></div>
-                    <span><strong>Validated:</strong> Mathematical tests confirm RH connections</span>
-                </div>
-                <div class="legend-item">
                     <div class="legend-color" style="background: linear-gradient(45deg, #FFD700, #FFA500);"></div>
-                    <span><strong>Unit Circle (M=1)</strong> - Leonhard Euler's foundation</span>
+                    <span><strong>Unit Circle (M=1)</strong> - <em class="math-notation">Z/1Z ≅ {0}</em><br>
+                    <small>Fundamental identity element where gcd(0,1) = 1 by convention</small></span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FF6B6B;"></div>
-                    <span><em class="math-notation">gcd(r,M) = 1</em> - Euler's totient function φ(M)</span>
+                    <span><strong>Character Support:</strong> <em class="math-notation">gcd(r,M) = 1 ⟺ χ(r) ≠ 0</em><br>
+                    <small>Dirichlet characters vanish precisely when gcd(r,M) > 1</small></span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #4ECDC4;"></div>
-                    <span>Prime gap connections within Euler's rings</span>
+                    <span><strong>Prime Gaps:</strong> Twin (2), Cousin (4), Sexy (6) prime pairs<br>
+                    <small>Conjectured infinitude follows from generalized Hardy-Littlewood</small></span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FFD700;"></div>
-                    <span>Direct lifts: <em class="math-notation">r ↦ r</em> (Euler homomorphism)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #FFD700; opacity: 0.4;"></div>
-                    <span>Skip-level lifts: <em class="math-notation">r ↦ r</em> (extended morphism)</span>
+                    <span><strong>Direct Lifts:</strong> <em class="math-notation">φ: Z/M₁Z → Z/M₂Z</em> via <em class="math-notation">r ↦ r</em><br>
+                    <small>Well-defined when M₁ | M₂, preserves multiplicative structure</small></span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #FF6384; border-style: dashed;"></div>
-                    <span>Modular lifts: <em class="math-notation">r ↦ r + M×2ⁿ</em> (Chinese Remainder)</span>
+                    <span><strong>Modular Lifts:</strong> <em class="math-notation">r ↦ r + M×2ⁿ</em> (Chinese Remainder)<br>
+                    <small>Systematic residue class extensions preserving coprimality</small></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #48BB78;"></div>
+                    <span><strong>RH Critical Line:</strong> <em class="math-notation">Re(s) = 1/2</em> for ζ(s) and L(s,χ) zeros<br>
+                    <small>Generalized RH: all non-trivial zeros of L-functions lie on critical line</small></span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #9b59b6;"></div>
-                    <span>Custom moduli explorations</span>
+                    <span><strong>Euler's Totient:</strong> <em class="math-notation">φ(n) = n∏_{p|n}(1 - 1/p)</em><br>
+                    <small>Counts multiplicative units in Z/nZ, fundamental to L-function theory</small></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e67e22;"></div>
+                    <span><strong>Prime Distribution:</strong> <em class="math-notation">π(x;q,a) ∼ li(x)/φ(q)</em><br>
+                    <small>Prime Number Theorem for arithmetic progressions (Siegel-Walfisz)</small></span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: linear-gradient(45deg, #667eea, #764ba2);"></div>
-                    <span><em class="math-notation">Mₙ = 30 × 2ⁿ</em> series (Euler's multiplicative function)</span>
+                    <span><strong>L-functions:</strong> <em class="math-notation">L(s,χ) = ∑_{n=1}^∞ χ(n)/n^s</em><br>
+                    <small>Analytic continuations encode deep arithmetic information</small></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f39c12;"></div>
+                    <span><strong>Quadratic Reciprocity:</strong> Legendre symbols and residue patterns<br>
+                    <small>Fundamental law governing quadratic congruences mod p</small></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #8e44ad;"></div>
+                    <span><strong>Class Field Theory:</strong> <em class="math-notation">Gal(K^{ab}/K) ≅ C_K</em><br>
+                    <small>Connects arithmetic of number fields to group theory</small></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #27ae60;"></div>
+                    <span><strong>Primitive Roots:</strong> Generators of <em class="math-notation">(Z/pZ)*</em><br>
+                    <small>Exist for Z/pZ, Z/2pZ, Z/2Z, Z/4Z when p is odd prime</small></span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 25px; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 15px;">
+                <h4 style="color: #FFD700; margin-bottom: 15px;">Key Mathematical Formulas</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; font-family: 'Times New Roman', serif;">
+                    <div><strong>Euler's Formula:</strong> φ(n) = n∏<sub>p|n</sub>(1 - 1/p)</div>
+                    <div><strong>Dirichlet's Theorem:</strong> ∑<sub>χ mod q</sub> L(s,χ) = φ(q)ζ(s) + ...</div>
+                    <div><strong>Riemann Zeta:</strong> ζ(s) = ∏<sub>p</sub>(1 - p<sup>-s</sup>)<sup>-1</sup></div>
+                    <div><strong>Prime Number Theorem:</strong> π(x) ∼ x/ln(x)</div>
+                    <div><strong>Class Number Formula:</strong> h = |Disc|<sup>1/2</sup>L(1,χ)/2π</div>
+                    <div><strong>Functional Equation:</strong> Λ(s) = Λ(1-s) for completed L-functions</div>
                 </div>
             </div>
         </div>
@@ -3941,4 +3969,4 @@
         draw();
     </script>
 </body>
-</html>
+    </html>
