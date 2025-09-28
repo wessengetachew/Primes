@@ -412,7 +412,7 @@
         <div class="main-grid">
             <div class="controls">
                 <div class="control-section rh-section">
-                    <h3>🎯 Riemann Hypothesis Analysis</h3>
+                    <h3>Riemann Hypothesis Analysis</h3>
                     <div class="checkbox-item">
                         <input type="checkbox" id="enableRhAnalysis" onchange="toggleRhAnalysis()"> Enable RH Predictions
                     </div>
@@ -885,8 +885,8 @@
                             Height: <input type="number" id="customHeight" value="2160" min="480" step="16">
                         </div>
                         <div class="gap-input" style="margin-top: 15px;">
-                            <button onclick="startRecording()" id="recordButton">🎬 Record Animation</button>
-                            <button onclick="stopRecording()">⏹️ Stop Recording</button>
+                            <button onclick="startRecording()" id="recordButton">Record Animation</button>
+                            <button onclick="stopRecording()">Stop Recording</button>
                         </div>
                     </div>
                     <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
@@ -908,7 +908,7 @@
                 <div id="ringInfo">Select rings to view detailed analysis</div>
                 
                 <div class="rh-notice">
-                    <strong>🔬 Modular Arithmetic & Number Theory</strong><br>
+                    <strong>Modular Arithmetic & Number Theory</strong><br>
                     This system visualizes fundamental connections in analytic number theory, particularly the relationship between modular rings, Euler's totient function, and prime distribution patterns.
                     <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
                         Mathematical foundations: Euler totients φ(n), Chinese Remainder Theorem, primitive roots, and quadratic reciprocity
@@ -2561,8 +2561,15 @@
                 tempCtx.fillText(`Gaps: ${currentSelectedGaps.length}, Residues: ${totalResidue}`, legendX + 20 * scaleFactor, mathY + 35 * scaleFactor);
             }
             
+            // Add watermark in white for all backgrounds
+            tempCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
+            tempCtx.textAlign = 'right';
+            tempCtx.fillText('Riemann Hypothesis Explorer | Built by Wessen Getachew', 
+                tempCanvas.width - 20 * scaleFactor, tempCanvas.height - 15 * scaleFactor);
+            
             // Add watermark
-            tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+            tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.7)';
             tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
             tempCtx.textAlign = 'right';
             tempCtx.fillText('Riemann Hypothesis Explorer | Built by Wessen Getachew', 
@@ -3827,8 +3834,8 @@
                 }
                 
                 // Add prime sieve information if applicable
-                if (primeData.isActive && ring.modulus === primeData.modulus) {
-                    specialNote += '<br><strong style="color: #FFD700;">🎯 Prime Sieve Active</strong>';
+                if (primeData.isActive) {
+                    specialNote += '<br><strong style="color: #FFD700;">Prime Sieve Active</strong>';
                     const totalPrimesInRing = Object.values(primeData.residueDistribution).reduce((sum, data) => sum + data.count, 0);
                     specialNote += `<br><em>Contains ${totalPrimesInRing} of ${primeData.totalPrimes} primes up to ${primeData.limit}</em>`;
                 }
@@ -4023,4 +4030,4 @@
         draw();
     </script>
 </body>
-</html>
+                                               </html>
