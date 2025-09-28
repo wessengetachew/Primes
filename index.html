@@ -839,10 +839,10 @@
                             <input type="radio" name="screenshotResolution" value="4k"> 4K
                         </div>
                         <div class="checkbox-item">
-                            <input type="radio" name="screenshotBg" value="white" checked> White Background
+                            <input type="radio" name="screenshotBg" value="white"> White Background
                         </div>
                         <div class="checkbox-item">
-                            <input type="radio" name="screenshotBg" value="black"> Black Background
+                            <input type="radio" name="screenshotBg" value="black" checked> Black Background
                         </div>
                         <div class="checkbox-item">
                             <input type="checkbox" id="includeTitle" checked> Include Title & Subtitle
@@ -2363,92 +2363,154 @@
                 tempCtx.font = `bold ${20 * scaleFactor}px Segoe UI`;
                 tempCtx.textAlign = 'left';
                 let currentY = legendY + 35 * scaleFactor;
-                tempCtx.fillText('Mathematical Legend', legendX + 20 * scaleFactor, currentY);
+                tempCtx.fillText('Current Configuration', legendX + 20 * scaleFactor, currentY);
                 
                 currentY += 35 * scaleFactor;
                 
-                // Comprehensive legend items
-                const legendItems = [
-                    { color: '#FFD700', text: 'Unit Circle (M=1)', description: 'Fundamental foundation' },
-                    { color: '#FF6B6B', text: 'gcd(r,M) = 1 residues', description: "Euler's totient function φ(M)" },
-                    { color: '#4ECDC4', text: 'Prime gap connections', description: 'Twin, cousin, sexy primes' }
-                ];
+                // Get current state for precise legend
+                const currentSelectedRings = getSelectedRings();
+                const currentSelectedGaps = getSelectedGaps();
+                const currentColorMode = document.getElementById('residueColorMode').value;
+                const showDirectLifts = document.getElementById('showDirectLifts').checked;
+                const showModularLifts = document.getElementById('showModularLifts').checked;
+                const showGcdOne = document.getElementById('showGcdOne').checked;
+                const showNonGcdOne = document.getElementById('showNonGcdOne').checked;
                 
-                // Add active features to legend
-                if (document.getElementById('showDirectLifts').checked) {
-                    legendItems.push({ 
-                        color: document.getElementById('liftLineColor').value, 
-                        text: 'Direct lifts', 
-                        description: 'r ↦ r homomorphism' 
+                // Calculate precise counts
+                let totalResidue = 0;
+                let totalGcdOne = 0;
+                let hasUnitCircle = false;
+                
+                currentSelectedRings.forEach(ringId => {
+                    const config = configs[ringId];
+                    if (config) {
+                        if (ringId === 'unit') {
+                            hasUnitCircle = true;
+                            totalResidue += 1;
+                            totalGcdOne += 1;
+                        } else {
+                            const coprimes = getCoprimes(config.mod);
+                            const allRes = getAllResidues(config.mod);
+                            totalResidue += allRes.length;
+                            totalGcdOne += coprimes.length;
+                        }
+                    }
+                });
+                
+                // Build legend items based on current state
+                const legendItems = [];
+                
+                // Unit circle (if present)
+                if (hasUnitCircle) {
+                    legendItems.push({
+                        color: '#FFD700',
+                        text: 'Unit Circle (M=1)',
+                        description: '1 residue: {0}, φ(1) = 1',
+                        count: 1
                     });
                 }
                 
-                if (document.getElementById('showModularLifts').checked) {
-                    legendItems.push({ 
-                        color: document.getElementById('modularLiftColor').value, 
-                        text: 'Modular lifts', 
-                        description: 'r ↦ r + M×2ⁿ transformation',
+                // Ring count and totient summary
+                if (currentSelectedRings.length > 0) {
+                    const ringCount = currentSelectedRings.length;
+                    legendItems.push({
+                        color: '#9b59b6',
+                        text: `Active Rings: ${ringCount}`,
+                        description: `Total residues: ${totalResidue}, Σφ(M) = ${totalGcdOne}`,
+                        count: ringCount
+                    });
+                }
+                
+                // Character support (if shown)
+                if (showGcdOne) {
+                    const gcdColor = document.getElementById('gcdBaseColor').value;
+                    legendItems.push({
+                        color: gcdColor,
+                        text: `Character Support (gcd=1)`,
+                        description: `${totalGcdOne} coprime residues shown`,
+                        count: totalGcdOne
+                    });
+                }
+                
+                // Non-character support (if shown)
+                if (showNonGcdOne) {
+                    const nonGcdColor = document.getElementById('nonGcdColor').value;
+                    const nonGcdCount = totalResidue - totalGcdOne;
+                    legendItems.push({
+                        color: nonGcdColor,
+                        text: `Non-Character Support (gcd>1)`,
+                        description: `${nonGcdCount} non-coprime residues shown`,
+                        count: nonGcdCount
+                    });
+                }
+                
+                // Gap analysis (if active)
+                if (currentSelectedGaps.length > 0) {
+                    legendItems.push({
+                        color: '#4ECDC4',
+                        text: `Prime Gaps: [${currentSelectedGaps.join(', ')}]`,
+                        description: `${currentSelectedGaps.length} gap types analyzed`,
+                        count: currentSelectedGaps.length
+                    });
+                }
+                
+                // Direct lifts (if active)
+                if (showDirectLifts) {
+                    const liftColor = document.getElementById('liftLineColor').value;
+                    legendItems.push({
+                        color: liftColor,
+                        text: 'Direct Lifts: r → r',
+                        description: 'Euler homomorphism preserving residues',
+                        dashed: false
+                    });
+                }
+                
+                // Modular lifts (if active)
+                if (showModularLifts) {
+                    const modLiftColor = document.getElementById('modularLiftColor').value;
+                    legendItems.push({
+                        color: modLiftColor,
+                        text: 'Modular Lifts: r → r + M×2ⁿ',
+                        description: 'Chinese Remainder extensions',
                         dashed: true
                     });
                 }
                 
-                // Color mode information
-                const colorMode = document.getElementById('residueColorMode').value;
-                const colorModeDescriptions = {
-                    'hue': 'Rainbow by angular position',
-                    'value': 'Color by residue value',
-                    'modulo': 'Color by ring (modulus)',
-                    'prime': 'Prime vs composite analysis',
-                    'gcd_unified': 'Unified color for gcd(r,M)=1',
-                    'gcd_per_mod': 'Unique color per modulus',
-                    'gcd_per_residue': 'Unique color per residue',
-                    'custom': 'Custom single color'
+                // Color scheme
+                const colorModeNames = {
+                    'hue': 'Rainbow by position',
+                    'value': 'By residue value',
+                    'modulo': 'By ring modulus',
+                    'prime': 'Prime analysis',
+                    'gcd_unified': 'Unified gcd=1 color',
+                    'gcd_per_mod': 'gcd=1 by modulus',
+                    'gcd_per_residue': 'gcd=1 by residue',
+                    'gcd_mathematical': 'gcd=1 mathematical',
+                    'gcd_spectrum': 'gcd=1 spectral',
+                    'custom': 'Custom color'
                 };
                 
-                if (colorModeDescriptions[colorMode]) {
+                if (colorModeNames[currentColorMode]) {
                     legendItems.push({
                         color: 'linear-gradient(45deg, #667eea, #764ba2)',
                         text: 'Color Scheme',
-                        description: colorModeDescriptions[colorMode]
+                        description: colorModeNames[currentColorMode]
                     });
                 }
                 
-                // Prime sieve information
+                // Prime sieve (if active)
                 if (primeData.isActive) {
                     legendItems.push({
-                        color: '#FFD700',
-                        text: 'Prime Sieve Active',
-                        description: `mod ${primeData.modulus}, ${primeData.totalPrimes} primes to ${primeData.limit}`
+                        color: '#e67e22',
+                        text: `Prime Sieve (mod ${primeData.modulus})`,
+                        description: `${primeData.totalPrimes} primes up to ${primeData.limit}`,
+                        count: primeData.totalPrimes
                     });
                 }
                 
-                // Ring configuration summary
-                if (selectedRings.length > 0) {
-                    const eulerSum = selectedRings.reduce((sum, ringId) => {
-                        const config = configs[ringId];
-                        if (config) {
-                            return sum + getCoprimes(config.mod).length;
-                        }
-                        return sum;
-                    }, 0);
-                    
-                    legendItems.push({
-                        color: subtleColor,
-                        text: 'System Summary',
-                        description: `${selectedRings.length} rings, Σφ(M) = ${eulerSum} residues`
-                    });
-                }
-                
-                // Mathematical notation section
-                legendItems.push({
-                    color: '#9b59b6',
-                    text: 'Mathematical Foundation',
-                    description: 'Leonhard Euler\'s modular arithmetic theory'
-                });
-                
-                // Draw legend items
+                // Draw legend items without overlapping
                 tempCtx.font = `${14 * scaleFactor}px Segoe UI`;
-                const itemHeight = 45 * scaleFactor;
+                const itemHeight = 50 * scaleFactor;
                 const colorBoxSize = 16 * scaleFactor;
                 
                 legendItems.forEach((item, index) => {
@@ -2457,54 +2519,46 @@
                     const textX = colorX + colorBoxSize + 15 * scaleFactor;
                     
                     // Color indicator
-                    tempCtx.fillStyle = item.color;
+                    if (item.color.includes('gradient')) {
+                        // Create gradient
+                        const gradient = tempCtx.createLinearGradient(colorX, itemY - colorBoxSize/2, colorX + colorBoxSize, itemY + colorBoxSize/2);
+                        gradient.addColorStop(0, '#667eea');
+                        gradient.addColorStop(1, '#764ba2');
+                        tempCtx.fillStyle = gradient;
+                    } else {
+                        tempCtx.fillStyle = item.color;
+                    }
                     tempCtx.fillRect(colorX, itemY - colorBoxSize/2, colorBoxSize, colorBoxSize);
                     
                     if (item.dashed) {
                         tempCtx.strokeStyle = item.color;
-                        tempCtx.lineWidth = 3 * scaleFactor;
-                        tempCtx.setLineDash([6 * scaleFactor, 4 * scaleFactor]);
+                        tempCtx.lineWidth = 2 * scaleFactor;
+                        tempCtx.setLineDash([4 * scaleFactor, 3 * scaleFactor]);
                         tempCtx.strokeRect(colorX, itemY - colorBoxSize/2, colorBoxSize, colorBoxSize);
                         tempCtx.setLineDash([]);
                     }
                     
                     // Main text
                     tempCtx.fillStyle = textColor;
-                    tempCtx.font = `bold ${14 * scaleFactor}px Segoe UI`;
-                    tempCtx.fillText(item.text, textX, itemY - 5 * scaleFactor);
+                    tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText(item.text, textX, itemY - 2 * scaleFactor);
                     
-                    // Description
+                    // Description (no word wrap needed with precise text)
                     tempCtx.fillStyle = subtleColor;
-                    tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
-                    
-                    // Word wrap for descriptions
-                    const maxWidth = legendContentWidth - (textX - legendX) - 20 * scaleFactor;
-                    const words = item.description.split(' ');
-                    let line = '';
-                    let lineY = itemY + 12 * scaleFactor;
-                    
-                    for (let i = 0; i < words.length; i++) {
-                        const testLine = line + words[i] + ' ';
-                        const metrics = tempCtx.measureText(testLine);
-                        
-                        if (metrics.width > maxWidth && line !== '') {
-                            tempCtx.fillText(line.trim(), textX, lineY);
-                            line = words[i] + ' ';
-                            lineY += 15 * scaleFactor;
-                        } else {
-                            line = testLine;
-                        }
-                    }
-                    tempCtx.fillText(line.trim(), textX, lineY);
+                    tempCtx.font = `${11 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText(item.description, textX, itemY + 15 * scaleFactor);
                 });
                 
-                // Add mathematical notation at bottom
-                const notationY = legendY + baseHeight - padding * 3;
+                // Add current mathematical state at bottom
+                const mathY = legendY + baseHeight - padding * 4;
+                tempCtx.fillStyle = accentColor;
+                tempCtx.font = `bold ${14 * scaleFactor}px Segoe UI`;
+                tempCtx.fillText('Mathematical State:', legendX + 20 * scaleFactor, mathY);
+                
                 tempCtx.fillStyle = subtleColor;
-                tempCtx.font = `italic ${11 * scaleFactor}px Times New Roman`;
-                tempCtx.fillText('φ(n) = n∏(1 - 1/p)', legendX + 20 * scaleFactor, notationY);
-                tempCtx.fillText('gcd(a,b) = 1', legendX + 20 * scaleFactor, notationY + 20 * scaleFactor);
-                tempCtx.fillText('Z/nZ ≅ (Z/nZ)*', legendX + 20 * scaleFactor, notationY + 40 * scaleFactor);
+                tempCtx.font = `${11 * scaleFactor}px Times New Roman`;
+                tempCtx.fillText(`Rings: ${currentSelectedRings.length}, Total φ-sum: ${totalGcdOne}`, legendX + 20 * scaleFactor, mathY + 20 * scaleFactor);
+                tempCtx.fillText(`Gaps: ${currentSelectedGaps.length}, Residues: ${totalResidue}`, legendX + 20 * scaleFactor, mathY + 35 * scaleFactor);
             }
             
             // Add watermark
@@ -3969,4 +4023,4 @@
         draw();
     </script>
 </body>
-    </html>
+</html>
