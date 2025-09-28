@@ -414,29 +414,34 @@
                 <div class="control-section rh-section">
                     <h3>Riemann Hypothesis Analysis</h3>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="enableRhAnalysis" onchange="toggleRhAnalysis()"> Enable RH Predictions
+                        <input type="checkbox" id="enableRhMode" onchange="toggleRhMode()"> Enable RH Visualization Mode
                     </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showCharacterSupport" checked onchange="toggleCharacterSupport()"> Show Dirichlet Character Support
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showLFunctionZeros" onchange="toggleLFunctionZeros()"> Visualize L-function Critical Line
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showEquidistributionTest" onchange="toggleEquidistributionTest()"> Test Prime Equidistribution
-                    </div>
-                    
-                    <div class="custom-gap">
-                        <label><strong>GRH Test Parameters:</strong></label>
-                        <div class="gap-input">
-                            Test modulus: <input type="number" id="grhModulus" min="2" value="30" placeholder="30">
-                            <button class="rh-btn" onclick="runGrhAnalysis()">Test GRH</button>
+                    <div id="rhModeControls" style="display: none;">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="enableRhAnalysis" onchange="toggleRhAnalysis()"> Enable RH Predictions
                         </div>
-                        <div class="gap-input">
-                            <button class="rh-btn" onclick="validateCharacterSupport()">Validate χ Support</button>
-                            <button class="rh-btn" onclick="testPrimeEquidistribution()">Test Prime Distribution</button>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showCharacterSupport" checked onchange="toggleCharacterSupport()"> Show Dirichlet Character Support
                         </div>
-                        <div id="rhPredictions" style="font-size: 12px; margin: 10px 0; opacity: 0.9;"></div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showLFunctionZeros" onchange="toggleLFunctionZeros()"> Visualize L-function Critical Line
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showEquidistributionTest" onchange="toggleEquidistributionTest()"> Test Prime Equidistribution
+                        </div>
+                        
+                        <div class="custom-gap">
+                            <label><strong>GRH Test Parameters:</strong></label>
+                            <div class="gap-input">
+                                Test modulus: <input type="number" id="grhModulus" min="2" value="30" placeholder="30">
+                                <button class="rh-btn" onclick="runGrhAnalysis()">Test GRH</button>
+                            </div>
+                            <div class="gap-input">
+                                <button class="rh-btn" onclick="validateCharacterSupport()">Validate χ Support</button>
+                                <button class="rh-btn" onclick="testPrimeEquidistribution()">Test Prime Distribution</button>
+                            </div>
+                            <div id="rhPredictions" style="font-size: 12px; margin: 10px 0; opacity: 0.9;"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -1070,8 +1075,39 @@
             '10': { mod: 30720, label: '30720', description: 'M₁₀ = 30720' }
         };
 
-        // Enhanced RH analysis toggle functions
+        // Global visualization mode
+        let isRhMode = false;
+        
+        // Enhanced RH mode toggle function
+        function toggleRhMode() {
+            isRhMode = document.getElementById('enableRhMode').checked;
+            const rhControls = document.getElementById('rhModeControls');
+            rhControls.style.display = isRhMode ? 'block' : 'none';
+            
+            if (isRhMode) {
+                updateAnimationStatus('RH visualization mode activated - specialized analysis view');
+                // Switch to RH-optimized color scheme
+                document.getElementById('residueColorMode').value = 'prime';
+                updateColorMode();
+            } else {
+                updateAnimationStatus('Standard modular ring visualization restored');
+                // Reset to default color scheme
+                document.getElementById('residueColorMode').value = 'gcd_unified';
+                updateColorMode();
+                // Clear RH overlays
+                characterSupportActive = false;
+                criticalLineActive = false;
+                document.getElementById('rhPredictions').innerHTML = '';
+            }
+            draw();
+        }
         function toggleRhAnalysis() {
+            if (!isRhMode) {
+                alert('Please enable RH Visualization Mode first');
+                document.getElementById('enableRhAnalysis').checked = false;
+                return;
+            }
+            
             const enabled = document.getElementById('enableRhAnalysis').checked;
             if (enabled) {
                 updateAnimationStatus('RH analysis mode activated - testing mathematical predictions');
@@ -1086,6 +1122,11 @@
         }
 
         function toggleCharacterSupport() {
+            if (!isRhMode) {
+                document.getElementById('showCharacterSupport').checked = false;
+                return;
+            }
+            
             const enabled = document.getElementById('showCharacterSupport').checked;
             if (enabled) {
                 updateAnimationStatus('Dirichlet character support visualization enabled');
@@ -1099,6 +1140,11 @@
         }
 
         function toggleLFunctionZeros() {
+            if (!isRhMode) {
+                document.getElementById('showLFunctionZeros').checked = false;
+                return;
+            }
+            
             const enabled = document.getElementById('showLFunctionZeros').checked;
             if (enabled) {
                 updateAnimationStatus('L-function critical line visualization enabled');
@@ -1112,6 +1158,11 @@
         }
 
         function toggleEquidistributionTest() {
+            if (!isRhMode) {
+                document.getElementById('showEquidistributionTest').checked = false;
+                return;
+            }
+            
             const enabled = document.getElementById('showEquidistributionTest').checked;
             if (enabled) {
                 updateAnimationStatus('Prime equidistribution testing enabled');
@@ -3185,12 +3236,15 @@
             document.getElementById('showNonGcdOne').checked = false;
             document.getElementById('highlightGcdDifference').checked = false;
             
-            // Reset RH analysis controls
+            // Reset RH mode
+            document.getElementById('enableRhMode').checked = false;
             document.getElementById('enableRhAnalysis').checked = false;
             document.getElementById('showCharacterSupport').checked = true;
             document.getElementById('showLFunctionZeros').checked = false;
             document.getElementById('showEquidistributionTest').checked = false;
             document.getElementById('grhModulus').value = 30;
+            document.getElementById('rhModeControls').style.display = 'none';
+            isRhMode = false;
             
             // Reset sliders with new defaults (normalized 0-1 values)
             document.getElementById('zoomSlider').value = 1;
@@ -3752,8 +3806,8 @@
                 }
             }
 
-            // Enhanced RH visualization overlays
-            if (characterSupportActive) {
+            // Enhanced RH visualization overlays (only when in RH mode)
+            if (isRhMode && characterSupportActive) {
                 // Draw character support annotation
                 ctx.save();
                 ctx.fillStyle = 'rgba(72, 187, 120, 0.1)';
@@ -3779,7 +3833,7 @@
                 ctx.restore();
             }
             
-            if (criticalLineActive) {
+            if (isRhMode && criticalLineActive) {
                 // Draw critical line visualization
                 ctx.save();
                 ctx.strokeStyle = 'rgba(255, 215, 0, 0.7)';
@@ -3802,6 +3856,14 @@
                 ctx.setLineDash([]);
                 ctx.restore();
             }
+        }
+        
+        // Separate function for RH-specific visual elements
+        function drawRhSpecificElements(rings) {
+            if (!isRhMode) return;
+            
+            // Add RH-specific visual overlays here
+            // This keeps RH visualization separate from core modular ring display
         }
 
         // Enhanced info panel update with prime sieve integration
@@ -4030,4 +4092,4 @@
         draw();
     </script>
 </body>
-                                               </html>
+    </html>
