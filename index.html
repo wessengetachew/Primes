@@ -414,16 +414,16 @@
                 <div class="control-section rh-section">
                     <h3>🎯 Riemann Hypothesis Analysis</h3>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="enableRhAnalysis"> Enable RH Predictions
+                        <input type="checkbox" id="enableRhAnalysis" onchange="toggleRhAnalysis()"> Enable RH Predictions
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showCharacterSupport" checked> Show Dirichlet Character Support
+                        <input type="checkbox" id="showCharacterSupport" checked onchange="toggleCharacterSupport()"> Show Dirichlet Character Support
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showLFunctionZeros"> Visualize L-function Critical Line
+                        <input type="checkbox" id="showLFunctionZeros" onchange="toggleLFunctionZeros()"> Visualize L-function Critical Line
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showEquidistributionTest"> Test Prime Equidistribution
+                        <input type="checkbox" id="showEquidistributionTest" onchange="toggleEquidistributionTest()"> Test Prime Equidistribution
                     </div>
                     
                     <div class="custom-gap">
@@ -651,6 +651,13 @@
                         </div>
                         
                         <div class="gap-input">
+                            <strong>Label Consecutive Range:</strong><br>
+                            From: <input type="number" id="labelRangeStart" min="1" value="3" placeholder="3" style="width: 60px;">
+                            To: <input type="number" id="labelRangeEnd" min="2" value="17" placeholder="17" style="width: 60px;">
+                            <button onclick="applyConsecutiveLabelRange()">Apply Range</button>
+                        </div>
+                        
+                        <div class="gap-input">
                             Min Ring Radius: <input type="number" id="labelMinRadius" min="0" value="80" placeholder="80">
                             <button onclick="draw()">Update</button>
                         </div>
@@ -658,6 +665,16 @@
                         <div class="slider-group">
                             <label>Label Size: <span id="labelSizeValue">1.0</span>x</label>
                             <input type="range" id="labelSize" min="0.3" max="3.0" step="0.1" value="1.0" oninput="updateLabelSize()">
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Label Distance from Points: <span id="labelDistanceValue">1.0</span>x</label>
+                            <input type="range" id="labelDistance" min="0.5" max="3.0" step="0.1" value="1.0" oninput="updateLabelDistance()">
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Label Radial Offset: <span id="labelRadialOffsetValue">0</span>px</label>
+                            <input type="range" id="labelRadialOffset" min="-50" max="50" step="5" value="0" oninput="updateLabelRadialOffset()">
                         </div>
                         
                         <div class="slider-group">
@@ -674,7 +691,7 @@
                 <div class="control-section">
                     <h3>Display Controls</h3>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r)
+                        <input type="checkbox" id="showDirectLifts"> Direct Lifts (r → r)
                     </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showModularLifts"> Modular Lifts (r → r + M×2ⁿ)
@@ -891,22 +908,22 @@
                 <div id="ringInfo">Select rings to view detailed analysis</div>
                 
                 <div class="rh-notice">
-                    <strong>🔬 Mathematical Research Tool</strong><br>
-                    This visualization explores connections between modular arithmetic, Dirichlet characters, and the Riemann Hypothesis.
-                    Your GCD=1 filtering shows exactly where Dirichlet characters χ(a) ≠ 0, which generate the L-functions central to the Generalized Riemann Hypothesis.
+                    <strong>🔬 Modular Arithmetic & Number Theory</strong><br>
+                    This system visualizes fundamental connections in analytic number theory, particularly the relationship between modular rings, Euler's totient function, and prime distribution patterns.
                     <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
-                        Mathematically validated: Angle positioning, Euler totients, prime distributions, character supports, and lift homomorphisms all verified ✓
+                        Mathematical foundations: Euler totients φ(n), Chinese Remainder Theorem, primitive roots, and quadratic reciprocity
                     </div>
                 </div>
                 
                 <div class="rh-explanation">
-                    <strong>Riemann Hypothesis Connections:</strong><br>
-                    • Your <strong>GCD=1 filtering</strong> shows exactly where Dirichlet characters χ(a) ≠ 0<br>
-                    • <strong>Prime distribution patterns</strong> test the Generalized RH predictions<br>
-                    • <strong>Lift lines</strong> represent ring homomorphisms underlying L-function theory<br>
-                    • <strong>Gap patterns</strong> relate to RH-predicted prime spacing bounds<br>
-                    • <strong>Angle positioning</strong> reflects complex nth roots of unity structure<br>
-                    • <strong>Formula:</strong> <em class="math-notation">gcd(r,M) = 1 ⟺ χ(r) ≠ 0 for Dirichlet characters χ</em>
+                    <strong>Key Mathematical Concepts:</strong><br>
+                    • <strong>Euler's Totient Function:</strong> φ(n) counts integers 1 ≤ k ≤ n with gcd(k,n) = 1<br>
+                    • <strong>Modular Rings:</strong> Z/nZ structure with multiplicative group (Z/nZ)*<br>
+                    • <strong>Prime Distribution:</strong> How primes distribute across residue classes modulo n<br>
+                    • <strong>Dirichlet Characters:</strong> χ: (Z/nZ)* → C* are multiplicative functions<br>
+                    • <strong>L-functions:</strong> L(s,χ) = Σ χ(n)/n^s encode arithmetic information<br>
+                    • <strong>Critical Line:</strong> Re(s) = 1/2 conjectured to contain all non-trivial L-function zeros<br>
+                    • <strong>Formula:</strong> <em class="math-notation">gcd(r,n) = 1 ⟺ χ(r) ≠ 0 for primitive characters χ mod n</em>
                 </div>
             </div>
         </div>
@@ -1025,7 +1042,85 @@
             '10': { mod: 30720, label: '30720', description: 'M₁₀ = 30720' }
         };
 
-        // Enhanced GRH analysis functions
+        // Enhanced RH analysis toggle functions
+        function toggleRhAnalysis() {
+            const enabled = document.getElementById('enableRhAnalysis').checked;
+            if (enabled) {
+                updateAnimationStatus('RH analysis mode activated - testing mathematical predictions');
+                // Auto-run a quick analysis on the current selection
+                setTimeout(() => {
+                    runGrhAnalysis();
+                }, 100);
+            } else {
+                document.getElementById('rhPredictions').innerHTML = '';
+                updateAnimationStatus('RH analysis disabled');
+            }
+        }
+
+        function toggleCharacterSupport() {
+            const enabled = document.getElementById('showCharacterSupport').checked;
+            if (enabled) {
+                updateAnimationStatus('Dirichlet character support visualization enabled');
+                // Highlight character support regions
+                addCharacterSupportVisualization();
+            } else {
+                removeCharacterSupportVisualization();
+                updateAnimationStatus('Character support visualization disabled');
+            }
+            draw();
+        }
+
+        function toggleLFunctionZeros() {
+            const enabled = document.getElementById('showLFunctionZeros').checked;
+            if (enabled) {
+                updateAnimationStatus('L-function critical line visualization enabled');
+                // Add visual representation of critical line Re(s) = 1/2
+                addCriticalLineVisualization();
+            } else {
+                removeCriticalLineVisualization();
+                updateAnimationStatus('Critical line visualization disabled');
+            }
+            draw();
+        }
+
+        function toggleEquidistributionTest() {
+            const enabled = document.getElementById('showEquidistributionTest').checked;
+            if (enabled) {
+                updateAnimationStatus('Prime equidistribution testing enabled');
+                if (primeData.isActive) {
+                    testPrimeEquidistribution();
+                } else {
+                    // Auto-run a quick sieve for testing
+                    document.getElementById('sieveLimit').value = 10000;
+                    document.getElementById('sieveModulus').value = 30;
+                    runPrimeSieve();
+                }
+            } else {
+                updateAnimationStatus('Equidistribution testing disabled');
+            }
+        }
+
+        function addCharacterSupportVisualization() {
+            // This will enhance the existing GCD=1 visualization with mathematical annotations
+            characterSupportActive = true;
+        }
+
+        function removeCharacterSupportVisualization() {
+            characterSupportActive = false;
+        }
+
+        function addCriticalLineVisualization() {
+            // Add a visual representation of the critical line Re(s) = 1/2
+            criticalLineActive = true;
+        }
+
+        function removeCriticalLineVisualization() {
+            criticalLineActive = false;
+        }
+
+        // Global flags for RH visualizations
+        let characterSupportActive = false;
+        let criticalLineActive = false;
         function runGrhAnalysis() {
             const modulus = parseInt(document.getElementById('grhModulus').value);
             
@@ -3381,9 +3476,18 @@
                             ctx.textAlign = 'center';
                             ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
                             ctx.lineWidth = Math.max(1, fontSize * 0.2);
-                            const labelY = y - (ring.n === 'unit' ? fontSize * 0.8 : fontSize * 0.6);
-                            ctx.strokeText(labelText, x, labelY);
-                            ctx.fillText(labelText, x, labelY);
+                            
+                            // Calculate label position with distance and radial offset controls
+                            const labelDistanceMultiplier = labelDistance;
+                            const baseOffset = ring.n === 'unit' ? fontSize * 0.8 : fontSize * 0.6;
+                            const totalOffset = (baseOffset * labelDistanceMultiplier) + labelRadialOffset;
+                            
+                            // Position label relative to the point, considering angle
+                            const labelX = x + Math.cos(angle + Math.PI/2) * totalOffset;
+                            const labelY = y + Math.sin(angle + Math.PI/2) * totalOffset;
+                            
+                            ctx.strokeText(labelText, labelX, labelY);
+                            ctx.fillText(labelText, labelX, labelY);
                         }
                     }
                 });
@@ -3559,8 +3663,56 @@
                 }
             }
 
-            ctx.restore();
-            updateInfo(rings);
+            // Enhanced RH visualization overlays
+            if (characterSupportActive) {
+                // Draw character support annotation
+                ctx.save();
+                ctx.fillStyle = 'rgba(72, 187, 120, 0.1)';
+                ctx.strokeStyle = 'rgba(72, 187, 120, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                
+                // Draw a boundary around GCD=1 regions
+                rings.forEach(ring => {
+                    if (ring.coprimes.length > 0) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, ring.radius + 8, 0, 2 * Math.PI);
+                        ctx.stroke();
+                    }
+                });
+                
+                // Add text annotation
+                ctx.fillStyle = 'rgba(72, 187, 120, 0.9)';
+                ctx.font = 'bold 14px Segoe UI';
+                ctx.textAlign = 'left';
+                ctx.fillText('χ(r) ≠ 0 (Character Support)', -maxRadius + 20, -maxRadius + 30);
+                ctx.setLineDash([]);
+                ctx.restore();
+            }
+            
+            if (criticalLineActive) {
+                // Draw critical line visualization
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.7)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([10, 5]);
+                
+                // Draw a vertical line representing Re(s) = 1/2
+                ctx.beginPath();
+                ctx.moveTo(0, -maxRadius - 50);
+                ctx.lineTo(0, maxRadius + 50);
+                ctx.stroke();
+                
+                // Add text annotation
+                ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+                ctx.font = 'bold 16px Times New Roman';
+                ctx.textAlign = 'center';
+                ctx.fillText('Re(s) = 1/2', 0, -maxRadius - 20);
+                ctx.font = '12px Times New Roman';
+                ctx.fillText('L-function Critical Line', 0, -maxRadius - 5);
+                ctx.setLineDash([]);
+                ctx.restore();
+            }
         }
 
         // Enhanced info panel update with prime sieve integration
@@ -3789,4 +3941,4 @@
         draw();
     </script>
 </body>
-    </html>
+</html>
