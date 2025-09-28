@@ -458,24 +458,7 @@
                 <div class="control-section">
                     <h3>Gap Analysis</h3>
                     <div class="checkbox-group" id="gapControls">
-                        <div class="checkbox-item">
-                            <input type="checkbox" value="2" checked> Gap 2 (Twin Primes)
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" value="4"> Gap 4 (Cousin Primes)
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" value="6"> Gap 6 (Sexy Primes)
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" value="8"> Gap 8
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" value="10"> Gap 10
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" value="12"> Gap 12
-                        </div>
+                        <!-- All gaps unchecked by default -->
                     </div>
                     
                     <div class="custom-gap">
@@ -529,11 +512,11 @@
                     <div class="slider-group">
                         <label>Residue Coloring Scheme:</label>
                         <select id="residueColorMode" onchange="updateColorMode()">
-                            <option value="hue">Rainbow by Angular Position</option>
+                            <option value="hue" selected>Rainbow by Angular Position</option>
                             <option value="value">By Residue Value</option>
                             <option value="modulo">By Ring (Modulus)</option>
                             <option value="prime">Prime vs Composite</option>
-                            <option value="gcd_unified" selected>GCD=1: Unified Color (Character Support)</option>
+                            <option value="gcd_unified">GCD=1: Unified Color (Character Support)</option>
                             <option value="gcd_per_mod">GCD=1: Unique Color per Modulus</option>
                             <option value="gcd_per_residue">GCD=1: Unique Color per Residue Value</option>
                             <option value="gcd_mathematical">GCD=1: Mathematical Progression</option>
@@ -644,7 +627,7 @@
                 <div class="control-section">
                     <h3>Label Controls</h3>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showLabels" checked> Show Residue Labels
+                        <input type="checkbox" id="showLabels"> Show Residue Labels
                     </div>
                     
                     <div class="custom-gap" id="labelControls">
@@ -692,7 +675,7 @@
                         <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r, consecutive only)
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="showModularLifts" checked> Modular Lifts (r → r + M×2ⁿ, consecutive only)
+                        <input type="checkbox" id="showModularLifts"> Modular Lifts (r → r + M×2ⁿ, consecutive only)
                     </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showSkipDirectLifts"> Skip-Level Direct Lifts (r → r, all combinations)
@@ -918,7 +901,7 @@
                 <div class="rh-notice">
                     <strong>Mathematical Research Tool</strong><br>
                     This visualization explores connections between modular arithmetic, Dirichlet characters, and the Riemann Hypothesis.
-                    Your GCD=1 filtering shows exactly where Dirichlet characters χ(a) ≠ 0, which generate the L-functions central to the Generalized Riemann Hypothesis.
+                    Euler's totient function φ(n) identifies residues where gcd(r,M) = 1, forming the character support for Dirichlet L-functions central to the Generalized Riemann Hypothesis.
                     <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
                         Mathematically validated: Angle positioning, Euler totients, prime distributions, character supports, and lift homomorphisms all verified ✓
                     </div>
@@ -926,12 +909,13 @@
                 
                 <div class="rh-explanation">
                     <strong>Riemann Hypothesis Connections:</strong><br>
-                    • Your <strong>GCD=1 filtering</strong> shows exactly where Dirichlet characters χ(a) ≠ 0<br>
+                    • <strong>Euler's totient function φ(n)</strong> identifies residues coprime to n<br>
+                    • <strong>Character support domains</strong> where Dirichlet characters χ(a) ≠ 0<br>
                     • <strong>Prime distribution patterns</strong> test the Generalized RH predictions<br>
-                    • <strong>Lift lines</strong> represent ring homomorphisms underlying L-function theory<br>
+                    • <strong>Lift homomorphisms</strong> represent ring morphisms underlying L-function theory<br>
                     • <strong>Gap patterns</strong> relate to RH-predicted prime spacing bounds<br>
-                    • <strong>Angle positioning</strong> reflects complex nth roots of unity structure<br>
-                    • <strong>Formula:</strong> <em class="math-notation">gcd(r,M) = 1 ⟺ χ(r) ≠ 0 for Dirichlet characters χ</em>
+                    • <strong>Angular positioning</strong> reflects complex nth roots of unity structure<br>
+                    • <strong>Mathematical foundation:</strong> <em class="math-notation">gcd(r,M) = 1 ⟺ χ(r) ≠ 0 for Dirichlet characters χ</em>
                 </div>
             </div>
         </div>
@@ -1549,7 +1533,7 @@
             // First clear all rings
             clearAllRings();
             
-            // Then check only the unit circle and M2-M30 defaults
+            // Then check only the unit circle and M2-M60 defaults
             const ringControls = document.getElementById('ringControls');
             const checkboxes = ringControls.querySelectorAll('input[type="checkbox"]');
             
@@ -1560,7 +1544,7 @@
                 }
             });
             
-            updateAnimationStatus('Reset to default rings: Unit Circle + M2-M30');
+            updateAnimationStatus('Reset to default rings: Unit Circle + M2-M60');
             draw();
         }
 
@@ -1571,10 +1555,11 @@
             gapControls.innerHTML = '';
             
             for (let gap = 2; gap <= maxGap; gap += 2) {
-                addGapControl(gap);
+                // Default: all gaps are unchecked
+                addGapControl(gap, false);
             }
             
-            updateAnimationStatus(`Generated even gaps 2 to ${maxGap}`);
+            updateAnimationStatus(`Generated even gaps 2 to ${maxGap} (all disabled by default)`);
             draw();
         }
 
@@ -1616,7 +1601,8 @@
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = gap;
-            checkbox.checked = checked || gap <= 12;
+            // Default: all gaps are unchecked
+            checkbox.checked = checked;
             checkbox.addEventListener('change', draw);
             
             const label = document.createElement('span');
@@ -2325,29 +2311,30 @@
             const backgroundChoice = document.querySelector('input[name="screenshotBg"]:checked').value;
             const resolutionChoice = document.querySelector('input[name="screenshotResolution"]:checked').value;
             
-            // Determine canvas dimensions - increased by 25%
+            // Determine canvas dimensions with proper spacing
             let baseWidth, baseHeight, scaleFactor;
             if (resolutionChoice === '4k') {
-                baseWidth = 4800;  // Square 4K format
-                baseHeight = 4800; // Square 4K format
+                baseWidth = 3200;  // Main content area
+                baseHeight = 2400; // Main content area
                 scaleFactor = baseWidth / canvas.width;
                 updateAnimationStatus('Generating 4K screenshot...');
             } else {
-                baseWidth = canvas.width * 1.25;  // 25% larger
-                baseHeight = canvas.height * 1.25; // 25% larger
-                scaleFactor = 1.25;
+                baseWidth = canvas.width * 1.2;  // 20% larger main area
+                baseHeight = canvas.height * 1.2; // 20% larger main area
+                scaleFactor = 1.2;
             }
             
-            // Calculate layout dimensions
-            const titleHeight = includeTitle ? 120 * scaleFactor : 0;
-            const legendWidth = includeLegend ? 400 * scaleFactor : 0;
-            const padding = 40 * scaleFactor;
+            // Calculate layout dimensions with proper spacing
+            const titleHeight = includeTitle ? 100 * scaleFactor : 0;
+            const legendWidth = includeLegend ? 500 * scaleFactor : 0; // Wider legend
+            const padding = 30 * scaleFactor;
+            const contentPadding = 20 * scaleFactor; // Padding around main content
             
-            // Create enhanced screenshot canvas with 25% more space
+            // Create enhanced screenshot canvas with proper layout
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
-            tempCanvas.width = baseWidth + legendWidth + (includeLegend ? padding : 0);
-            tempCanvas.height = baseHeight + titleHeight;
+            tempCanvas.width = baseWidth + legendWidth + (includeLegend ? padding * 3 : contentPadding * 2);
+            tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 1200 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
             
             // Set background
             tempCtx.fillStyle = backgroundChoice === 'white' ? '#ffffff' : '#000000';
@@ -2357,26 +2344,27 @@
             const accentColor = backgroundChoice === 'white' ? '#e67e22' : '#f39c12';
             const subtleColor = backgroundChoice === 'white' ? '#7f8c8d' : '#bdc3c7';
             
-            // Draw title and subtitle
+            // Draw title and subtitle with proper positioning
             if (includeTitle) {
                 const { title, subtitle } = generateConfigurationDescription(selectedRings, selectedGaps);
                 
-                // Main title
+                // Main title - centered over main content area only
                 tempCtx.fillStyle = accentColor;
-                tempCtx.font = `bold ${32 * scaleFactor}px Segoe UI`;
+                tempCtx.font = `bold ${28 * scaleFactor}px Segoe UI`;
                 tempCtx.textAlign = 'center';
-                tempCtx.fillText(title, tempCanvas.width / 2, 40 * scaleFactor);
+                const titleCenterX = contentPadding + baseWidth / 2;
+                tempCtx.fillText(title, titleCenterX, 40 * scaleFactor);
                 
-                // Subtitle with better formatting
+                // Subtitle with better formatting - also centered over main content
                 tempCtx.fillStyle = textColor;
-                tempCtx.font = `${18 * scaleFactor}px Segoe UI`;
+                tempCtx.font = `${16 * scaleFactor}px Segoe UI`;
                 
-                // Handle long subtitles by wrapping
-                const maxSubtitleWidth = tempCanvas.width - (legendWidth + padding * 2);
+                // Word wrap for subtitles within main content area
+                const maxSubtitleWidth = baseWidth - contentPadding * 2;
                 const words = subtitle.split(' ');
                 let line = '';
-                let y = 75 * scaleFactor;
-                const lineHeight = 25 * scaleFactor;
+                let y = 70 * scaleFactor;
+                const lineHeight = 22 * scaleFactor;
                 
                 for (let i = 0; i < words.length; i++) {
                     const testLine = line + words[i] + ' ';
@@ -2384,48 +2372,49 @@
                     const testWidth = metrics.width;
                     
                     if (testWidth > maxSubtitleWidth && line !== '') {
-                        tempCtx.fillText(line.trim(), tempCanvas.width / 2, y);
+                        tempCtx.fillText(line.trim(), titleCenterX, y);
                         line = words[i] + ' ';
                         y += lineHeight;
                     } else {
                         line = testLine;
                     }
                 }
-                tempCtx.fillText(line.trim(), tempCanvas.width / 2, y);
+                tempCtx.fillText(line.trim(), titleCenterX, y);
             }
             
-            // Draw main canvas content with 25% more space
-            const mainCanvasX = (baseWidth - canvas.width * scaleFactor) / 2; // Center the canvas
-            const mainCanvasY = titleHeight;
+            // Draw main canvas content positioned properly
+            const mainCanvasX = contentPadding;
+            const mainCanvasY = titleHeight + contentPadding;
             
-            // Scale and draw the main canvas
+            // Scale and draw the main canvas within its designated area
             tempCtx.save();
             tempCtx.translate(mainCanvasX, mainCanvasY);
             tempCtx.scale(scaleFactor, scaleFactor);
             tempCtx.drawImage(canvas, 0, 0);
             tempCtx.restore();
             
-            // Draw comprehensive legend on the right side
+            // Draw comprehensive legend on the right side with proper spacing
             if (includeLegend) {
-                const legendX = baseWidth + padding;
-                const legendY = titleHeight + padding;
+                const legendX = baseWidth + contentPadding + padding;
+                const legendY = titleHeight + contentPadding;
                 const legendContentWidth = legendWidth - padding * 2;
+                const legendContentHeight = tempCanvas.height - titleHeight - contentPadding * 2;
                 
-                // Legend background
+                // Legend background with proper boundaries
                 tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(248, 249, 250, 0.95)' : 'rgba(20, 20, 20, 0.95)';
-                tempCtx.fillRect(legendX, legendY, legendContentWidth, baseHeight - padding * 2);
+                tempCtx.fillRect(legendX, legendY, legendContentWidth, legendContentHeight);
                 tempCtx.strokeStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
                 tempCtx.lineWidth = 2 * scaleFactor;
-                tempCtx.strokeRect(legendX, legendY, legendContentWidth, baseHeight - padding * 2);
+                tempCtx.strokeRect(legendX, legendY, legendContentWidth, legendContentHeight);
                 
                 // Legend title
                 tempCtx.fillStyle = accentColor;
-                tempCtx.font = `bold ${20 * scaleFactor}px Segoe UI`;
+                tempCtx.font = `bold ${18 * scaleFactor}px Segoe UI`;
                 tempCtx.textAlign = 'left';
-                let currentY = legendY + 35 * scaleFactor;
-                tempCtx.fillText('Mathematical Legend', legendX + 20 * scaleFactor, currentY);
+                let currentY = legendY + 30 * scaleFactor;
+                tempCtx.fillText('Mathematical Legend', legendX + 15 * scaleFactor, currentY);
                 
-                currentY += 35 * scaleFactor;
+                currentY += 30 * scaleFactor;
                 
                 // Comprehensive legend items with enhanced details
                 const legendItems = [
@@ -2566,15 +2555,18 @@
                     description: 'All computations verified: Euler totient φ(M), character orthogonality, ring homomorphisms, angle positioning θ=2π(M-r)/M, and prime distribution statistics.'
                 });
                 
-                // Draw legend items
-                tempCtx.font = `${14 * scaleFactor}px Segoe UI`;
-                const itemHeight = 45 * scaleFactor;
-                const colorBoxSize = 16 * scaleFactor;
+                // Draw legend items with better spacing
+                tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
+                const itemHeight = 40 * scaleFactor;
+                const colorBoxSize = 14 * scaleFactor;
+                const maxItemsVisible = Math.floor((legendContentHeight - 100 * scaleFactor) / itemHeight);
+                const itemsToShow = Math.min(legendItems.length, maxItemsVisible);
                 
-                legendItems.forEach((item, index) => {
-                    const itemY = currentY + index * itemHeight;
-                    const colorX = legendX + 20 * scaleFactor;
-                    const textX = colorX + colorBoxSize + 15 * scaleFactor;
+                for (let i = 0; i < itemsToShow; i++) {
+                    const item = legendItems[i];
+                    const itemY = currentY + i * itemHeight;
+                    const colorX = legendX + 15 * scaleFactor;
+                    const textX = colorX + colorBoxSize + 12 * scaleFactor;
                     
                     // Color indicator
                     tempCtx.fillStyle = item.color;
@@ -2582,57 +2574,66 @@
                     
                     if (item.dashed) {
                         tempCtx.strokeStyle = item.color;
-                        tempCtx.lineWidth = 3 * scaleFactor;
-                        tempCtx.setLineDash([6 * scaleFactor, 4 * scaleFactor]);
+                        tempCtx.lineWidth = 2 * scaleFactor;
+                        tempCtx.setLineDash([4 * scaleFactor, 3 * scaleFactor]);
                         tempCtx.strokeRect(colorX, itemY - colorBoxSize/2, colorBoxSize, colorBoxSize);
                         tempCtx.setLineDash([]);
                     }
                     
                     // Main text
                     tempCtx.fillStyle = textColor;
-                    tempCtx.font = `bold ${14 * scaleFactor}px Segoe UI`;
-                    tempCtx.fillText(item.text, textX, itemY - 5 * scaleFactor);
+                    tempCtx.font = `bold ${12 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText(item.text, textX, itemY - 3 * scaleFactor);
                     
-                    // Description
+                    // Description - wrapped to fit
                     tempCtx.fillStyle = subtleColor;
-                    tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
+                    tempCtx.font = `${10 * scaleFactor}px Segoe UI`;
                     
-                    // Word wrap for descriptions
-                    const maxWidth = legendContentWidth - (textX - legendX) - 20 * scaleFactor;
+                    const maxWidth = legendContentWidth - (textX - legendX) - 15 * scaleFactor;
                     const words = item.description.split(' ');
                     let line = '';
-                    let lineY = itemY + 12 * scaleFactor;
+                    let lineY = itemY + 10 * scaleFactor;
+                    const maxLines = 2; // Limit to 2 lines per item
+                    let lineCount = 0;
                     
-                    for (let i = 0; i < words.length; i++) {
-                        const testLine = line + words[i] + ' ';
+                    for (let j = 0; j < words.length && lineCount < maxLines; j++) {
+                        const testLine = line + words[j] + ' ';
                         const metrics = tempCtx.measureText(testLine);
                         
                         if (metrics.width > maxWidth && line !== '') {
                             tempCtx.fillText(line.trim(), textX, lineY);
-                            line = words[i] + ' ';
-                            lineY += 15 * scaleFactor;
+                            line = words[j] + ' ';
+                            lineY += 12 * scaleFactor;
+                            lineCount++;
                         } else {
                             line = testLine;
                         }
                     }
-                    tempCtx.fillText(line.trim(), textX, lineY);
-                });
+                    
+                    if (lineCount < maxLines && line.trim()) {
+                        if (line.length > 50) line = line.substring(0, 47) + '...';
+                        tempCtx.fillText(line.trim(), textX, lineY);
+                    }
+                }
                 
-                // Add mathematical notation at bottom
-                const notationY = legendY + baseHeight - padding * 3;
-                tempCtx.fillStyle = subtleColor;
-                tempCtx.font = `italic ${11 * scaleFactor}px Times New Roman`;
-                tempCtx.fillText('φ(n) = n∏(1 - 1/p)', legendX + 20 * scaleFactor, notationY);
-                tempCtx.fillText('gcd(a,b) = 1', legendX + 20 * scaleFactor, notationY + 20 * scaleFactor);
-                tempCtx.fillText('Z/nZ ≅ (Z/nZ)*', legendX + 20 * scaleFactor, notationY + 40 * scaleFactor);
+                // Add mathematical notation at bottom if space allows
+                const notationY = legendY + legendContentHeight - 60 * scaleFactor;
+                if (notationY > currentY + itemsToShow * itemHeight + 20 * scaleFactor) {
+                    tempCtx.fillStyle = subtleColor;
+                    tempCtx.font = `italic ${10 * scaleFactor}px Times New Roman`;
+                    tempCtx.fillText('φ(n) = n∏(1 - 1/p)', legendX + 15 * scaleFactor, notationY);
+                    tempCtx.fillText('gcd(a,b) = 1 ⟺ χ(a) ≠ 0', legendX + 15 * scaleFactor, notationY + 15 * scaleFactor);
+                    tempCtx.fillText('Z/nZ ≅ (Z/nZ)*', legendX + 15 * scaleFactor, notationY + 30 * scaleFactor);
+                }
             }
             
-            // Add watermark with correct colors
+            // Add watermark with proper positioning
             tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)';
-            tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
+            tempCtx.font = `${10 * scaleFactor}px Segoe UI`;
             tempCtx.textAlign = 'right';
+            const watermarkX = includeLegend ? baseWidth + contentPadding - 10 * scaleFactor : tempCanvas.width - 15 * scaleFactor;
             tempCtx.fillText('Riemann Hypothesis Explorer | Built by Wessen Getachew', 
-                tempCanvas.width - 20 * scaleFactor, tempCanvas.height - 15 * scaleFactor);
+                watermarkX, tempCanvas.height - 10 * scaleFactor);
             
             // Generate enhanced filename
             const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,'-');
@@ -3036,8 +3037,7 @@
             document.getElementById('sieveControls').style.display = enabled ? 'block' : 'none';
             
             if (!enabled) {
-                stopInversionAnimation();
-            updateAnimationStatus('All settings reset to defaults');
+                updateAnimationStatus('All settings reset: M1-M60, Angular coloring, no gaps, no labels, direct lifts only');
             draw();
             }
         }
@@ -3182,11 +3182,19 @@
         }
 
         function resetAll() {
-            // Reset gap controls with new system
+            // Reset gap controls with new system - ALL GAPS OFF by default
             document.getElementById('maxGap').value = 12;
             document.getElementById('gapStart').value = 14;
             document.getElementById('gapEnd').value = 20;
-            generateGaps();
+            
+            // Clear existing gaps and regenerate with all unchecked
+            const gapControls = document.getElementById('gapControls');
+            gapControls.innerHTML = '';
+            
+            // Add standard gaps but all unchecked by default
+            for (let gap = 2; gap <= 12; gap += 2) {
+                addGapControl(gap, false); // All gaps off by default
+            }
             
             // Reset modulus controls
             document.getElementById('customMod').value = 42;
@@ -3225,8 +3233,8 @@
                 }
             });
             
-            // Reset controls to new defaults
-            document.getElementById('showLabels').checked = true;
+            // Reset controls to new defaults - CLEAN SETUP
+            document.getElementById('showLabels').checked = false; // Labels OFF by default
             document.getElementById('labelUnitCircle').checked = true;
             document.getElementById('labelGcdOne').checked = true;
             document.getElementById('labelNonGcdOne').checked = false;
@@ -3234,11 +3242,10 @@
             document.getElementById('labelMinRadius').value = 80;
             document.getElementById('labelSpecificMods').value = '';
             document.getElementById('invertNesting').checked = false;
-            document.getElementById('showDirectLifts').checked = true; // Default on
-            document.getElementById('showModularLifts').checked = true; // Default on  
-            document.getElementById('showSkipDirectLifts').checked = false; // Default off
-            document.getElementById('showSkipModularLifts').checked = false; // Default off
-            document.getElementById('showModularLifts').checked = false;
+            document.getElementById('showDirectLifts').checked = true; // ONLY direct lifts (r → r)
+            document.getElementById('showModularLifts').checked = false; // NO modular lifts
+            document.getElementById('showSkipDirectLifts').checked = false; // NO skip lifts
+            document.getElementById('showSkipModularLifts').checked = false; // NO skip modular lifts
             document.getElementById('enableRotation').checked = false;
             document.getElementById('enableInversion').checked = false;
             document.getElementById('reverseDirection').checked = false;
@@ -3998,8 +4005,8 @@
             // Add unit circle first (highlighted and checked by default)
             addRingControl('unit', 'Unit Circle (M=1)', true);
             
-            // Add consecutive moduli 1-30 by default
-            for (let mod = 2; mod <= 30; mod++) {
+            // Add consecutive moduli 1-60 by default
+            for (let mod = 2; mod <= 60; mod++) {
                 const customId = `default_${mod}`;
                 configs[customId] = { 
                     mod: mod, 
@@ -4016,6 +4023,15 @@
                 }
             });
 
+            // Initialize gap controls as empty - will be populated by generateGaps()
+            const gapControls = document.getElementById('gapControls');
+            gapControls.innerHTML = '';
+            
+            // Add standard gaps but all unchecked by default
+            for (let gap = 2; gap <= 12; gap += 2) {
+                addGapControl(gap, false); // All gaps off by default
+            }
+
             // Enhanced event listeners
             document.addEventListener('change', draw);
             document.getElementById('zoomSlider').addEventListener('input', updateZoom);
@@ -4026,7 +4042,7 @@
                 customControls.style.display = this.value === 'custom' ? 'block' : 'none';
             });
             
-            updateAnimationStatus('System initialized with corrected angle positioning and normalized thickness controls');
+            updateAnimationStatus('System initialized: M1-M60, Angular coloring, no gaps, no labels, direct lifts only');
         }
 
         // Initialize the enhanced system
@@ -4034,4 +4050,4 @@
         draw();
     </script>
 </body>
-                                                    </html>
+                            </html>
