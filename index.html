@@ -687,13 +687,23 @@
                 </div>
 
                 <div class="control-section">
+                    <h3>Lift Controls</h3>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r, consecutive only)
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showModularLifts" checked> Modular Lifts (r → r + M×2ⁿ, consecutive only)
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showSkipDirectLifts"> Skip-Level Direct Lifts (r → r, all combinations)
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="showSkipModularLifts"> Skip-Level Modular Lifts (r → r + M×2ⁿ, all combinations)
+                    </div>
+                </div>
+
+                <div class="control-section">
                     <h3>Display Controls</h3>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r)
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showModularLifts"> Modular Lifts (r → r + M×2ⁿ)
-                    </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showUnitCircle" checked> Highlight Unit Circle
                     </div>
@@ -3225,6 +3235,9 @@
             document.getElementById('labelSpecificMods').value = '';
             document.getElementById('invertNesting').checked = false;
             document.getElementById('showDirectLifts').checked = true; // Default on
+            document.getElementById('showModularLifts').checked = true; // Default on  
+            document.getElementById('showSkipDirectLifts').checked = false; // Default off
+            document.getElementById('showSkipModularLifts').checked = false; // Default off
             document.getElementById('showModularLifts').checked = false;
             document.getElementById('enableRotation').checked = false;
             document.getElementById('enableInversion').checked = false;
@@ -3316,6 +3329,8 @@
             const invertNesting = document.getElementById('invertNesting').checked;
             const showDirectLifts = document.getElementById('showDirectLifts').checked;
             const showModularLifts = document.getElementById('showModularLifts').checked;
+            const showSkipDirectLifts = document.getElementById('showSkipDirectLifts').checked;
+            const showSkipModularLifts = document.getElementById('showSkipModularLifts').checked;
             const showUnitCircle = document.getElementById('showUnitCircle').checked;
             const showGcdOne = document.getElementById('showGcdOne').checked;
             const showNonGcdOne = document.getElementById('showNonGcdOne').checked;
@@ -3655,8 +3670,8 @@
                 }
             });
 
-            // Enhanced lift line drawing with unit circle support and normalized thickness
-            if ((showDirectLifts || showModularLifts) && rings.length > 1) {
+            // Enhanced lift line drawing with 4 distinct modes and solid lines
+            if ((showDirectLifts || showModularLifts || showSkipDirectLifts || showSkipModularLifts) && rings.length > 1) {
                 const liftThicknessNorm = parseFloat(document.getElementById('lineThickness').value);
                 const baseLiftThickness = 0.5 + liftThicknessNorm * 3.5; // Scale 0-1 to 0.5-4.0
                 
@@ -3664,6 +3679,7 @@
                     for (let j = i + 1; j < rings.length; j++) {
                         const ring1 = rings[i];
                         const ring2 = rings[j];
+                        const isConsecutive = (j === i + 1);
                         
                         // Calculate rotations for both rings
                         let ringRotation1 = 0;
@@ -3705,85 +3721,39 @@
                         }
                         
                         ring1.coprimes.forEach(r => {
-                            // Enhanced direct lifts with unit circle special handling
-                            if (showDirectLifts && ring2.coprimes.includes(r)) {
-                                // FIXED: Apply angle correction for lift lines
-                                let baseAngle1, baseAngle2;
-                                if (ring1.n === 'unit') {
-                                    baseAngle1 = 0; // Unit circle at 0°
-                                } else {
-                                    baseAngle1 = 2 * Math.PI * (ring1.modulus - r) / ring1.modulus;
-                                }
-                                
-                                if (ring2.n === 'unit') {
-                                    baseAngle2 = 0; // Unit circle at 0°
-                                } else {
-                                    baseAngle2 = 2 * Math.PI * (ring2.modulus - r) / ring2.modulus;
-                                }
-                                
-                                const angle1 = baseAngle1 + ringRotation1;
-                                const angle2 = baseAngle2 + ringRotation2;
-                                const x1 = ring1.radius * Math.cos(angle1);
-                                const y1 = ring1.radius * Math.sin(angle1);
-                                const x2 = ring2.radius * Math.cos(angle2);
-                                const y2 = ring2.radius * Math.sin(angle2);
-
-                                ctx.beginPath();
-                                ctx.moveTo(x1, y1);
-                                ctx.lineTo(x2, y2);
-                                
-                                const isConsecutive = (j === i + 1);
-                                const hasUnitCircle = ring1.n === 'unit' || ring2.n === 'unit';
-                                
-                                if (hasUnitCircle) {
-                                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)'; // Golden for unit circle connections
-                                    ctx.lineWidth = baseLiftThickness * 1.2;
-                                } else {
-                                    ctx.strokeStyle = isConsecutive ? liftLineColor : liftLineColor + '66';
-                                    ctx.lineWidth = isConsecutive ? baseLiftThickness : baseLiftThickness * 0.7;
-                                }
-                                ctx.stroke();
+                            // 1. Direct lifts (consecutive only, r → r)
+                            if (showDirectLifts && isConsecutive && ring2.coprimes.includes(r)) {
+                                drawLiftLine(ring1, ring2, r, r, ringRotation1, ringRotation2, liftLineColor, baseLiftThickness, false);
                             }
-
-                            // Enhanced modular lifts (skip for unit circle)
-                            if (showModularLifts && ring1.n !== 'unit' && ring2.n !== 'unit') {
-                                const n1 = parseInt(ring1.n);
-                                const n2 = parseInt(ring2.n);
+                            
+                            // 2. Skip-level direct lifts (all combinations, r → r)
+                            if (showSkipDirectLifts && !isConsecutive && ring2.coprimes.includes(r)) {
+                                drawLiftLine(ring1, ring2, r, r, ringRotation1, ringRotation2, liftLineColor, baseLiftThickness * 0.6, false);
+                            }
+                            
+                            // 3. Modular lifts (consecutive only, r → r + M×2ⁿ)
+                            if (showModularLifts && isConsecutive && ring1.n !== 'unit' && ring2.n !== 'unit') {
+                                const shift = Math.round(ring1.modulus);
+                                const liftedR = (r + shift) % Math.round(ring2.modulus);
+                                
+                                if (ring2.coprimes.includes(liftedR)) {
+                                    drawLiftLine(ring1, ring2, r, liftedR, ringRotation1, ringRotation2, modularLiftColor, baseLiftThickness * 0.9, false);
+                                }
+                            }
+                            
+                            // 4. Skip-level modular lifts (all combinations, r → r + M×2ⁿ)
+                            if (showSkipModularLifts && !isConsecutive && ring1.n !== 'unit' && ring2.n !== 'unit') {
+                                const n1 = parseInt(ring1.n) || 0;
+                                const n2 = parseInt(ring2.n) || 0;
                                 
                                 if (!isNaN(n1) && !isNaN(n2) && n2 > n1) {
                                     const nDiff = n2 - n1;
                                     const baseModulus = Math.round(ring1.modulus);
-                                    
-                                    let shift;
-                                    if (nDiff === 1) {
-                                        shift = baseModulus;
-                                    } else {
-                                        shift = baseModulus * Math.pow(2, nDiff - 1);
-                                    }
-                                    
+                                    const shift = baseModulus * Math.pow(2, nDiff - 1);
                                     const liftedR = (r + shift) % Math.round(ring2.modulus);
                                     
                                     if (ring2.coprimes.includes(liftedR)) {
-                                        // FIXED: Apply angle correction for modular lifts
-                                        const baseAngle1 = 2 * Math.PI * (ring1.modulus - r) / ring1.modulus;
-                                        const baseAngle2 = 2 * Math.PI * (ring2.modulus - liftedR) / ring2.modulus;
-                                        const angle1 = baseAngle1 + ringRotation1;
-                                        const angle2 = baseAngle2 + ringRotation2;
-                                        const x1 = ring1.radius * Math.cos(angle1);
-                                        const y1 = ring1.radius * Math.sin(angle1);
-                                        const x2 = ring2.radius * Math.cos(angle2);
-                                        const y2 = ring2.radius * Math.sin(angle2);
-
-                                        ctx.beginPath();
-                                        ctx.moveTo(x1, y1);
-                                        ctx.lineTo(x2, y2);
-                                        
-                                        const isConsecutive = (j === i + 1);
-                                        ctx.strokeStyle = isConsecutive ? modularLiftColor : modularLiftColor + '55';
-                                        ctx.lineWidth = isConsecutive ? baseLiftThickness * 0.9 : baseLiftThickness * 0.6;
-                                        ctx.setLineDash(isConsecutive ? [6, 4] : [3, 6]);
-                                        ctx.stroke();
-                                        ctx.setLineDash([]);
+                                        drawLiftLine(ring1, ring2, r, liftedR, ringRotation1, ringRotation2, modularLiftColor, baseLiftThickness * 0.5, false);
                                     }
                                 }
                             }
@@ -3794,6 +3764,48 @@
 
             ctx.restore();
             updateInfo(rings);
+        }
+
+        // Helper function to draw lift lines
+        function drawLiftLine(ring1, ring2, r1, r2, rotation1, rotation2, color, thickness, isDashed) {
+            let baseAngle1, baseAngle2;
+            
+            if (ring1.n === 'unit') {
+                baseAngle1 = 0; // Unit circle at 0°
+            } else {
+                baseAngle1 = 2 * Math.PI * (ring1.modulus - r1) / ring1.modulus;
+            }
+            
+            if (ring2.n === 'unit') {
+                baseAngle2 = 0; // Unit circle at 0°
+            } else {
+                baseAngle2 = 2 * Math.PI * (ring2.modulus - r2) / ring2.modulus;
+            }
+            
+            const angle1 = baseAngle1 + rotation1;
+            const angle2 = baseAngle2 + rotation2;
+            const x1 = ring1.radius * Math.cos(angle1);
+            const y1 = ring1.radius * Math.sin(angle1);
+            const x2 = ring2.radius * Math.cos(angle2);
+            const y2 = ring2.radius * Math.sin(angle2);
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            
+            const hasUnitCircle = ring1.n === 'unit' || ring2.n === 'unit';
+            
+            if (hasUnitCircle) {
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)'; // Golden for unit circle connections
+                ctx.lineWidth = thickness * 1.2;
+            } else {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = thickness;
+            }
+            
+            // All lines are solid now
+            ctx.setLineDash([]);
+            ctx.stroke();
         }
 
         // Enhanced info panel update with prime sieve integration
@@ -4022,4 +4034,4 @@
         draw();
     </script>
 </body>
-</html>
+                                                    </html>
