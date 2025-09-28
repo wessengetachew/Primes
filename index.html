@@ -13,8 +13,8 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #667eea 100%);
-            color: white;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #4a5568 100%);
+            color: #ffffff;
             min-height: 100vh;
             padding: 20px;
         }
@@ -22,29 +22,31 @@
         .container {
             max-width: 1600px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.12);
-            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
             padding: 30px;
             backdrop-filter: blur(15px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         h1 {
             text-align: center;
-            font-size: 3em;
+            font-size: 2.8em;
             margin-bottom: 10px;
-            background: linear-gradient(45deg, #FFD700, #FFA500, #FF6B6B);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            color: #e8eaed;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            text-shadow: none;
         }
 
         .subtitle {
             text-align: center;
-            opacity: 0.9;
+            opacity: 0.85;
             margin-bottom: 30px;
-            font-size: 1.2em;
-            font-weight: 300;
+            font-size: 1.1em;
+            font-weight: 400;
+            color: #b4b8bc;
         }
 
         .main-grid {
@@ -55,28 +57,30 @@
         }
 
         .controls {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
             padding: 25px;
-            border-radius: 20px;
+            border-radius: 12px;
             height: fit-content;
             max-height: 85vh;
             overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .control-section {
-            margin-bottom: 25px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .control-section h3 {
-            color: #FFD700;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            font-weight: 600;
+            color: #a0aec0;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .checkbox-group {
@@ -104,19 +108,20 @@
         }
 
         .rh-section {
-            background: linear-gradient(45deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.15));
-            border: 1px solid rgba(255, 215, 0, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(160, 174, 192, 0.2);
         }
 
         .rh-btn {
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            color: #000;
-            font-weight: bold;
+            background: #4a5568;
+            color: #ffffff;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .rh-info {
-            background: linear-gradient(45deg, rgba(255, 215, 0, 0.15), rgba(72, 187, 120, 0.15));
-            border-left: 3px solid #48BB78;
+            background: rgba(160, 174, 192, 0.1);
+            border-left: 3px solid #a0aec0;
         }
 
         .validation-status {
@@ -133,36 +138,36 @@
         }
 
         .rh-explanation {
-            background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(72, 187, 120, 0.1));
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
+            background: rgba(160, 174, 192, 0.08);
+            border: 1px solid rgba(160, 174, 192, 0.2);
+            border-radius: 10px;
+            padding: 18px;
+            margin: 18px 0;
             font-size: 14px;
         }
 
         .rh-notice {
-            background: linear-gradient(45deg, rgba(72, 187, 120, 0.2), rgba(255, 215, 0, 0.2));
-            border: 2px solid rgba(72, 187, 120, 0.6);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
+            background: rgba(160, 174, 192, 0.1);
+            border: 1px solid rgba(160, 174, 192, 0.3);
+            border-radius: 10px;
+            padding: 18px;
+            margin: 18px 0;
             font-size: 14px;
             position: relative;
         }
 
         .unit-circle-highlight {
-            background: linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
-            border: 1px solid rgba(255, 215, 0, 0.4);
-            font-weight: bold;
+            background: rgba(160, 174, 192, 0.12);
+            border: 1px solid rgba(160, 174, 192, 0.25);
+            font-weight: 500;
         }
 
         .custom-gap {
-            margin-top: 15px;
+            margin-top: 12px;
             padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .gap-input {
@@ -189,30 +194,33 @@
         }
 
         button {
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-            border: none;
-            padding: 10px 16px;
-            border-radius: 20px;
+            background: #4a5568;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 14px;
+            border-radius: 6px;
             color: white;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 500;
             font-size: 13px;
-            transition: all 0.3s ease;
-            margin: 3px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            margin: 2px;
+            font-family: inherit;
         }
 
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: #5a6478;
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
         }
 
         .reset-btn {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            background: #e53e3e;
+            border-color: rgba(229, 62, 62, 0.3);
         }
 
         .special-btn {
-            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            background: #805ad5;
+            border-color: rgba(128, 90, 213, 0.3);
         }
 
         .slider-group {
@@ -235,13 +243,13 @@
         }
 
         .slider-group input[type="range"]::-webkit-slider-thumb {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background: #FFD700;
+            background: #a0aec0;
             cursor: pointer;
             border: 2px solid white;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         .slider-group select {
@@ -263,14 +271,14 @@
         }
 
         .canvas-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
             padding: 25px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
             max-width: 100%;
             overflow: hidden;
@@ -278,9 +286,9 @@
         }
 
         #canvas {
-            border-radius: 15px;
+            border-radius: 8px;
             background: #000000;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             max-width: 100%;
             max-height: 875px;
             width: auto;
@@ -293,47 +301,53 @@
         }
 
         .analysis-section {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
             padding: 25px;
             margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .analysis-section h3 {
-            color: #FFD700;
+            color: #a0aec0;
             margin-bottom: 20px;
-            font-size: 1.3em;
+            font-size: 1.2em;
             text-align: center;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .ring-info {
             margin: 10px 0;
             padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
             font-size: 13px;
-            border-left: 3px solid #FFD700;
+            border-left: 3px solid #a0aec0;
         }
 
         .unit-circle-info {
-            background: linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
-            border-left: 3px solid #FFD700;
-            font-weight: bold;
+            background: rgba(160, 174, 192, 0.12);
+            border-left: 3px solid #a0aec0;
+            font-weight: 500;
         }
 
         .legend {
             margin-top: 30px;
             padding: 25px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .legend h3 {
-            color: #FFD700;
+            color: #a0aec0;
             margin-bottom: 20px;
-            font-size: 1.3em;
+            font-size: 1.2em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .legend-grid {
@@ -347,8 +361,8 @@
             align-items: center;
             gap: 12px;
             padding: 8px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .legend-color {
@@ -412,7 +426,7 @@
         <div class="main-grid">
             <div class="controls">
                 <div class="control-section rh-section">
-                    <h3>🎯 Riemann Hypothesis Analysis</h3>
+                    <h3>Riemann Hypothesis Analysis</h3>
                     <div class="checkbox-item">
                         <input type="checkbox" id="enableRhAnalysis"> Enable RH Predictions
                     </div>
@@ -868,8 +882,8 @@
                             Height: <input type="number" id="customHeight" value="2160" min="480" step="16">
                         </div>
                         <div class="gap-input" style="margin-top: 15px;">
-                            <button onclick="startRecording()" id="recordButton">🎬 Record Animation</button>
-                            <button onclick="stopRecording()">⏹️ Stop Recording</button>
+                            <button onclick="startRecording()" id="recordButton">Record Animation</button>
+                            <button onclick="stopRecording()">Stop Recording</button>
                         </div>
                     </div>
                     <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
@@ -891,7 +905,7 @@
                 <div id="ringInfo">Select rings to view detailed analysis</div>
                 
                 <div class="rh-notice">
-                    <strong>🔬 Mathematical Research Tool</strong><br>
+                    <strong>Mathematical Research Tool</strong><br>
                     This visualization explores connections between modular arithmetic, Dirichlet characters, and the Riemann Hypothesis.
                     Your GCD=1 filtering shows exactly where Dirichlet characters χ(a) ≠ 0, which generate the L-functions central to the Generalized Riemann Hypothesis.
                     <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
@@ -3789,4 +3803,4 @@
         draw();
     </script>
 </body>
-</html>
+    </html>
