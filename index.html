@@ -663,6 +663,44 @@
                             </div>
                         </div>
                     </div>
+                    <div class="custom-gap">
+                        <label><strong>Ring Radius Scaling:</strong></label>
+                        <div class="slider-group">
+                            <label>Scaling Function:</label>
+                            <select id="radiusScaling" onchange="updateRadiusScaling()">
+                                <option value="uniform" selected>Uniform Spacing (default)</option>
+                                <option value="linear">Linear: r(m) = c·m</option>
+                                <option value="sqrt">Square-root: r(m) = c·√m</option>
+                                <option value="log">Logarithmic: r(m) = c·log(m+1)</option>
+                                <option value="totient">Totient: r(m) = c·φ(m)</option>
+                                <option value="density">Density: r(m) = c·φ(m)/m</option>
+                                <option value="inverse">Inverse: r(m) = c/m</option>
+                                <option value="exponential">Exponential: r(m) = c·aᵐ</option>
+                            </select>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Scaling Constant c: <span id="scalingConstValue">1.0</span></label>
+                            <input type="range" id="scalingConst" min="0.1" max="5" step="0.1" value="1.0" oninput="updateScalingConst()">
+                        </div>
+                        
+                        <div class="slider-group" id="expBaseGroup" style="display: none;">
+                            <label>Exponential Base a: <span id="expBaseValue">1.15</span></label>
+                            <input type="range" id="expBase" min="1.01" max="1.5" step="0.01" value="1.15" oninput="updateExpBase()">
+                        </div>
+                        
+                        <div style="font-size: 0.85em; opacity: 0.9; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                            <strong>Mathematical Interpretation:</strong><br>
+                            <span id="scalingDescription">
+                                Uniform spacing places rings at equal intervals regardless of modulus value.
+                            </span>
+                        </div>
+                        
+                        <div class="gap-input" style="margin-top: 10px;">
+                            <button onclick="showRadiusComparison()">Compare Scalings</button>
+                            <button onclick="resetRadiusScaling()">Reset to Uniform</button>
+                        </div>
+                    </div>
                     </div>
                 </div>
 
@@ -723,45 +761,6 @@
                         <div class="gap-input" style="margin-top: 15px;">
                             <button class="reset-btn" onclick="clearAllRings()">Clear All Rings</button>
                             <button class="special-btn" onclick="resetToDefaults()">Reset to M1-M30</button>
-                        </div>
-                    </div>
-                    
-                    <div class="custom-gap">
-                        <label><strong>Ring Radius Scaling:</strong></label>
-                        <div class="slider-group">
-                            <label>Scaling Function:</label>
-                            <select id="radiusScaling" onchange="updateRadiusScaling()">
-                                <option value="uniform" selected>Uniform Spacing (default)</option>
-                                <option value="linear">Linear: r(m) = c·m</option>
-                                <option value="sqrt">Square-root: r(m) = c·√m</option>
-                                <option value="log">Logarithmic: r(m) = c·log(m+1)</option>
-                                <option value="totient">Totient: r(m) = c·φ(m)</option>
-                                <option value="density">Density: r(m) = c·φ(m)/m</option>
-                                <option value="inverse">Inverse: r(m) = c/m</option>
-                                <option value="exponential">Exponential: r(m) = c·aᵐ</option>
-                            </select>
-                        </div>
-                        
-                        <div class="slider-group">
-                            <label>Scaling Constant c: <span id="scalingConstValue">1.0</span></label>
-                            <input type="range" id="scalingConst" min="0.1" max="5" step="0.1" value="1.0" oninput="updateScalingConst()">
-                        </div>
-                        
-                        <div class="slider-group" id="expBaseGroup" style="display: none;">
-                            <label>Exponential Base a: <span id="expBaseValue">1.15</span></label>
-                            <input type="range" id="expBase" min="1.01" max="1.5" step="0.01" value="1.15" oninput="updateExpBase()">
-                        </div>
-                        
-                        <div style="font-size: 0.85em; opacity: 0.9; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 6px;">
-                            <strong>Mathematical Interpretation:</strong><br>
-                            <span id="scalingDescription">
-                                Uniform spacing places rings at equal intervals regardless of modulus value.
-                            </span>
-                        </div>
-                        
-                        <div class="gap-input" style="margin-top: 10px;">
-                            <button onclick="showRadiusComparison()">Compare Scalings</button>
-                            <button onclick="resetRadiusScaling()">Reset to Uniform</button>
                         </div>
                     </div>
                     </div>
@@ -860,6 +859,47 @@
                     </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="reverseDirection"> Reverse Rotation Direction
+                    </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>Ring Nesting Animation:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="enableNestingAnimation"> Enable Nesting Inversion
+                        </div>
+                        
+                        <div id="nestingAnimationControls" style="display: none; margin-top: 10px;">
+                            <div class="slider-group">
+                                <label>Nesting Inversion: <span id="nestingInversionValue">0.0</span></label>
+                                <input type="range" id="nestingInversion" min="0" max="1" step="0.01" value="0" oninput="updateNestingInversion()">
+                            </div>
+                            
+                            <div class="slider-group">
+                                <label>Animation Speed: <span id="nestingSpeedValue">1.0</span>x</label>
+                                <input type="range" id="nestingSpeed" min="0.1" max="5" step="0.1" value="1.0" oninput="updateNestingSpeed()">
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="nestingLoop" checked> Loop Animation
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="nestingPingPong"> Ping-Pong (reverse direction)
+                            </div>
+                            
+                            <div style="font-size: 0.85em; opacity: 0.9; margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                                <strong>Gradual Position Exchange:</strong><br>
+                                • 0.0 = Normal order (M1 inner, M30 outer)<br>
+                                • 0.5 = Rings crossing midpoint<br>
+                                • 1.0 = Inverted (M30 inner, M1 outer)<br>
+                                • Each ring smoothly trades positions
+                            </div>
+                            
+                            <div class="gap-input" style="margin-top: 10px;">
+                                <button onclick="startNestingAnimation()">Start Animation</button>
+                                <button onclick="stopNestingAnimation()">Stop</button>
+                                <button onclick="resetNestingOrder()">Reset</button>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="custom-gap">
@@ -1013,9 +1053,6 @@
                 </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="showLabels" checked> Show Residue Labels
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="invertNesting"> Invert Ring Nesting Order
                     </div>
                     <button class="reset-btn" onclick="resetAll()">Reset All Settings</button>
                 </div>
@@ -1338,6 +1375,13 @@
         let radiusScalingMode = 'uniform';
         let scalingConstant = 1.0;
         let exponentialBase = 1.15;
+        
+        // Nesting animation state
+        let nestingInversionAmount = 0;
+        let nestingAnimationActive = false;
+        let nestingAnimationSpeed = 1.0;
+        let nestingAnimationProgress = 0;
+        let nestingAnimationDirection = 1;
         
         // Animation recording state
         let mediaRecorder = null;
@@ -2835,6 +2879,60 @@
             updateAnimationStatus('Radius scaling reset to uniform');
             draw();
         }
+
+        function updateNestingInversion() {
+            const value = document.getElementById('nestingInversion').value;
+            document.getElementById('nestingInversionValue').textContent = parseFloat(value).toFixed(2);
+            nestingInversionAmount = parseFloat(value);
+            draw();
+        }
+
+        function updateNestingSpeed() {
+            const value = document.getElementById('nestingSpeed').value;
+            document.getElementById('nestingSpeedValue').textContent = value;
+            nestingAnimationSpeed = parseFloat(value);
+        }
+
+        function startNestingAnimation() {
+            const enabled = document.getElementById('enableNestingAnimation');
+            enabled.checked = true;
+            nestingAnimationActive = true;
+            nestingAnimationProgress = 0;
+            nestingAnimationDirection = 1;
+            
+            updateAnimationStatus('Nesting animation started');
+            
+            if (!animating && !isInverting) {
+                animating = true;
+                animate();
+            }
+        }
+
+        function stopNestingAnimation() {
+            nestingAnimationActive = false;
+            document.getElementById('enableNestingAnimation').checked = false;
+            updateAnimationStatus('Nesting animation stopped');
+        }
+
+        function resetNestingOrder() {
+            nestingInversionAmount = 0;
+            nestingAnimationProgress = 0;
+            document.getElementById('nestingInversion').value = 0;
+            document.getElementById('nestingInversionValue').textContent = '0.00';
+            stopNestingAnimation();
+            draw();
+        }
+
+        document.getElementById('enableNestingAnimation').addEventListener('change', function() {
+            const controls = document.getElementById('nestingAnimationControls');
+            controls.style.display = this.checked ? 'block' : 'none';
+            
+            if (this.checked) {
+                startNestingAnimation();
+            } else {
+                stopNestingAnimation();
+            }
+        });
 
         function showRadiusComparison() {
             const selectedRings = getSelectedRings();
@@ -4536,7 +4634,7 @@
         }
 
         function animate() {
-            if (!animating && !isInverting) return;
+            if (!animating && !isInverting && !nestingAnimationActive) return;
             
             const enableRotation = document.getElementById('enableRotation').checked;
             const globalSpeed = parseFloat(document.getElementById('globalSpeed').value);
@@ -4565,7 +4663,48 @@
                 }
             }
             
-            if (!enableRotation && !isInverting) {
+            // Nesting animation
+            if (nestingAnimationActive) {
+                const nestingLoop = document.getElementById('nestingLoop').checked;
+                const nestingPingPong = document.getElementById('nestingPingPong').checked;
+                
+                nestingAnimationProgress += 0.01 * nestingAnimationSpeed * nestingAnimationDirection;
+                
+                if (nestingAnimationProgress >= 1) {
+                    if (nestingPingPong) {
+                        nestingAnimationProgress = 1;
+                        nestingAnimationDirection = -1;
+                    } else if (nestingLoop) {
+                        nestingAnimationProgress = 0;
+                    } else {
+                        nestingAnimationProgress = 1;
+                        nestingAnimationActive = false;
+                        updateAnimationStatus('Nesting animation completed');
+                    }
+                } else if (nestingAnimationProgress <= 0) {
+                    if (nestingPingPong) {
+                        nestingAnimationProgress = 0;
+                        nestingAnimationDirection = 1;
+                    } else if (nestingLoop) {
+                        nestingAnimationProgress = 1;
+                    } else {
+                        nestingAnimationProgress = 0;
+                        nestingAnimationActive = false;
+                        updateAnimationStatus('Nesting animation completed');
+                    }
+                }
+                
+                // Smooth easing for nesting animation
+                const eased = nestingAnimationProgress < 0.5 
+                    ? 2 * nestingAnimationProgress * nestingAnimationProgress
+                    : 1 - Math.pow(-2 * nestingAnimationProgress + 2, 2) / 2;
+                
+                nestingInversionAmount = eased;
+                document.getElementById('nestingInversion').value = nestingInversionAmount;
+                document.getElementById('nestingInversionValue').textContent = nestingInversionAmount.toFixed(2);
+            }
+            
+            if (!enableRotation && !isInverting && !nestingAnimationActive) {
                 animating = false;
                 return;
             }
@@ -4634,7 +4773,6 @@
             document.getElementById('labelShowPrimeCounts').checked = true;
             document.getElementById('labelMinRadius').value = 80;
             document.getElementById('labelSpecificMods').value = '';
-            document.getElementById('invertNesting').checked = false;
             document.getElementById('showDirectLifts').checked = true; // ONLY direct lifts (r → r)
             document.getElementById('showModularLifts').checked = false; // NO modular lifts
             document.getElementById('showSkipDirectLifts').checked = false; // NO skip lifts
@@ -4646,6 +4784,20 @@
             document.getElementById('showGcdOne').checked = true;
             document.getElementById('showNonGcdOne').checked = false;
             document.getElementById('highlightGcdDifference').checked = false;
+            
+            // Reset nesting animation
+            document.getElementById('enableNestingAnimation').checked = false;
+            document.getElementById('nestingAnimationControls').style.display = 'none';
+            document.getElementById('nestingInversion').value = 0;
+            document.getElementById('nestingInversionValue').textContent = '0.00';
+            document.getElementById('nestingSpeed').value = 1.0;
+            document.getElementById('nestingSpeedValue').textContent = '1.0';
+            document.getElementById('nestingLoop').checked = true;
+            document.getElementById('nestingPingPong').checked = false;
+            nestingInversionAmount = 0;
+            nestingAnimationActive = false;
+            nestingAnimationProgress = 0;
+            nestingAnimationDirection = 1;
             
             // Reset RH analysis controls
             document.getElementById('enableRhAnalysis').checked = false;
@@ -4725,7 +4877,6 @@
             const selectedRings = getSelectedRings();
             const selectedGaps = getSelectedGaps();
             const showLabels = document.getElementById('showLabels').checked;
-            const invertNesting = document.getElementById('invertNesting').checked;
             const showDirectLifts = document.getElementById('showDirectLifts').checked;
             const showModularLifts = document.getElementById('showModularLifts').checked;
             const showSkipDirectLifts = document.getElementById('showSkipDirectLifts').checked;
@@ -4767,8 +4918,8 @@
             const rings = [];
             const sortedRings = [...selectedRings].sort((a, b) => {
                 // Always put unit circle first (innermost)
-                if (a === 'unit') return invertNesting ? 1 : -1;
-                if (b === 'unit') return invertNesting ? -1 : 1;
+                if (a === 'unit') return -1;
+                if (b === 'unit') return 1;
                 
                 // Sort custom rings numerically by their modulus value
                 const aConfig = configs[a];
@@ -4777,10 +4928,16 @@
                 if (aConfig && bConfig) {
                     const aMod = aConfig.mod;
                     const bMod = bConfig.mod;
-                    return invertNesting ? bMod - aMod : aMod - bMod;
+                    
+                    // Apply nesting inversion with smooth interpolation
+                    const normalOrder = aMod - bMod;
+                    const invertedOrder = bMod - aMod;
+                    
+                    // Interpolate between normal and inverted order
+                    return normalOrder * (1 - nestingInversionAmount) + invertedOrder * nestingInversionAmount;
                 }
                 
-                return invertNesting ? b.localeCompare(a, undefined, {numeric: true}) : a.localeCompare(b, undefined, {numeric: true});
+                return a.localeCompare(b, undefined, {numeric: true});
             });
 
             const maxRadius = 280;
@@ -5483,4 +5640,4 @@
         }, 500);
     </script>
 </body>
-</html>
+                                </html>
