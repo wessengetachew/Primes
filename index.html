@@ -4916,37 +4916,57 @@
             ctx.rotate((rotation + (animating ? animationFrame * 0.3 : 0)) * Math.PI / 180);
 
             const rings = [];
-            const sortedRings = [...selectedRings].sort((a, b) => {
-                // Always put unit circle first (innermost)
-                if (a === 'unit') return -1;
-                if (b === 'unit') return 1;
-                
-                // Sort custom rings numerically by their modulus value
-                const aConfig = configs[a];
-                const bConfig = configs[b];
-                
-                if (aConfig && bConfig) {
-                    const aMod = aConfig.mod;
-                    const bMod = bConfig.mod;
-                    
-                    // Apply nesting inversion with smooth interpolation
-                    const normalOrder = aMod - bMod;
-                    const invertedOrder = bMod - aMod;
-                    
-                    // Interpolate between normal and inverted order
-                    return normalOrder * (1 - nestingInversionAmount) + invertedOrder * nestingInversionAmount;
+            
+            // Create array of ring configs with their original indices
+            const ringConfigs = selectedRings.map((ringId, originalIndex) => ({
+                ringId,
+                originalIndex,
+                modulus: configs[ringId]?.mod || 1
+            }));
+            
+            // Sort by modulus (always unit circle first)
+            ringConfigs.sort((a, b) => {
+                if (a.ringId === 'unit') return -1;
+                if (b.ringId === 'unit') return 1;
+                return a.modulus - b.modulus;
+            });
+            
+            // Calculate gradual position exchange based on inversion amount
+            // Each ring's position interpolates between its normal and inverted position
+            const sortedRings = ringConfigs.map((config, sortedIndex) => {
+                // For unit circle, always keep at position 0
+                if (config.ringId === 'unit') {
+                    config.finalIndex = 0;
+                    return config;
                 }
                 
-                return a.localeCompare(b, undefined, {numeric: true});
+                // Calculate inverted position (excluding unit circle)
+                const totalNonUnitRings = ringConfigs.length - 1;
+                const nonUnitSortedIndex = sortedIndex - 1; // Adjust for unit circle
+                
+                // Normal position: sortedIndex (0, 1, 2, 3, ..., n)
+                // Inverted position: totalRings - sortedIndex (n, n-1, n-2, ..., 0)
+                const normalPos = sortedIndex;
+                const invertedPos = ringConfigs.length - 1 - nonUnitSortedIndex;
+                
+                // Interpolate between normal and inverted position
+                const finalPos = normalPos * (1 - nestingInversionAmount) + invertedPos * nestingInversionAmount;
+                config.finalIndex = finalPos;
+                
+                return config;
             });
+            
+            // Sort by final interpolated position
+            sortedRings.sort((a, b) => a.finalIndex - b.finalIndex);
 
             const maxRadius = 280;
             const minRadius = showUnitCircle && selectedRings.includes('unit') ? 25 : 60;
 
             // Initialize enhanced ring rotation speeds
-            sortedRings.forEach((n, index) => {
+            sortedRings.forEach((config) => {
+                const n = config.ringId;
                 if (!ringRotationSpeeds[n]) {
-                    const modulus = configs[n].mod;
+                    const modulus = config.modulus;
                     if (n === 'unit') {
                         ringRotationSpeeds[n] = 3.0; // Unit circle rotates faster
                     } else {
@@ -4955,13 +4975,14 @@
                 }
             });
 
-            sortedRings.forEach((n, index) => {
-                const modulus = configs[n].mod;
-                const radius = calculateRadius(modulus, index, sortedRings.length);
+            sortedRings.forEach((config, visualIndex) => {
+                const n = config.ringId;
+                const modulus = config.modulus;
+                const radius = calculateRadius(modulus, visualIndex, sortedRings.length);
                 const coprimes = getCoprimes(modulus);
                 const allResidues = getAllResidues(modulus);
                 
-                rings.push({ n, radius, modulus, coprimes, allResidues, index });
+                rings.push({ n, radius, modulus, coprimes, allResidues, index: visualIndex });
             });
 
             // Enhanced ring drawing with special unit circle treatment
@@ -5395,7 +5416,7 @@
             }
         }
 
-        // Enhanced info panel update with prime sieve integration
+                    // Enhanced info panel update with prime sieve integration
         function updateInfo(rings) {
             const info = document.getElementById('ringInfo');
             
@@ -5407,7 +5428,7 @@
             let html = '';
             let totalResidues = 0;
             
-            rings.forEach((ring, index) => {
+            rings.forEach((ring, visualIndex) => {
                 const config = configs[ring.n];
                 const modLabel = config ? config.label : ring.modulus.toString();
                 totalResidues += ring.coprimes.length;
@@ -5640,4 +5661,4 @@
         }, 500);
     </script>
 </body>
-                                </html>
+</html>
