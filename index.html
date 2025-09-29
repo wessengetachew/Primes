@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Modular Lifting Rings </title>
+    <title>Interactive Modular Lifting Rings v8.0</title>
     <style>
         * {
             margin: 0;
@@ -1110,12 +1110,49 @@
                         <div class="rh-visual-title">Prime Equidistribution</div>
                         <div class="rh-visual-desc">GRH uniformity predictions</div>
                     </div>
+                    
+                    <div class="prime-distribution-display">
+                        <canvas id="zetaZerosCanvas" width="400" height="300"></canvas>
+                        <div class="rh-visual-title">Zeta Function Zeros</div>
+                        <div class="rh-visual-desc">First non-trivial zeros on critical line</div>
+                    </div>
+                    
+                    <div class="prime-distribution-display">
+                        <canvas id="primeCountingCanvas" width="400" height="300"></canvas>
+                        <div class="rh-visual-title">Prime Counting Function π(x)</div>
+                        <div class="rh-visual-desc">π(x) vs Li(x) comparison</div>
+                    </div>
+                    
+                    <div class="prime-distribution-display">
+                        <canvas id="residueHeatmapCanvas" width="400" height="300"></canvas>
+                        <div class="rh-visual-title">Residue Class Heatmap</div>
+                        <div class="rh-visual-desc">Prime density visualization</div>
+                    </div>
+                    
+                    <div class="prime-distribution-display">
+                        <canvas id="chiSquaredCanvas" width="400" height="300"></canvas>
+                        <div class="rh-visual-title">Chi-Squared Test</div>
+                        <div class="rh-visual-desc">Uniformity statistical test</div>
+                    </div>
+                    
+                    <div class="prime-distribution-display">
+                        <canvas id="modulusComparisonCanvas" width="400" height="300"></canvas>
+                        <div class="rh-visual-title">Multi-Modulus Comparison</div>
+                        <div class="rh-visual-desc">φ(M) across selected rings</div>
+                    </div>
+                    
+                    <div class="prime-distribution-display">
+                        <canvas id="lFunctionCanvas" width="400" height="300"></canvas>
+                        <div class="rh-visual-title">L-Function Magnitude |L(s,χ)|</div>
+                        <div class="rh-visual-desc">Along critical line approximation</div>
+                    </div>
                 </div>
                 
                 <div class="rh-research-controls">
                     <button class="rh-btn" onclick="updateRhVisualizations()">Update RH Analysis</button>
                     <button class="rh-btn" onclick="exportRhData()">Export Research Data</button>
                     <button class="rh-btn" onclick="runFullGrhSuite()">Run Complete GRH Suite</button>
+                    <button class="rh-btn" onclick="animateZetaZeros()">Animate Zeros</button>
                 </div>
             </div>
             
@@ -1507,7 +1544,38 @@
             updateCriticalLineVisualization();
             updateCharacterSupportVisualization();
             updatePrimeDistributionVisualization();
+            updateZetaZerosVisualization();
+            updatePrimeCountingVisualization();
+            updateResidueHeatmap();
+            updateChiSquaredVisualization();
+            updateModulusComparison();
+            updateLFunctionVisualization();
             updateAnimationStatus('RH visualizations updated');
+        }
+        
+        // Animate zeta zeros
+        let zetaAnimationFrame = 0;
+        let isAnimatingZeta = false;
+        
+        function animateZetaZeros() {
+            if (isAnimatingZeta) {
+                isAnimatingZeta = false;
+                updateAnimationStatus('Zeta animation stopped');
+                return;
+            }
+            
+            isAnimatingZeta = true;
+            updateAnimationStatus('Animating zeta zeros...');
+            
+            function animateFrame() {
+                if (!isAnimatingZeta) return;
+                
+                zetaAnimationFrame += 0.02;
+                updateZetaZerosVisualization();
+                requestAnimationFrame(animateFrame);
+            }
+            
+            animateFrame();
         }
 
         function updateCriticalLineVisualization() {
@@ -1678,6 +1746,442 @@
             ctx.textAlign = 'left';
             ctx.fillText(`Mod ${primeData.modulus} Distribution`, 10, 20);
             ctx.fillText(`${primeData.totalPrimes} primes analyzed`, 10, 35);
+        }
+        
+        function updateZetaZerosVisualization() {
+            const canvas = document.getElementById('zetaZerosCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Known non-trivial zeros of zeta function (imaginary parts)
+            const zeros = [14.134725, 21.022040, 25.010858, 30.424876, 32.935062, 
+                          37.586178, 40.918719, 43.327073, 48.005151, 49.773832];
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = 3;
+            
+            // Draw complex plane axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, canvas.height);
+            ctx.stroke();
+            
+            // Draw critical line Re(s) = 1/2
+            const criticalX = centerX + 0.5 * 40;
+            ctx.strokeStyle = '#48BB78';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(criticalX, 0);
+            ctx.lineTo(criticalX, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw zeros with animation
+            zeros.forEach((t, index) => {
+                const y = centerY - t * scale;
+                if (y > 0 && y < canvas.height) {
+                    // Animated pulsing effect
+                    const phase = zetaAnimationFrame + index * 0.3;
+                    const pulse = 1 + 0.3 * Math.sin(phase);
+                    const alpha = 0.7 + 0.3 * Math.sin(phase * 2);
+                    
+                    ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(criticalX, y, 5 * pulse, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Glow effect
+                    ctx.strokeStyle = `rgba(255, 215, 0, ${alpha * 0.5})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(criticalX, y, 8 * pulse, 0, 2 * Math.PI);
+                    ctx.stroke();
+                    
+                    // Label
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '10px Segoe UI';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`ρ${index+1} = 1/2 + ${t.toFixed(2)}i`, criticalX + 15, y + 3);
+                }
+            });
+            
+            // Labels
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('Critical Line', criticalX, 15);
+            ctx.fillText('Re(s)', canvas.width - 20, centerY - 10);
+            ctx.fillText('Im(s)', centerX + 15, 15);
+        }
+        
+        function updatePrimeCountingVisualization() {
+            const canvas = document.getElementById('primeCountingCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!primeData.isActive) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '16px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Run Prime Sieve', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            const maxX = primeData.limit;
+            const xScale = (canvas.width - 60) / maxX;
+            const yScale = (canvas.height - 60) / primeData.totalPrimes;
+            
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(40, 10);
+            ctx.lineTo(40, canvas.height - 40);
+            ctx.lineTo(canvas.width - 10, canvas.height - 40);
+            ctx.stroke();
+            
+            // Plot π(x) - actual prime counting
+            ctx.strokeStyle = '#4ECDC4';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(40, canvas.height - 40);
+            
+            let count = 0;
+            const step = Math.max(1, Math.floor(maxX / 200));
+            for (let x = 2; x <= maxX; x += step) {
+                const primesUpToX = primeData.primes.filter(p => p <= x).length;
+                const screenX = 40 + x * xScale;
+                const screenY = canvas.height - 40 - primesUpToX * yScale;
+                ctx.lineTo(screenX, screenY);
+            }
+            ctx.stroke();
+            
+            // Plot Li(x) approximation (logarithmic integral)
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]);
+            ctx.beginPath();
+            ctx.moveTo(40, canvas.height - 40);
+            
+            for (let x = 2; x <= maxX; x += step) {
+                // Simplified Li(x) ≈ x/ln(x)
+                const liX = x / Math.log(x);
+                const screenX = 40 + x * xScale;
+                const screenY = canvas.height - 40 - liX * yScale;
+                ctx.lineTo(screenX, screenY);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Legend
+            ctx.fillStyle = '#4ECDC4';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillText('π(x) actual', 50, 25);
+            
+            ctx.fillStyle = '#FFD700';
+            ctx.fillText('Li(x) approximation', 150, 25);
+            
+            // Axis labels
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '11px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('x', canvas.width / 2, canvas.height - 10);
+            ctx.save();
+            ctx.translate(15, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Count', 0, 0);
+            ctx.restore();
+        }
+        
+        function updateResidueHeatmap() {
+            const canvas = document.getElementById('residueHeatmapCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!primeData.isActive) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '16px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Run Prime Sieve', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            const coprimes = getCoprimes(primeData.modulus);
+            const maxCount = Math.max(...Object.values(primeData.residueDistribution).map(d => d.count));
+            
+            const cellWidth = Math.min(40, (canvas.width - 40) / coprimes.length);
+            const cellHeight = 30;
+            
+            coprimes.forEach((residue, index) => {
+                const data = primeData.residueDistribution[residue] || { count: 0 };
+                const intensity = data.count / maxCount;
+                
+                const x = 30 + index * cellWidth;
+                const y = canvas.height / 2 - cellHeight / 2;
+                
+                // Heat color: blue (cold) to red (hot)
+                const hue = (1 - intensity) * 240; // 240 = blue, 0 = red
+                ctx.fillStyle = `hsla(${hue}, 70%, 50%, 0.8)`;
+                ctx.fillRect(x, y, cellWidth - 2, cellHeight);
+                
+                // Border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.strokeRect(x, y, cellWidth - 2, cellHeight);
+                
+                // Label
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '10px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(residue.toString(), x + cellWidth/2 - 1, y + cellHeight/2 + 3);
+            });
+            
+            // Title and color scale
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('Prime Density by Residue Class', canvas.width / 2, 20);
+            
+            // Color scale legend
+            const legendY = canvas.height - 40;
+            const legendWidth = 200;
+            const legendX = (canvas.width - legendWidth) / 2;
+            
+            for (let i = 0; i < legendWidth; i++) {
+                const intensity = i / legendWidth;
+                const hue = (1 - intensity) * 240;
+                ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+                ctx.fillRect(legendX + i, legendY, 1, 15);
+            }
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '10px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillText('Low', legendX - 25, legendY + 12);
+            ctx.textAlign = 'right';
+            ctx.fillText('High', legendX + legendWidth + 25, legendY + 12);
+        }
+        
+        function updateChiSquaredVisualization() {
+            const canvas = document.getElementById('chiSquaredCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!primeData.isActive) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '16px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Run Prime Sieve', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            const analysis = calculateEquidistributionScore();
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Draw chi-squared value as a gauge
+            const maxChiSquared = analysis.degreesOfFreedom * 2;
+            const normalizedChi = Math.min(1, analysis.chiSquared / maxChiSquared);
+            
+            // Background circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 80, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 15;
+            ctx.stroke();
+            
+            // Chi-squared arc
+            const startAngle = -Math.PI / 2;
+            const endAngle = startAngle + normalizedChi * 2 * Math.PI;
+            const color = normalizedChi < 0.5 ? '#48BB78' : normalizedChi < 0.75 ? '#FFD700' : '#FF6B6B';
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 80, startAngle, endAngle);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 15;
+            ctx.stroke();
+            
+            // Center text
+            ctx.fillStyle = color;
+            ctx.font = 'bold 24px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText(analysis.chiSquared.toFixed(1), centerX, centerY - 5);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Segoe UI';
+            ctx.fillText('χ² statistic', centerX, centerY + 15);
+            
+            // Details
+            ctx.font = '11px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(`df = ${analysis.degreesOfFreedom}`, 20, canvas.height - 60);
+            ctx.fillText(`Critical ≈ ${(analysis.degreesOfFreedom * 1.5).toFixed(1)}`, 20, canvas.height - 40);
+            ctx.fillText(`Result: ${analysis.isUniform ? '✓ Uniform' : '✗ Non-uniform'}`, 20, canvas.height - 20);
+            
+            ctx.textAlign = 'right';
+            ctx.fillText(`p-value region: ${normalizedChi < 0.5 ? 'High' : normalizedChi < 0.75 ? 'Medium' : 'Low'}`, 
+                        canvas.width - 20, canvas.height - 40);
+            ctx.fillText(`GRH Support: ${analysis.grhSupport}`, canvas.width - 20, canvas.height - 20);
+        }
+        
+        function updateModulusComparison() {
+            const canvas = document.getElementById('modulusComparisonCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '16px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Select Rings', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            const ringData = selectedRings.slice(0, 10).map(ringId => {
+                const config = configs[ringId];
+                if (!config) return null;
+                const coprimes = getCoprimes(config.mod);
+                return {
+                    modulus: config.mod,
+                    phi: coprimes.length,
+                    density: coprimes.length / config.mod
+                };
+            }).filter(Boolean);
+            
+            if (ringData.length === 0) return;
+            
+            const barWidth = (canvas.width - 60) / ringData.length;
+            const maxPhi = Math.max(...ringData.map(d => d.phi));
+            
+            ringData.forEach((data, index) => {
+                const barHeight = (data.phi / maxPhi) * (canvas.height - 80);
+                const x = 40 + index * barWidth;
+                const y = canvas.height - 50 - barHeight;
+                
+                // Bar color based on density
+                const hue = data.density * 120; // Green for high density
+                ctx.fillStyle = `hsla(${hue}, 70%, 60%, 0.8)`;
+                ctx.fillRect(x + 5, y, barWidth - 10, barHeight);
+                
+                // Border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x + 5, y, barWidth - 10, barHeight);
+                
+                // Labels
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '10px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(`M${Math.round(data.modulus)}`, x + barWidth/2, canvas.height - 35);
+                ctx.fillText(`φ=${data.phi}`, x + barWidth/2, canvas.height - 20);
+            });
+            
+            // Title
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('Euler Totient φ(M) Comparison', canvas.width / 2, 20);
+        }
+        
+        function updateLFunctionVisualization() {
+            const canvas = document.getElementById('lFunctionCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '16px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Select Rings', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(40, centerY);
+            ctx.lineTo(canvas.width - 10, centerY);
+            ctx.moveTo(40, 10);
+            ctx.lineTo(40, canvas.height - 10);
+            ctx.stroke();
+            
+            // Simulate |L(1/2 + it, χ)| along critical line
+            const tMax = 50;
+            const tScale = (canvas.width - 50) / tMax;
+            const yScale = (canvas.height - 20) / 4; // Scale for magnitude
+            
+            selectedRings.slice(0, 3).forEach((ringId, index) => {
+                const config = configs[ringId];
+                if (!config) return;
+                
+                const coprimes = getCoprimes(config.mod);
+                const hue = (index * 120) % 360;
+                
+                ctx.strokeStyle = `hsla(${hue}, 70%, 60%, 0.8)`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                let firstPoint = true;
+                for (let t = 0; t <= tMax; t += 0.5) {
+                    // Simplified L-function magnitude simulation
+                    // Real L-functions would require complex calculations
+                    const magnitude = Math.abs(Math.sin(t * coprimes.length / 10) * Math.exp(-t / 30)) + 0.5;
+                    const x = 40 + t * tScale;
+                    const y = centerY - magnitude * yScale;
+                    
+                    if (firstPoint) {
+                        ctx.moveTo(x, y);
+                        firstPoint = false;
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+                
+                // Legend
+                ctx.fillStyle = `hsla(${hue}, 70%, 60%, 0.8)`;
+                ctx.font = '11px Segoe UI';
+                ctx.textAlign = 'left';
+                ctx.fillText(`M = ${Math.round(config.mod)}`, 50, 30 + index * 15);
+            });
+            
+            // Labels
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('|L(1/2 + it, χ)|', canvas.width / 2, 15);
+            ctx.fillText('t', canvas.width - 20, centerY - 10);
+            
+            ctx.save();
+            ctx.translate(15, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('|L|', 0, 0);
+            ctx.restore();
         }
 
         function exportRhData() {
@@ -4474,4 +4978,4 @@
         }, 500);
     </script>
 </body>
-    </html>
+                                                        </html>
