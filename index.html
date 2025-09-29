@@ -597,6 +597,79 @@
                         </div>
                         <div id="rhPredictions" style="font-size: 12px; margin: 10px 0; opacity: 0.9;"></div>
                     </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>Prime Sieve Engine:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="enablePrimeSieve"> Enable Prime Sieve Analysis
+                        </div>
+                        
+                        <div class="custom-gap" id="sieveControls" style="display: none;">
+                            <label><strong>Sieve Parameters:</strong></label>
+                            <div class="gap-input">
+                                Search up to: <input type="number" id="sieveLimit" min="100" value="10000" placeholder="10000">
+                            </div>
+                            <div class="gap-input">
+                                Using modulus: <input type="number" id="sieveModulus" min="2" value="30" placeholder="30">
+                                <button onclick="runPrimeSieve()">Generate Sieve</button>
+                            </div>
+                            <div class="gap-input">
+                                <button onclick="clearPrimeSieve()">Clear Sieve</button>
+                                <button onclick="exportPrimeData()">Export Data</button>
+                            </div>
+                            <div id="sieveProgress" style="display: none; margin-top: 10px;">
+                                <div style="background: rgba(255,255,255,0.2); border-radius: 10px; height: 20px;">
+                                    <div id="progressBar" style="background: linear-gradient(45deg, #4ECDC4, #44A08D); height: 100%; border-radius: 10px; width: 0%; transition: width 0.3s;"></div>
+                                </div>
+                                <div id="progressText" style="text-align: center; margin-top: 5px; font-size: 12px;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="custom-gap" id="sieveResults" style="display: none;">
+                            <label><strong>Prime Distribution Analysis:</strong></label>
+                            <div id="primeStats" style="font-size: 13px; margin: 10px 0;"></div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showPrimeMarkers"> Highlight Primes on Rings
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showCompositeMarkers"> Show Composite Numbers
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showPrimeDensity"> Show Density Visualization
+                            </div>
+                        </div>
+                        
+                        <div class="custom-gap" id="primePatternAnalysis" style="display: none;">
+                            <label><strong>Complete Prime Distribution Analysis:</strong></label>
+                            <div id="residueDistribution" style="font-size: 12px; max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 10px;"></div>
+                            
+                            <div class="gap-input" style="margin-top: 15px;">
+                                <button onclick="exportDetailedPrimeList()">Export All Primes by Residue</button>
+                                <button onclick="togglePrimeSearchMode()">Search Specific Primes</button>
+                            </div>
+                            
+                            <div id="primeSearchControls" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                <label><strong>Prime Search:</strong></label>
+                                <div class="gap-input">
+                                    Prime: <input type="number" id="searchPrime" min="2" max="1000000" placeholder="Enter prime">
+                                    <button onclick="findPrimeInResidue()">Find Residue Class</button>
+                                </div>
+                                <div id="searchResult" style="margin-top: 10px; font-size: 13px;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="custom-gap">
+                            <label><strong>Quick Sieve Presets:</strong></label>
+                            <div class="gap-input">
+                                <button onclick="quickSieve(1000, 6)">Primes to 1K (mod 6)</button>
+                                <button onclick="quickSieve(10000, 30)">Primes to 10K (mod 30)</button>
+                            </div>
+                            <div class="gap-input">
+                                <button onclick="quickSieve(100000, 210)">Primes to 100K (mod 210)</button>
+                                <button onclick="quickSieve(1000000, 2310)">Primes to 1M (mod 2310)</button>
+                            </div>
+                        </div>
+                    </div>
                     </div>
                 </div>
 
@@ -608,6 +681,15 @@
                     <div id="gapSection" class="collapsible-section">
                     <div class="checkbox-group" id="gapControls">
                         <!-- All gaps unchecked by default -->
+                    </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>GCD Filtering:</strong></label>
+                        <div class="gap-input">
+                            <button class="special-btn" onclick="filterGcdForActiveGaps()">Show Only Active Gap GCDs</button>
+                            <button onclick="resetGcdFilters()">Reset GCD Filters</button>
+                        </div>
+                        <div id="gcdFilterStatus" style="font-size: 12px; margin: 10px 0; opacity: 0.9; font-style: italic;"></div>
                     </div>
                     
                     <div class="custom-gap">
@@ -637,6 +719,33 @@
                     <div id="ringSection" class="collapsible-section">
                     <div class="checkbox-group" id="ringControls">
                         <!-- Generated by JavaScript -->
+                    </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>Ring Radius Scaling:</strong></label>
+                        <div class="slider-group">
+                            <label>Scaling Method:</label>
+                            <select id="radiusScaling" onchange="updateRadiusScaling()">
+                                <option value="linear" selected>Linear: r = c·m</option>
+                                <option value="sqrt">Square-root: r = c·√m</option>
+                                <option value="log">Logarithmic: r = c·log(m+1)</option>
+                                <option value="totient">Totient-based: r = c·φ(m)</option>
+                                <option value="density">Density-based: r = c·φ(m)/m</option>
+                                <option value="inverse">Inverse: r = c/m</option>
+                                <option value="exponential">Exponential: r = c·aᵐ</option>
+                            </select>
+                        </div>
+                        <div class="slider-group">
+                            <label>Scaling Constant (c): <span id="scalingConstantValue">1.0</span></label>
+                            <input type="range" id="scalingConstant" min="0.1" max="5" step="0.1" value="1.0" oninput="updateScalingConstant()">
+                        </div>
+                        <div class="slider-group" id="exponentialBaseGroup" style="display: none;">
+                            <label>Exponential Base (a): <span id="exponentialBaseValue">1.15</span></label>
+                            <input type="range" id="exponentialBase" min="1.01" max="2.0" step="0.01" value="1.15" oninput="updateExponentialBase()">
+                        </div>
+                        <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;" id="scalingDescription">
+                            Linear spacing proportional to modulus value
+                        </div>
                     </div>
                     
                     <div class="custom-gap">
@@ -1272,12 +1381,11 @@
                 </div>
                 
                 <div style="margin-top: 20px; padding: 20px; background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(72, 187, 120, 0.1)); border-radius: 10px; border: 2px solid rgba(255, 215, 0, 0.3);">
-                    <h4 style="color: #FFD700; margin-bottom: 15px;">🔬 Research & Development</h4>
+                    <h4 style="color: #FFD700; margin-bottom: 15px;">Research & Development</h4>
                     <div style="font-size: 14px; line-height: 1.8;">
                         <p><strong>Created by:</strong> Wessen Getachew</p>
-                        <p><strong>Twitter:</strong> <a href="https://twitter.com/7dView" target="_blank" style="color: #4ECDC4; text-decoration: none;">@7dView</a></p>
-                        <p><strong>Email:</strong> <a href="mailto:getachewwessen@gmail.com" style="color: #4ECDC4; text-decoration: none;">getachewwessen@gmail.com</a></p>
-                        <p><strong>Related Work:</strong> <a href="https://wessengetachew.github.io/Ethiopian/" target="_blank" style="color: #FFD700; text-decoration: none; font-weight: bold;">🔭 Telescoping Series Research</a></p>
+                        <p><strong>Twitter:</strong> @7dView</p>
+                        <p><strong>Email:</strong> getachewwessen@gmail.com</p>
                         <p style="margin-top: 10px; font-style: italic; opacity: 0.9;">This interactive visualization explores connections between modular arithmetic, prime distribution, and the Riemann Hypothesis through geometric representation of algebraic structures.</p>
                     </div>
                 </div>
@@ -1309,6 +1417,15 @@
         let ringRotationSpeeds = {};
         let specificLabelMods = new Set();
         let inversionIntensity = 1.0;
+        
+        // Radius scaling state
+        let radiusScalingMethod = 'linear';
+        let scalingConstant = 1.0;
+        let exponentialBase = 1.15;
+        
+        // GCD filtering state
+        let activeGapGcdFilter = false;
+        let filteredGcdResidues = new Set();
         
         // Animation recording state
         let mediaRecorder = null;
