@@ -725,6 +725,45 @@
                             <button class="special-btn" onclick="resetToDefaults()">Reset to M1-M30</button>
                         </div>
                     </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>Ring Radius Scaling:</strong></label>
+                        <div class="slider-group">
+                            <label>Scaling Function:</label>
+                            <select id="radiusScaling" onchange="updateRadiusScaling()">
+                                <option value="uniform" selected>Uniform Spacing (default)</option>
+                                <option value="linear">Linear: r(m) = c·m</option>
+                                <option value="sqrt">Square-root: r(m) = c·√m</option>
+                                <option value="log">Logarithmic: r(m) = c·log(m+1)</option>
+                                <option value="totient">Totient: r(m) = c·φ(m)</option>
+                                <option value="density">Density: r(m) = c·φ(m)/m</option>
+                                <option value="inverse">Inverse: r(m) = c/m</option>
+                                <option value="exponential">Exponential: r(m) = c·aᵐ</option>
+                            </select>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Scaling Constant c: <span id="scalingConstValue">1.0</span></label>
+                            <input type="range" id="scalingConst" min="0.1" max="5" step="0.1" value="1.0" oninput="updateScalingConst()">
+                        </div>
+                        
+                        <div class="slider-group" id="expBaseGroup" style="display: none;">
+                            <label>Exponential Base a: <span id="expBaseValue">1.15</span></label>
+                            <input type="range" id="expBase" min="1.01" max="1.5" step="0.01" value="1.15" oninput="updateExpBase()">
+                        </div>
+                        
+                        <div style="font-size: 0.85em; opacity: 0.9; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                            <strong>Mathematical Interpretation:</strong><br>
+                            <span id="scalingDescription">
+                                Uniform spacing places rings at equal intervals regardless of modulus value.
+                            </span>
+                        </div>
+                        
+                        <div class="gap-input" style="margin-top: 10px;">
+                            <button onclick="showRadiusComparison()">Compare Scalings</button>
+                            <button onclick="resetRadiusScaling()">Reset to Uniform</button>
+                        </div>
+                    </div>
                     </div>
                 </div>
 
@@ -1294,6 +1333,11 @@
         let ringRotationSpeeds = {};
         let specificLabelMods = new Set();
         let inversionIntensity = 1.0;
+        
+        // Ring radius scaling state
+        let radiusScalingMode = 'uniform';
+        let scalingConstant = 1.0;
+        let exponentialBase = 1.15;
         
         // Animation recording state
         let mediaRecorder = null;
@@ -2650,6 +2694,215 @@
         function getSelectedRings() {
             const checked = document.querySelectorAll('#ringControls input:checked');
             return Array.from(checked).map(cb => cb.value);
+        }
+
+        function updateExpBase() {
+            const value = document.getElementById('expBase').value;
+            document.getElementById('expBaseValue').textContent = value;
+            exponentialBase = parseFloat(value);
+            draw();
+        }
+
+        function updateRadiusScaling() {
+            radiusScalingMode = document.getElementById('radiusScaling').value;
+            const expGroup = document.getElementById('expBaseGroup');
+            
+            // Show exponential base control only for exponential mode
+            expGroup.style.display = radiusScalingMode === 'exponential' ? 'block' : 'none';
+            
+            updateScalingDescription();
+            updateAnimationStatus(`Radius scaling: ${radiusScalingMode}`);
+            draw();
+        }
+
+        function updateScalingConst() {
+            const value = document.getElementById('scalingConst').value;
+            document.getElementById('scalingConstValue').textContent = value;
+            scalingConstant = parseFloat(value);
+            draw();
+        }
+
+        function updateScalingDescription() {
+            const descriptions = {
+                'uniform': 'Uniform spacing places rings at equal intervals regardless of modulus value. Best for visualizing all rings equally.',
+                'linear': 'Linear scaling r(m) = c·m places rings proportionally to modulus size. Larger moduli appear much farther out, emphasizing hierarchical structure.',
+                'sqrt': 'Square-root scaling r(m) = c·√m compresses large moduli while spreading small ones. Balances visibility across different scales.',
+                'log': 'Logarithmic scaling r(m) = c·log(m+1) strongly compresses large moduli. Excellent for visualizing many rings of vastly different sizes.',
+                'totient': 'Totient-based scaling r(m) = c·φ(m) places rings by Euler totient function. Rings positioned by number of coprime residues—mathematically meaningful!',
+                'density': 'Density scaling r(m) = c·φ(m)/m uses totient density. Rings with higher proportions of coprime residues appear farther out—reveals number-theoretic properties.',
+                'inverse': 'Inverse scaling r(m) = c/m places smaller moduli farther out and larger ones closer in. Reverses usual hierarchy—creates unique perspectives.',
+                'exponential': 'Exponential scaling r(m) = c·aᵐ grows rapidly. Large moduli spread far apart—best for small sets of rings. Adjustable base a controls growth rate.'
+            };
+            
+            document.getElementById('scalingDescription').textContent = descriptions[radiusScalingMode] || '';
+        }
+
+        function calculateRadius(modulus, index, totalRings) {
+            const maxRadius = 280;
+            const minRadius = 25; // Always keep unit circle at same inner radius
+            
+            // For unit circle, always return minRadius
+            if (modulus === 1) return minRadius;
+            
+            const c = scalingConstant;
+            
+            switch(radiusScalingMode) {
+                case 'uniform':
+                    // Default uniform spacing
+                    return minRadius + (maxRadius - minRadius) * index / Math.max(1, totalRings - 1);
+                
+                case 'linear':
+                    // r(m) = c·m
+                    const maxMod = Math.max(...getSelectedRings().map(id => configs[id]?.mod || 1));
+                    const linearRadius = minRadius + (maxRadius - minRadius) * (c * modulus) / (c * maxMod);
+                    return Math.min(maxRadius, linearRadius);
+                
+                case 'sqrt':
+                    // r(m) = c·√m
+                    const maxSqrt = Math.sqrt(Math.max(...getSelectedRings().map(id => configs[id]?.mod || 1)));
+                    const sqrtRadius = minRadius + (maxRadius - minRadius) * (c * Math.sqrt(modulus)) / (c * maxSqrt);
+                    return Math.min(maxRadius, sqrtRadius);
+                
+                case 'log':
+                    // r(m) = c·log(m+1)
+                    const maxLog = Math.log(Math.max(...getSelectedRings().map(id => configs[id]?.mod || 1)) + 1);
+                    const logRadius = minRadius + (maxRadius - minRadius) * (c * Math.log(modulus + 1)) / (c * maxLog);
+                    return Math.min(maxRadius, logRadius);
+                
+                case 'totient': {
+                    // r(m) = c·φ(m)
+                    const coprimes = getCoprimes(modulus);
+                    const phi = coprimes.length;
+                    const maxPhi = Math.max(...getSelectedRings().map(id => {
+                        const cfg = configs[id];
+                        return cfg ? getCoprimes(cfg.mod).length : 1;
+                    }));
+                    const totientRadius = minRadius + (maxRadius - minRadius) * (c * phi) / (c * maxPhi);
+                    return Math.min(maxRadius, totientRadius);
+                }
+                
+                case 'density': {
+                    // r(m) = c·φ(m)/m
+                    const coprimes = getCoprimes(modulus);
+                    const density = coprimes.length / modulus;
+                    const maxDensity = Math.max(...getSelectedRings().map(id => {
+                        const cfg = configs[id];
+                        if (!cfg) return 0;
+                        const cp = getCoprimes(cfg.mod);
+                        return cp.length / cfg.mod;
+                    }));
+                    const densityRadius = minRadius + (maxRadius - minRadius) * (c * density) / (c * maxDensity);
+                    return Math.min(maxRadius, densityRadius);
+                }
+                
+                case 'inverse': {
+                    // r(m) = c/m - but we need to normalize to fit in our range
+                    const minMod = Math.min(...getSelectedRings().map(id => configs[id]?.mod || 1));
+                    const maxInverse = c / minMod;
+                    const inverse = c / modulus;
+                    // Inverse: smaller values mean larger radius
+                    const inverseRadius = minRadius + (maxRadius - minRadius) * (1 - inverse / maxInverse);
+                    return Math.min(maxRadius, Math.max(minRadius, inverseRadius));
+                }
+                
+                case 'exponential': {
+                    // r(m) = c·a^m
+                    const a = exponentialBase;
+                    const maxExp = Math.pow(a, Math.max(...getSelectedRings().map(id => configs[id]?.mod || 1)));
+                    const exp = Math.pow(a, modulus);
+                    const expRadius = minRadius + (maxRadius - minRadius) * (c * exp) / (c * maxExp);
+                    return Math.min(maxRadius, expRadius);
+                }
+                
+                default:
+                    return minRadius + (maxRadius - minRadius) * index / Math.max(1, totalRings - 1);
+            }
+        }
+
+        function resetRadiusScaling() {
+            radiusScalingMode = 'uniform';
+            scalingConstant = 1.0;
+            exponentialBase = 1.15;
+            
+            document.getElementById('radiusScaling').value = 'uniform';
+            document.getElementById('scalingConst').value = 1.0;
+            document.getElementById('scalingConstValue').textContent = '1.0';
+            document.getElementById('expBase').value = 1.15;
+            document.getElementById('expBaseValue').textContent = '1.15';
+            document.getElementById('expBaseGroup').style.display = 'none';
+            
+            updateScalingDescription();
+            updateAnimationStatus('Radius scaling reset to uniform');
+            draw();
+        }
+
+        function showRadiusComparison() {
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) {
+                alert('Please select some rings first to compare scaling methods.');
+                return;
+            }
+            
+            let comparisonText = 'RING RADIUS SCALING COMPARISON\n';
+            comparisonText += '=' .repeat(80) + '\n\n';
+            comparisonText += `Selected Rings: ${selectedRings.length}\n`;
+            comparisonText += `Scaling Constant c = ${scalingConstant}\n`;
+            comparisonText += `Exponential Base a = ${exponentialBase}\n\n`;
+            
+            comparisonText += 'Modulus  | Uniform  | Linear   | Sqrt     | Log      | Totient  | Density  | Inverse  | Exponent\n';
+            comparisonText += '-'.repeat(100) + '\n';
+            
+            const sortedRings = [...selectedRings].sort((a, b) => {
+                if (a === 'unit') return -1;
+                if (b === 'unit') return 1;
+                return (configs[a]?.mod || 0) - (configs[b]?.mod || 0);
+            });
+            
+            sortedRings.slice(0, 20).forEach((ringId, index) => {
+                const config = configs[ringId];
+                if (!config) return;
+                
+                const m = config.mod;
+                const modLabel = ringId === 'unit' ? 'M=1 (Unit)' : `M=${Math.round(m)}`;
+                
+                // Calculate radius for each mode
+                const modes = ['uniform', 'linear', 'sqrt', 'log', 'totient', 'density', 'inverse', 'exponential'];
+                const radii = modes.map(mode => {
+                    const oldMode = radiusScalingMode;
+                    radiusScalingMode = mode;
+                    const r = calculateRadius(m, index, selectedRings.length);
+                    radiusScalingMode = oldMode;
+                    return r.toFixed(2).padStart(8);
+                });
+                
+                comparisonText += `${modLabel.padEnd(8)} | ${radii.join(' | ')}\n`;
+            });
+            
+            if (sortedRings.length > 20) {
+                comparisonText += `\n... and ${sortedRings.length - 20} more rings\n`;
+            }
+            
+            comparisonText += '\n' + '='.repeat(80) + '\n';
+            comparisonText += '\nMathematical Formulas:\n';
+            comparisonText += '  Uniform:      Equal spacing independent of m\n';
+            comparisonText += '  Linear:       r(m) = c·m\n';
+            comparisonText += '  Square-root:  r(m) = c·√m\n';
+            comparisonText += '  Logarithmic:  r(m) = c·log(m+1)\n';
+            comparisonText += '  Totient:      r(m) = c·φ(m)\n';
+            comparisonText += '  Density:      r(m) = c·φ(m)/m\n';
+            comparisonText += '  Inverse:      r(m) = c/m\n';
+            comparisonText += '  Exponential:  r(m) = c·aᵐ\n';
+            
+            // Create download
+            const blob = new Blob([comparisonText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `radius_scaling_comparison_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            updateAnimationStatus('Radius scaling comparison exported');
         }
 
         // Enhanced control functions
@@ -4546,8 +4799,8 @@
             });
 
             sortedRings.forEach((n, index) => {
-                const radius = minRadius + (maxRadius - minRadius) * index / Math.max(1, sortedRings.length - 1);
                 const modulus = configs[n].mod;
+                const radius = calculateRadius(modulus, index, sortedRings.length);
                 const coprimes = getCoprimes(modulus);
                 const allResidues = getAllResidues(modulus);
                 
@@ -5230,4 +5483,4 @@
         }, 500);
     </script>
 </body>
-                                </html>
+</html>
