@@ -1525,10 +1525,11 @@
                 </div>
                 <div class="gap-input">
                     <button onclick="resetView()">Reset View</button>
-                    <button onclick="takeScreenshot()">Screenshot</button>
+                    <button onclick="captureImage()">Capture Image</button>
+                    <button onclick="invertCanvas()">Invert Nest Order</button>
                 </div>
                 <div class="custom-gap">
-                    <label><strong>Screenshot Options:</strong></label>
+                    <label><strong>Image Capture Options:</strong></label>
                     <div class="checkbox-item">
                         <input type="radio" name="screenshotResolution" value="standard" checked> Standard
                     </div>
@@ -3859,16 +3860,16 @@
 
         function calculateRadius(modulus, index, totalRings) {
             const maxRadius = 280;
-            const minRadius = 25; // Always keep unit circle at same inner radius
+            const minRadius = 25;
             
-            // For unit circle, always return minRadius
-            if (modulus === 1) return minRadius;
+            // Don't apply special case for unit circle during calculations
+            // Let it be positioned based on index like all other rings
             
             const c = scalingConstant;
             
             switch(radiusScalingMode) {
                 case 'uniform':
-                    // Default uniform spacing
+                    // Default uniform spacing - works for all rings including unit circle
                     return minRadius + (maxRadius - minRadius) * index / Math.max(1, totalRings - 1);
                 
                 case 'linear':
@@ -4878,13 +4879,61 @@
             return { title, subtitle };
         }
 
-        function takeScreenshot() {
+        // Simple and clean screenshot function
+        function captureImage() {
+            try {
+                // Get current canvas as JPEG
+                const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+                
+                // Create filename with timestamp
+                const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,'-');
+                const filename = `modular_rings_${timestamp}.jpg`;
+                
+                // Create download link
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = filename;
+                
+                // Trigger download
+                link.click();
+                
+                updateAnimationStatus('Image captured successfully! 📸');
+            } catch (error) {
+                alert('Error capturing image: ' + error.message);
+                console.error('Capture error:', error);
+            }
+        }
+        
+        // Invert ring order (like nesting animation but instant)
+        let ringOrderInverted = false;
+        
+        function invertCanvas() {
+            ringOrderInverted = !ringOrderInverted;
+            
+            if (ringOrderInverted) {
+                // Set nesting inversion to 1.0 (fully inverted)
+                nestingInversionAmount = 1.0;
+                document.getElementById('nestingInversion').value = 1.0;
+                document.getElementById('nestingInversionValue').textContent = '1.00';
+                updateAnimationStatus('ALL rings inverted (M30 inner, M1 outer - complete reversal)');
+            } else {
+                // Reset to normal order
+                nestingInversionAmount = 0.0;
+                document.getElementById('nestingInversion').value = 0.0;
+                document.getElementById('nestingInversionValue').textContent = '0.00';
+                updateAnimationStatus('Ring order restored to normal (M1 inner, M30 outer)');
+            }
+            
+            draw();
+        }
+        function takeScreenshot_OLD_DISABLED() {
             const selectedRings = getSelectedRings();
             const selectedGaps = getSelectedGaps();
             const includeTitle = document.getElementById('includeTitle').checked;
             const includeLegend = document.getElementById('includeLegend').checked;
             const backgroundChoice = document.querySelector('input[name="screenshotBg"]:checked').value;
             const resolutionChoice = document.querySelector('input[name="screenshotResolution"]:checked').value;
+            const colorMode = document.getElementById('residueColorMode').value;
             
             // Determine canvas dimensions with proper spacing
             let baseWidth, baseHeight, scaleFactor;
@@ -5404,30 +5453,29 @@
             const ringText = selectedRings.length > 0 ? `_${selectedRings.length}rings` : '';
             const gapText = selectedGaps.length > 0 ? `_${selectedGaps.length}gaps` : '';
             const resText = resolutionChoice === '4k' ? '_4K' : '';
-            const filename = `modular_rings${ringText}${gapText}${resText}_${timestamp}.png`;
+            const filename = `modular_rings${ringText}${gapText}${resText}_${timestamp}.jpg`;
             
-            // Create download link with optimized quality
+            // Create download link with JPEG format
             try {
-                const dataURL = resolutionChoice === '4k' 
-                    ? tempCanvas.toDataURL('image/png', 1.0)
-                    : tempCanvas.toDataURL('image/png', 0.95);
+                // Convert to JPEG with high quality
+                const dataURL = tempCanvas.toDataURL('image/jpeg', 0.95);
                 
+                // Create and trigger download
                 const link = document.createElement('a');
                 link.download = filename;
                 link.href = dataURL;
-                link.style.display = 'none';
                 
-                // Add to DOM, click, then remove
+                // Trigger download
                 document.body.appendChild(link);
                 link.click();
+                document.body.removeChild(link);
                 
-                // Clean up after a short delay
-                setTimeout(() => {
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(link.href);
-                }, 100);
+                const statusMsg = resolutionChoice === '4k' 
+                    ? '4K Ultra HD screenshot saved as JPEG!' 
+                    : 'Enhanced screenshot saved as JPEG!';
+                updateAnimationStatus(statusMsg);
                 
-                updateAnimationStatus(resolutionChoice === '4k' ? '4K Ultra HD screenshot saved!' : 'Enhanced screenshot saved!');
+                console.log('Screenshot saved:', filename);
             } catch (error) {
                 console.error('Screenshot error:', error);
                 alert('Error saving screenshot: ' + error.message + '\n\nTry using a smaller resolution or fewer rings.');
@@ -6367,23 +6415,15 @@
             
             // Calculate gradual position exchange based on inversion amount
             // Each ring's position interpolates between its normal and inverted position
+            // ALL rings including unit circle are inverted
             const sortedRings = ringConfigs.map((config, sortedIndex) => {
-                // For unit circle, always keep at position 0
-                if (config.ringId === 'unit') {
-                    config.finalIndex = 0;
-                    return config;
-                }
-                
-                // Calculate inverted position (excluding unit circle)
-                const totalNonUnitRings = ringConfigs.length - 1;
-                const nonUnitSortedIndex = sortedIndex - 1; // Adjust for unit circle
-                
                 // Normal position: sortedIndex (0, 1, 2, 3, ..., n)
-                // Inverted position: totalRings - sortedIndex (n, n-1, n-2, ..., 0)
+                // Inverted position: totalRings - 1 - sortedIndex (n, n-1, n-2, ..., 0)
                 const normalPos = sortedIndex;
-                const invertedPos = ringConfigs.length - 1 - nonUnitSortedIndex;
+                const invertedPos = ringConfigs.length - 1 - sortedIndex;
                 
                 // Interpolate between normal and inverted position
+                // This includes unit circle - it will swap with the outermost ring
                 const finalPos = normalPos * (1 - nestingInversionAmount) + invertedPos * nestingInversionAmount;
                 config.finalIndex = finalPos;
                 
@@ -7095,4 +7135,4 @@
         }, 500);
     </script>
 </body>
-                            </html>
+    </html>
