@@ -17,6 +17,33 @@
             color: #ffffff;
             min-height: 100vh;
             padding: 20px;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        
+        body.light-mode {
+            background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 50%, #95a5a6 100%);
+            color: #2c3e50;
+        }
+        
+        body.light-mode .container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #2c3e50;
+        }
+        
+        body.light-mode .control-section,
+        body.light-mode .analysis-section,
+        body.light-mode .legend {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        body.light-mode h1,
+        body.light-mode h3 {
+            color: #2c3e50;
+        }
+        
+        body.light-mode .subtitle {
+            color: #34495e;
         }
 
         .container {
@@ -556,10 +583,180 @@
             font-size: 12px;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .keyboard-shortcuts {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 12px;
+            max-width: 250px;
+            display: none;
+        }
+        
+        .keyboard-shortcuts.visible {
+            display: block;
+        }
+        
+        .keyboard-shortcuts h4 {
+            margin: 0 0 10px 0;
+            color: #FFD700;
+        }
+        
+        .keyboard-shortcuts kbd {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        
+        .hover-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 10000;
+            max-width: 300px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .hover-tooltip.visible {
+            display: block;
+        }
+        
+        .hover-tooltip h5 {
+            margin: 0 0 8px 0;
+            color: #FFD700;
+            font-size: 14px;
+        }
+        
+        .hover-tooltip .property {
+            margin: 4px 0;
+            color: #4ECDC4;
+        }
+        
+        .hover-tooltip .property strong {
+            color: #ffffff;
+        }
+        
+        .color-palette-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 10px 0;
+        }
+        
+        .palette-option {
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .palette-option:hover {
+            transform: scale(1.05);
+            border-color: #FFD700;
+        }
+        
+        .palette-option.active {
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .palette-option.rainbow {
+            background: linear-gradient(90deg, #FF6B6B, #FFD700, #4ECDC4, #9b59b6);
+        }
+        
+        .palette-option.ocean {
+            background: linear-gradient(90deg, #006994, #1e90ff, #4ECDC4, #7fcdbb);
+        }
+        
+        .palette-option.sunset {
+            background: linear-gradient(90deg, #FF6B6B, #FF8C42, #FFA500, #FFD700);
+        }
+        
+        .palette-option.matrix {
+            background: linear-gradient(90deg, #003300, #00ff00, #00cc00, #39FF14);
+        }
+        
+        .palette-option.fire {
+            background: linear-gradient(90deg, #8B0000, #FF0000, #FF4500, #FFA500);
+        }
+        
+        .palette-option.ice {
+            background: linear-gradient(90deg, #E0FFFF, #ADD8E6, #87CEEB, #4682B4);
+        }
+        
+        .palette-option.purple {
+            background: linear-gradient(90deg, #4B0082, #8B008B, #9370DB, #BA55D3);
+        }
+        
+        .palette-option.earth {
+            background: linear-gradient(90deg, #8B4513, #D2691E, #DEB887, #F4A460);
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="theme-toggle" onclick="toggleTheme()">
+            <span id="themeIcon">🌙</span>
+            <span id="themeText">Dark Mode</span>
+        </div>
+        
+        <div class="keyboard-shortcuts" id="keyboardShortcuts">
+            <h4>⌨️ Keyboard Shortcuts</h4>
+            <div><kbd>?</kbd> Toggle this help</div>
+            <div><kbd>T</kbd> Toggle theme</div>
+            <div><kbd>R</kbd> Toggle rotation</div>
+            <div><kbd>L</kbd> Toggle labels</div>
+            <div><kbd>Space</kbd> Start/Stop animation</div>
+            <div><kbd>←→</kbd> Adjust rotation</div>
+            <div><kbd>↑↓</kbd> Adjust zoom</div>
+            <div><kbd>Esc</kbd> Reset view</div>
+            <div><kbd>S</kbd> Take screenshot</div>
+            <div><kbd>1-8</kbd> Quick gap selection</div>
+        </div>
+        
+        <div class="hover-tooltip" id="hoverTooltip">
+            <h5 id="tooltipTitle">Residue Info</h5>
+            <div id="tooltipContent"></div>
+        </div>
+        
         <h1>Riemann Hypothesis Explorer</h1>
         <div class="subtitle">Interactive Modular Rings & Complex Analysis Visualization<br>
         <em class="math-notation">Exploring ζ(s), L(s,χ), and Prime Distribution through Geometric Patterns</em></div>
@@ -772,6 +969,21 @@
                         Visual Customization
                     </h3>
                     <div id="visualSection" class="collapsible-section">
+                    
+                    <div class="custom-gap">
+                        <label><strong>Color Palette Presets:</strong></label>
+                        <div class="color-palette-selector">
+                            <div class="palette-option rainbow active" onclick="applyPalette('rainbow')" title="Rainbow"></div>
+                            <div class="palette-option ocean" onclick="applyPalette('ocean')" title="Ocean"></div>
+                            <div class="palette-option sunset" onclick="applyPalette('sunset')" title="Sunset"></div>
+                            <div class="palette-option matrix" onclick="applyPalette('matrix')" title="Matrix"></div>
+                            <div class="palette-option fire" onclick="applyPalette('fire')" title="Fire"></div>
+                            <div class="palette-option ice" onclick="applyPalette('ice')" title="Ice"></div>
+                            <div class="palette-option purple" onclick="applyPalette('purple')" title="Purple"></div>
+                            <div class="palette-option earth" onclick="applyPalette('earth')" title="Earth"></div>
+                        </div>
+                    </div>
+                    
                     <div class="slider-group">
                         <label>Residue Coloring Scheme:</label>
                         <select id="residueColorMode" onchange="updateColorMode()">
@@ -1050,105 +1262,104 @@
                             Character support determines L-function behavior
                         </div>
                     </div>
-                </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="showLabels" checked> Show Residue Labels
                     </div>
-                    <button class="reset-btn" onclick="resetAll()">Reset All Settings</button>
                 </div>
-
-
-
+                
                 <div class="control-section">
-                    <h3 onclick="toggleSection('viewSection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="viewSectionIcon">▼</span>
-                        View Controls
-                    </h3>
-                    <div id="viewSection" class="collapsible-section">
-                    <div class="slider-group">
-                        <label>Zoom Level: <span id="zoomValue">1.0</span>x</label>
-                        <input type="range" id="zoomSlider" min="0.1" max="10" step="0.1" value="1" oninput="updateZoom()">
-                    </div>
-                    <div class="slider-group">
-                        <label>Manual Rotation: <span id="rotationValue">0°</span></label>
-                        <input type="range" id="rotationSlider" min="0" max="360" step="1" value="0" oninput="updateRotation()">
-                    </div>
-                    <div class="gap-input">
-                        <button onclick="resetView()">Reset View</button>
-                        <button onclick="takeScreenshot()">Screenshot</button>
-                    </div>
-                    <div class="custom-gap">
-                        <label><strong>Screenshot Options:</strong></label>
-                        <div class="checkbox-item">
-                            <input type="radio" name="screenshotResolution" value="standard" checked> Standard
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="radio" name="screenshotResolution" value="4k"> 4K
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="radio" name="screenshotBg" value="black" checked> Black Background
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="radio" name="screenshotBg" value="white"> White Background
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="includeTitle" checked> Include Title & Subtitle
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="includeLegend" checked> Include Legend
-                        </div>
-                    </div>
-                    
-                    <div class="custom-gap">
-                        <label><strong>Animation Export Options:</strong></label>
-                        <div class="checkbox-item">
-                            <input type="radio" name="animationFormat" value="webm" checked> WebM (High Quality)
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="radio" name="animationFormat" value="mp4"> MP4 (Compatible)
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="radio" name="animationFormat" value="gif"> GIF (Optimized)
-                        </div>
-                        <div class="slider-group">
-                            <label>Animation Duration: <span id="animDurationValue">5</span> seconds</label>
-                            <input type="range" id="animDuration" min="2" max="30" step="1" value="5" oninput="updateAnimDuration()">
-                        </div>
-                        <div class="slider-group">
-                            <label>Export FPS: <span id="animFpsValue">30</span></label>
-                            <input type="range" id="animFps" min="15" max="60" step="5" value="30" oninput="updateAnimFps()">
-                        </div>
-                        <div class="slider-group">
-                            <label>Export Resolution:</label>
-                            <select id="animResolution">
-                                <option value="1080p">1080p (1920×1080)</option>
-                                <option value="1440p">1440p (2560×1440)</option>
-                                <option value="4k" selected>4K (3840×2160)</option>
-                                <option value="custom">Custom Size</option>
-                            </select>
-                        </div>
-                        <div class="gap-input" id="customResolutionControls" style="display: none;">
-                            Width: <input type="number" id="customWidth" value="3840" min="480" step="16">
-                            Height: <input type="number" id="customHeight" value="2160" min="480" step="16">
-                        </div>
-                        <div class="gap-input" style="margin-top: 15px;">
-                            <button onclick="startRecording()" id="recordButton">Record Animation</button>
-                            <button onclick="stopRecording()">Stop Recording</button>
-                        </div>
-                    </div>
-                    <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
-                        <strong>Navigation:</strong><br>
-                        • Click & drag to pan<br>
-                        • Mouse wheel to zoom<br>
-                        • Double-click to reset center
-                    </div>
-                    </div>
+                    <button class="reset-btn" onclick="resetAll()">Reset All Settings</button>
                 </div>
             </div>
 
             <div class="canvas-container">
                 <canvas id="canvas" width="1000" height="750"></canvas>
                 <div class="animation-status" id="animationStatus">Ready</div>
+            </div>
+            
+            <!-- View Controls moved here -->
+            <div class="control-section" style="margin-top: 20px;">
+                <h3 onclick="toggleSection('viewSectionMain')" style="cursor: pointer; user-select: none;">
+                    <span class="collapse-icon" id="viewSectionMainIcon">▼</span>
+                    View Controls
+                </h3>
+                <div id="viewSectionMain" class="collapsible-section">
+                <div class="slider-group">
+                    <label>Zoom Level: <span id="zoomValue">1.0</span>x</label>
+                    <input type="range" id="zoomSlider" min="0.1" max="10" step="0.1" value="1" oninput="updateZoom()">
+                </div>
+                <div class="slider-group">
+                    <label>Manual Rotation: <span id="rotationValue">0°</span></label>
+                    <input type="range" id="rotationSlider" min="0" max="360" step="1" value="0" oninput="updateRotation()">
+                </div>
+                <div class="gap-input">
+                    <button onclick="resetView()">Reset View</button>
+                    <button onclick="takeScreenshot()">Screenshot</button>
+                </div>
+                <div class="custom-gap">
+                    <label><strong>Screenshot Options:</strong></label>
+                    <div class="checkbox-item">
+                        <input type="radio" name="screenshotResolution" value="standard" checked> Standard
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="screenshotResolution" value="4k"> 4K
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="screenshotBg" value="black" checked> Black Background
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="screenshotBg" value="white"> White Background
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="includeTitle" checked> Include Title & Subtitle
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="includeLegend" checked> Include Legend
+                    </div>
+                </div>
+                
+                <div class="custom-gap">
+                    <label><strong>Animation Export Options:</strong></label>
+                    <div class="checkbox-item">
+                        <input type="radio" name="animationFormat" value="webm" checked> WebM (High Quality)
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="animationFormat" value="mp4"> MP4 (Compatible)
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="animationFormat" value="gif"> GIF (Optimized)
+                    </div>
+                    <div class="slider-group">
+                        <label>Animation Duration: <span id="animDurationValue">5</span> seconds</label>
+                        <input type="range" id="animDuration" min="2" max="30" step="1" value="5" oninput="updateAnimDuration()">
+                    </div>
+                    <div class="slider-group">
+                        <label>Export FPS: <span id="animFpsValue">30</span></label>
+                        <input type="range" id="animFps" min="15" max="60" step="5" value="30" oninput="updateAnimFps()">
+                    </div>
+                    <div class="slider-group">
+                        <label>Export Resolution:</label>
+                        <select id="animResolution">
+                            <option value="1080p">1080p (1920×1080)</option>
+                            <option value="1440p">1440p (2560×1440)</option>
+                            <option value="4k" selected>4K (3840×2160)</option>
+                            <option value="custom">Custom Size</option>
+                        </select>
+                    </div>
+                    <div class="gap-input" id="customResolutionControls" style="display: none;">
+                        Width: <input type="number" id="customWidth" value="3840" min="480" step="16">
+                        Height: <input type="number" id="customHeight" value="2160" min="480" step="16">
+                    </div>
+                    <div class="gap-input" style="margin-top: 15px;">
+                        <button onclick="startRecording()" id="recordButton">Record Animation</button>
+                        <button onclick="stopRecording()">Stop Recording</button>
+                    </div>
+                </div>
+                <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">
+                    <strong>Navigation:</strong><br>
+                    • Click & drag to pan<br>
+                    • Mouse wheel to zoom<br>
+                    • Double-click to reset center
+                </div>
+                </div>
             </div>
             
             <!-- Dedicated RH Visualization Section -->
@@ -1382,6 +1593,25 @@
         let nestingAnimationSpeed = 1.0;
         let nestingAnimationProgress = 0;
         let nestingAnimationDirection = 1;
+        
+        // Interactive features state
+        let currentTheme = 'dark';
+        let currentPalette = 'rainbow';
+        let hoveredResidue = null;
+        let selectedResidue = null;
+        let showKeyboardShortcuts = false;
+        
+        // Color palettes
+        const colorPalettes = {
+            rainbow: (angle) => `hsl(${angle * 360}, 75%, 65%)`,
+            ocean: (angle) => `hsl(${180 + angle * 60}, 70%, 55%)`,
+            sunset: (angle) => `hsl(${angle * 60}, 100%, 60%)`,
+            matrix: (angle) => `hsl(${120 + angle * 30}, 100%, ${40 + angle * 30}%)`,
+            fire: (angle) => `hsl(${angle * 60}, 100%, ${50 + angle * 20}%)`,
+            ice: (angle) => `hsl(${180 + angle * 60}, 60%, ${60 + angle * 30}%)`,
+            purple: (angle) => `hsl(${270 + angle * 60}, 70%, 60%)`,
+            earth: (angle) => `hsl(${30 + angle * 30}, 60%, 50%)`
+        };
         
         // Animation recording state
         let mediaRecorder = null;
@@ -2616,6 +2846,128 @@
             }
             return a;
         }
+        
+        // Theme toggle
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.classList.toggle('light-mode');
+            
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            
+            if (currentTheme === 'light') {
+                icon.textContent = '☀️';
+                text.textContent = 'Light Mode';
+            } else {
+                icon.textContent = '🌙';
+                text.textContent = 'Dark Mode';
+            }
+            
+            draw();
+            updateAnimationStatus(`Switched to ${currentTheme} mode`);
+        }
+        
+        // Color palette application
+        function applyPalette(paletteName) {
+            currentPalette = paletteName;
+            
+            // Update active state
+            document.querySelectorAll('.palette-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            document.querySelector(`.palette-option.${paletteName}`).classList.add('active');
+            
+            // Override the color mode to use the selected palette
+            document.getElementById('residueColorMode').value = 'hue';
+            updateColorMode();
+            
+            updateAnimationStatus(`Applied ${paletteName} palette`);
+            draw();
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ignore if typing in input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                return;
+            }
+            
+            switch(e.key.toLowerCase()) {
+                case '?':
+                    showKeyboardShortcuts = !showKeyboardShortcuts;
+                    document.getElementById('keyboardShortcuts').classList.toggle('visible');
+                    break;
+                case 't':
+                    toggleTheme();
+                    break;
+                case 'r':
+                    document.getElementById('enableRotation').checked = !document.getElementById('enableRotation').checked;
+                    toggleRotation();
+                    break;
+                case 'l':
+                    document.getElementById('showLabels').checked = !document.getElementById('showLabels').checked;
+                    draw();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    document.getElementById('enableRotation').checked = !document.getElementById('enableRotation').checked;
+                    toggleRotation();
+                    break;
+                case 'arrowleft':
+                    e.preventDefault();
+                    const rotSlider = document.getElementById('rotationSlider');
+                    rotSlider.value = Math.max(0, parseFloat(rotSlider.value) - 5);
+                    updateRotation();
+                    break;
+                case 'arrowright':
+                    e.preventDefault();
+                    const rotSliderR = document.getElementById('rotationSlider');
+                    rotSliderR.value = Math.min(360, parseFloat(rotSliderR.value) + 5);
+                    updateRotation();
+                    break;
+                case 'arrowup':
+                    e.preventDefault();
+                    const zoomSlider = document.getElementById('zoomSlider');
+                    zoomSlider.value = Math.min(10, parseFloat(zoomSlider.value) + 0.1);
+                    updateZoom();
+                    break;
+                case 'arrowdown':
+                    e.preventDefault();
+                    const zoomSliderD = document.getElementById('zoomSlider');
+                    zoomSliderD.value = Math.max(0.1, parseFloat(zoomSliderD.value) - 0.1);
+                    updateZoom();
+                    break;
+                case 'escape':
+                    resetView();
+                    break;
+                case 's':
+                    takeScreenshot();
+                    break;
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                    const gapValue = parseInt(e.key) * 2;
+                    toggleGapQuick(gapValue);
+                    break;
+            }
+        });
+        
+        function toggleGapQuick(gap) {
+            const gapControls = document.getElementById('gapControls');
+            const gapCheckbox = Array.from(gapControls.querySelectorAll('input[type="checkbox"]'))
+                .find(cb => parseInt(cb.value) === gap);
+            
+            if (gapCheckbox) {
+                gapCheckbox.checked = !gapCheckbox.checked;
+                updateAnimationStatus(`Gap ${gap} ${gapCheckbox.checked ? 'enabled' : 'disabled'}`);
+                draw();
+            }
+        }
 
         function isPrime(n) {
             if (n < 2) return false;
@@ -2676,7 +3028,9 @@
             
             switch(colorMode) {
                 case 'hue':
-                    return `hsl(${(r * 360 / modulus) % 360}, 75%, 65%)`;
+                    // Use the selected palette
+                    const angle = r / modulus;
+                    return colorPalettes[currentPalette](angle);
                 case 'value':
                     return `hsl(${(r * 37) % 360}, 80%, 70%)`;
                 case 'modulo':
@@ -2684,7 +3038,7 @@
                 case 'prime':
                     return isPrime(r) ? '#FF6B6B' : '#4ECDC4';
                 case 'gcd_unified':
-                    // All GCD=1 residues get same color, non-GCD=1 get different color
+                    // All GCD=1 residues get same color
                     return isGcdOne ? gcdBaseColor : nonGcdColor;
                 case 'gcd_per_mod':
                     // Each modulus gets its own hue for GCD=1 residues
@@ -2697,7 +3051,7 @@
                 case 'gcd_per_residue':
                     // Each unique GCD=1 residue value gets its own color across all moduli
                     if (isGcdOne) {
-                        const residueHue = (r * 43 + 123) % 360; // Offset to avoid common angles
+                        const residueHue = (r * 43 + 123) % 360;
                         return `hsl(${residueHue}, 78%, 68%)`;
                     } else {
                         return nonGcdColor;
@@ -2706,7 +3060,8 @@
                     // Mathematical progression based on φ(n) and residue position
                     if (isGcdOne) {
                         const phi = getCoprimes(Math.round(modulus)).length;
-                        const position = getCoprimes(Math.round(modulus)).indexOf(r);
+                        const coprimesList = getCoprimes(Math.round(modulus));
+                        const position = coprimesList.indexOf(r);
                         const mathHue = (position * 360 / phi + Math.round(modulus) * 7) % 360;
                         return `hsl(${mathHue}, 82%, 66%)`;
                     } else {
@@ -2716,9 +3071,9 @@
                     // Spectral distribution based on modulus size and residue density
                     if (isGcdOne) {
                         const phi = getCoprimes(Math.round(modulus)).length;
-                        const density = phi / Math.round(modulus); // Euler's totient density
-                        const spectralHue = (density * 240 + r * 15) % 360; // Blue-to-red spectrum
-                        const saturation = 60 + density * 30; // Higher density = more saturated
+                        const density = phi / Math.round(modulus);
+                        const spectralHue = (density * 240 + r * 15) % 360;
+                        const saturation = 60 + density * 30;
                         return `hsl(${spectralHue}, ${saturation}%, 65%)`;
                     } else {
                         return nonGcdColor;
@@ -2726,7 +3081,8 @@
                 case 'custom':
                     return customColor;
                 default:
-                    return `hsl(${(r * 360 / modulus) % 360}, 75%, 65%)`;
+                    const defaultAngle = r / modulus;
+                    return colorPalettes[currentPalette](defaultAngle);
             }
         }
 
@@ -4158,6 +4514,9 @@
         }
 
         // Mouse and touch interaction handlers
+        let mouseCanvasX = 0;
+        let mouseCanvasY = 0;
+        
         function getMousePos(e) {
             const rect = canvas.getBoundingClientRect();
             return {
@@ -4186,11 +4545,150 @@
         });
 
         canvas.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            
             const pos = getMousePos(e);
-            panX = dragStartPanX + (pos.x - dragStartX);
-            panY = dragStartPanY + (pos.y - dragStartY);
+            mouseCanvasX = pos.x;
+            mouseCanvasY = pos.y;
+            
+            if (!isDragging) {
+                // Check for hover over residues
+                checkResidueHover(pos.x, pos.y);
+            } else {
+                panX = dragStartPanX + (pos.x - dragStartX);
+                panY = dragStartPanY + (pos.y - dragStartY);
+                draw();
+            }
+        });
+        
+        canvas.addEventListener('click', (e) => {
+            if (!isDragging) {
+                const pos = getMousePos(e);
+                handleResidueClick(pos.x, pos.y);
+            }
+        });
+        
+        function checkResidueHover(screenX, screenY) {
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) return;
+            
+            // Transform screen coordinates to canvas coordinates
+            const centerX = canvas.width / 2 + panX;
+            const centerY = canvas.height / 2 + panY;
+            const rotation = parseFloat(document.getElementById('rotationSlider').value);
+            
+            const dx = (screenX - centerX) / currentZoom;
+            const dy = (screenY - centerY) / currentZoom;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            let foundResidue = null;
+            
+            // Get current rings
+            const ringConfigs = selectedRings.map((ringId, originalIndex) => ({
+                ringId,
+                originalIndex,
+                modulus: configs[ringId]?.mod || 1
+            }));
+            
+            ringConfigs.sort((a, b) => {
+                if (a.ringId === 'unit') return -1;
+                if (b.ringId === 'unit') return 1;
+                return a.modulus - b.modulus;
+            });
+            
+            // Check each ring
+            ringConfigs.forEach((config, index) => {
+                const modulus = config.modulus;
+                const radius = calculateRadius(modulus, index, ringConfigs.length);
+                
+                // Check if near this ring
+                if (Math.abs(dist - radius) < 15) {
+                    const coprimes = getCoprimes(modulus);
+                    const allResidues = getAllResidues(modulus);
+                    
+                    // Check each residue
+                    allResidues.forEach(r => {
+                        let baseAngle;
+                        if (config.ringId === 'unit') {
+                            baseAngle = 0;
+                        } else {
+                            baseAngle = 2 * Math.PI * (modulus - r) / modulus;
+                        }
+                        
+                        const angle = baseAngle + (rotation + (animating ? animationFrame * 0.3 : 0)) * Math.PI / 180;
+                        const rx = radius * Math.cos(angle);
+                        const ry = radius * Math.sin(angle);
+                        
+                        const rdist = Math.sqrt((dx - rx) * (dx - rx) + (dy - ry) * (dy - ry));
+                        
+                        if (rdist < 10) {
+                            foundResidue = {
+                                residue: r,
+                                modulus: modulus,
+                                ringId: config.ringId,
+                                isGcdOne: gcd(r, Math.round(modulus)) === 1,
+                                isPrime: isPrime(r),
+                                screenX: screenX,
+                                screenY: screenY
+                            };
+                        }
+                    });
+                }
+            });
+            
+            if (foundResidue) {
+                showResidueTooltip(foundResidue);
+                canvas.style.cursor = 'pointer';
+            } else {
+                hideResidueTooltip();
+                canvas.style.cursor = isDragging ? 'grabbing' : 'grab';
+            }
+        }
+        
+        function showResidueTooltip(info) {
+            const tooltip = document.getElementById('hoverTooltip');
+            const title = document.getElementById('tooltipTitle');
+            const content = document.getElementById('tooltipContent');
+            
+            title.textContent = `Residue ${info.residue} (mod ${Math.round(info.modulus)})`;
+            
+            let html = '';
+            html += `<div class="property"><strong>Modulus:</strong> ${Math.round(info.modulus)}</div>`;
+            html += `<div class="property"><strong>GCD(r,M):</strong> ${gcd(info.residue, Math.round(info.modulus))}</div>`;
+            html += `<div class="property"><strong>Character Support:</strong> ${info.isGcdOne ? 'χ(r) ≠ 0 ✓' : 'χ(r) = 0'}</div>`;
+            html += `<div class="property"><strong>Primality:</strong> ${info.isPrime ? 'Prime ✓' : 'Composite'}</div>`;
+            
+            // Add prime sieve info if active
+            if (primeData.isActive && Math.round(info.modulus) === primeData.modulus) {
+                const residueData = primeData.residueDistribution[info.residue];
+                if (residueData) {
+                    html += `<div class="property"><strong>Primes in class:</strong> ${residueData.count}</div>`;
+                    html += `<div class="property"><strong>Percentage:</strong> ${residueData.percentage}%</div>`;
+                }
+            }
+            
+            // Euler totient
+            const phi = getCoprimes(Math.round(info.modulus)).length;
+            html += `<div class="property"><strong>φ(M):</strong> ${phi}</div>`;
+            
+            content.innerHTML = html;
+            
+            tooltip.style.left = (info.screenX + 15) + 'px';
+            tooltip.style.top = (info.screenY + 15) + 'px';
+            tooltip.classList.add('visible');
+        }
+        
+        function hideResidueTooltip() {
+            document.getElementById('hoverTooltip').classList.remove('visible');
+        }
+        
+        function handleResidueClick(screenX, screenY) {
+            // Re-use hover detection logic
+            checkResidueHover(screenX, screenY);
+            
+            // Future: Add click-specific behavior like isolating a ring or showing detailed analysis
+            updateAnimationStatus('Click features coming in next phase!');
+        }
+
+        canvas.addEventListener('mouseup', () => {
             draw();
         });
 
@@ -5661,4 +6159,4 @@
         }, 500);
     </script>
 </body>
-</html>
+                            </html>
