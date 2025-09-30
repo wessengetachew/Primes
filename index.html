@@ -4886,30 +4886,30 @@
             const backgroundChoice = document.querySelector('input[name="screenshotBg"]:checked').value;
             const resolutionChoice = document.querySelector('input[name="screenshotResolution"]:checked').value;
             
-            // Determine canvas dimensions with proper spacing
+            // Determine canvas dimensions - 25% larger visualization, 4K default
             let baseWidth, baseHeight, scaleFactor;
             if (resolutionChoice === '4k') {
-                baseWidth = 3200;  // Main content area
-                baseHeight = 2400; // Main content area
+                baseWidth = 4000;  // Main content area (25% larger)
+                baseHeight = 3000; // Main content area (25% larger)
                 scaleFactor = baseWidth / canvas.width;
-                updateAnimationStatus('Generating 4K screenshot...');
+                updateAnimationStatus('Generating 4K JPEG screenshot...');
             } else {
-                baseWidth = canvas.width * 1.2;  // 20% larger main area
-                baseHeight = canvas.height * 1.2; // 20% larger main area
-                scaleFactor = 1.2;
+                baseWidth = canvas.width * 1.25;  // 25% larger main area
+                baseHeight = canvas.height * 1.25; // 25% larger main area
+                scaleFactor = 1.25;
             }
             
-            // Calculate layout dimensions with proper spacing
-            const titleHeight = includeTitle ? 100 * scaleFactor : 0;
-            const legendWidth = includeLegend ? 500 * scaleFactor : 0; // Wider legend
-            const padding = 30 * scaleFactor;
-            const contentPadding = 20 * scaleFactor; // Padding around main content
+            // Calculate layout dimensions with proper spacing - maximize legend space
+            const titleHeight = includeTitle ? 140 * scaleFactor : 0;
+            const legendWidth = includeLegend ? 700 * scaleFactor : 0; // Much wider legend
+            const padding = 40 * scaleFactor;
+            const contentPadding = 25 * scaleFactor;
             
-            // Create enhanced screenshot canvas with proper layout
+            // Create enhanced screenshot canvas with optimized layout
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
             tempCanvas.width = baseWidth + legendWidth + (includeLegend ? padding * 3 : contentPadding * 2);
-            tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 1200 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
+            tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 1800 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
             
             // Set background
             tempCtx.fillStyle = backgroundChoice === 'white' ? '#ffffff' : '#000000';
@@ -5185,73 +5185,72 @@
                     { 
                         color: '#FFD700', 
                         text: 'Unit Circle (M=1)', 
-                        description: 'Mathematical foundation where gcd(0,1)=1. Contains single residue 0. Critical for understanding modular arithmetic structure and ring homomorphisms.'
+                        description: 'Mathematical foundation where gcd(0,1)=1. Contains single residue 0. Critical for understanding modular arithmetic structure and ring homomorphisms. All subsequent rings build upon this fundamental unit.'
                     },
                     { 
                         color: '#FF6B6B', 
-                        text: 'Euler Totient Residues', 
-                        description: `φ(M) coprime residues where gcd(r,M)=1. These form character support for Dirichlet L-functions. Essential for RH analysis.`
+                        text: 'Euler Totient Residues φ(M)', 
+                        description: `Coprime residues where gcd(r,M)=1 forming character support domains. These ${totalEulerSum} total residues across all active rings define where Dirichlet characters χ(r) are non-zero, establishing the foundation for L-function analysis and Riemann Hypothesis testing. Each ring contributes φ(M) coprime classes essential for prime distribution uniformity predictions.`
                     },
                     { 
                         color: '#4ECDC4', 
                         text: 'Prime Gap Patterns', 
-                        description: 'Connections between primes separated by specific gaps: Twin primes (gap 2), cousin primes (gap 4), sexy primes (gap 6). Tests Hardy-Littlewood conjectures.'
+                        description: `Connections between primes separated by specific gaps testing Hardy-Littlewood conjectures: Twin primes (gap 2) are pairs like (3,5), (11,13), (17,19) where p and p+2 are both prime. Cousin primes (gap 4) are pairs like (3,7), (7,11), (13,17). Sexy primes (gap 6) include (5,11), (7,13), (13,19). These patterns reveal deep structure in prime distribution and test whether infinitely many such pairs exist.`
                     }
                 ];
                 
-                // Add active mathematical features to legend with detailed explanations
+                // Add active mathematical features to legend with comprehensive explanations
                 if (document.getElementById('showDirectLifts').checked) {
                     legendItems.push({ 
                         color: document.getElementById('liftLineColor').value, 
-                        text: 'Direct Lift Homomorphisms', 
-                        description: 'Ring homomorphisms φ: Z/M₁Z → Z/M₂Z where φ(r) = r. Preserve residue structure across different moduli. Fundamental to L-function relationships and character compatibility.'
+                        text: 'Direct Lift Homomorphisms φ: Z/M₁Z → Z/M₂Z', 
+                        description: `Ring homomorphisms preserving residue structure where φ(r) = r. These golden lines connect residue r in ring M₁ directly to the same residue r in ring M₂, maintaining algebraic structure. Essential for understanding character compatibility across different moduli. When M₂ is a multiple of M₁, these lifts naturally preserve the multiplicative group structure and totient function relationships, revealing how coprime residue systems nest within larger modular rings.`
                     });
                 }
                 
                 if (document.getElementById('showModularLifts').checked) {
                     legendItems.push({ 
                         color: document.getElementById('modularLiftColor').value, 
-                        text: 'Chinese Remainder Lifts', 
-                        description: 'Transformations r ↦ r + M×2ⁿ using Chinese Remainder Theorem. Maps residues to shifted positions revealing multiplicative structure.',
-                        dashed: true
+                        text: 'Chinese Remainder Theorem Lifts r ↦ r + M×2ⁿ', 
+                        description: `Transformations using Chinese Remainder Theorem mapping residue r in M₁ to shifted position r + M₁×2ⁿ in larger ring M₂. These pink/red connections reveal the multiplicative structure hidden in modular arithmetic. The shift by M₁×2ⁿ (where n is the level difference) preserves coprimality: if gcd(r, M₁)=1, then gcd(r + M₁×2ⁿ, M₂)=1, ensuring character support is maintained. This demonstrates how residue classes split and recombine when moving between moduli related by powers of 2.`
                     });
                 }
                 
-                // Enhanced color mode information with mathematical context
+                // Enhanced color mode information with comprehensive mathematical context
                 const colorMode = document.getElementById('residueColorMode').value;
                 const colorModeDescriptions = {
-                    'hue': 'Rainbow coloring by angular position θ = 2πr/M. Visualizes rotational symmetry in modular rings.',
-                    'value': 'Coloring by residue value using hash function. Highlights numerical patterns across different moduli.',
-                    'modulo': 'Unique color per modulus/ring. Distinguishes different modular arithmetic systems in the visualization.',
-                    'prime': 'Prime vs composite residue analysis. Tests primality patterns within modular arithmetic constraints.',
-                    'gcd_unified': 'Unified coloring for Dirichlet character support where χ(r) ≠ 0. Shows L-function domains clearly.',
-                    'gcd_per_mod': 'Character support with unique color per modulus. Reveals φ(M) structure across ring system.',
-                    'gcd_per_residue': 'Character support with unique color per residue value. Highlights residue class universality.',
-                    'gcd_mathematical': 'Mathematical progression based on φ(M) density and totient ordering. Shows Euler function relationships.',
-                    'gcd_spectrum': 'Spectral distribution using totient density ρ = φ(M)/M. Visualizes character support concentration.',
-                    'custom': 'User-defined single color scheme for focused analysis of specific mathematical properties.'
+                    'hue': `Rainbow coloring by angular position θ = 2π(M-r)/M creates a visual spectrum around each ring. This geometric representation maps residues to angles, revealing rotational symmetry in modular arithmetic. Colors transition smoothly from 0° (red) through 120° (green) to 240° (blue), with each residue's hue determined by its proportional position around the circle. This visualization naturally highlights periodic patterns and symmetries inherent in the multiplicative structure of (Z/MZ)*.`,
+                    'value': `Coloring by residue value using deterministic hash function h(r) = (r × 37) mod 360 creates consistent colors across all rings for the same residue number. This cross-ring consistency reveals which residue values (like 1, 5, 7, 11) appear across multiple moduli, helping identify universal patterns in coprime residue systems. The hash function distributes colors pseudo-randomly while maintaining reproducibility, making it easy to track specific residue values as they appear in increasingly large modular rings.`,
+                    'modulo': `Unique color per ring/modulus using h(M) = (M × 67) mod 360 assigns each modular ring its own distinct hue. All residues within M₃₀ share one color family, all residues within M₆₀ share another, making it trivial to distinguish which ring system each point belongs to. This mode emphasizes the hierarchical structure of the nested rings and helps visualize how φ(M) changes as modulus increases, with color families clearly delineating each level of the modular tower.`,
+                    'prime': `Prime vs composite residue analysis distinguishes prime numbers (red/pink #FF6B6B) from composite numbers (teal/cyan #4ECDC4) within each ring. Tests primality patterns within modular constraints. Small primes often cluster in specific residue classes - for example, all primes >3 satisfy p ≡ 1 or 5 (mod 6), appearing only in coprime classes. This visualization reveals how primality interacts with modular structure and helps identify which residue classes can contain primes.`,
+                    'gcd_unified': `Unified coloring for Dirichlet character support where χ(r) ≠ 0. All coprime residues (gcd(r,M)=1) across every ring receive the same base color, creating a strong visual distinction between character support domains (colored) and character vanishing domains (dimmed gray). This unified approach emphasizes the categorical difference between residues where L-functions have contributions vs. residues that contribute zero, making character support boundaries crystal clear across the entire visualization.`,
+                    'gcd_per_mod': `Character support with unique color per modulus. Each ring M gets its own hue family h(M) for its φ(M) coprime residues. This reveals how character support varies with modulus: larger moduli may have lower totient density ρ = φ(M)/M, visible as the proportion of colored vs gray points. The color family approach shows both the character support structure and the relative "richness" of coprime classes - M₃₀ has ρ = 8/30 ≈ 27% while M₆₀ has ρ = 16/60 ≈ 27%, revealing the stability of totient density for related moduli.`,
+                    'gcd_per_residue': `Character support with unique color per residue value. Residue r=1 gets the same color in every ring where gcd(1,M)=1 (always), r=7 gets its consistent color across all rings, etc. This cross-ring consistency illuminates residue class universality - values like 1, 11, 13, 17, 19, 23, 29, 31 that are coprime to many moduli form colorful trails across multiple rings, while values with many factors (like 6, 10, 12, 15) rarely achieve coprime status, appearing mostly gray.`,
+                    'gcd_mathematical': `Mathematical progression based on φ(M) density and totient ordering. Color assignment h(r) = (position_in_φ(M) × 360/φ(M) + M×7) mod 360 uses each residue's index within the coprime sequence and the ring's modulus. This creates mathematically meaningful color progressions that reflect both local structure (position among coprimes) and global structure (which ring). The result is a spiraling color pattern that visualizes how coprime residues are distributed - evenly spaced moduli create rainbow spirals while irregular moduli create more complex color patterns.`,
+                    'gcd_spectrum': `Spectral distribution using totient density ρ = φ(M)/M to determine both hue and saturation. Color formula h(r) = (ρ×240 + r×15) mod 360 with saturation s = 60 + ρ×30 creates more vibrant colors for rings with higher coprime density. Rings where most residues are coprime (like prime moduli with ρ ≈ 1 - 1/M) appear more saturated, while rings with many factors (like M=30 with ρ=8/30) appear more muted. This encodes arithmetic complexity directly into color intensity - number-theoretically "richer" rings literally look more colorful.`,
+                    'custom': `User-defined single color scheme allowing focused analysis of specific mathematical properties without color-based distractions. All coprime residues receive the chosen custom color while non-coprime residues remain dimmed. This monochromatic approach emphasizes geometric structure over classification, ideal for studying lift patterns, gap connections, or ring arrangements without the cognitive load of interpreting multiple color meanings. Useful for presentation contexts where color interpretation should be minimized.`
                 };
                 
                 if (colorModeDescriptions[colorMode]) {
                     legendItems.push({
                         color: 'linear-gradient(45deg, #667eea, #764ba2)',
-                        text: 'Coloring Scheme Details',
+                        text: `Coloring Mode: ${colorModeNames[colorMode] || colorMode}`,
                         description: colorModeDescriptions[colorMode]
                     });
                 }
                 
-                // Enhanced prime sieve information with mathematical significance
+                // Enhanced prime sieve information with comprehensive mathematical significance
                 if (primeData.isActive) {
                     const coprimes = getCoprimes(primeData.modulus);
                     const uniformity = calculateEquidistributionScore();
                     legendItems.push({
                         color: '#FFD700',
-                        text: 'Prime Sieve Analysis Active',
-                        description: `Testing ${primeData.totalPrimes} primes ≤ ${primeData.limit} in mod ${primeData.modulus}. Distribution across φ(${primeData.modulus})=${coprimes.length} coprime classes. Uniformity: ${(uniformity.uniformityScore * 100).toFixed(1)}% (GRH prediction).`
+                        text: `Prime Sieve Analysis: ${primeData.totalPrimes} primes ≤ ${primeData.limit} (mod ${primeData.modulus})`,
+                        description: `Active prime distribution testing with ${primeData.totalPrimes} primes analyzed up to limit ${primeData.limit} in modular system M=${primeData.modulus}. Distribution across φ(${primeData.modulus})=${coprimes.length} coprime residue classes shows uniformity score of ${(uniformity.uniformityScore * 100).toFixed(1)}%, testing Generalized Riemann Hypothesis predictions. GRH predicts primes distribute uniformly among coprime classes, with each class containing approximately ${(primeData.totalPrimes/coprimes.length).toFixed(1)} primes. Measured χ² statistic of ${uniformity.chiSquared.toFixed(2)} with ${uniformity.degreesOfFreedom} degrees of freedom ${uniformity.isUniform ? 'supports' : 'requires further analysis for'} uniformity hypothesis. Current GRH support level: ${uniformity.grhSupport}.`
                     });
                 }
                 
-                // Mathematical foundations with detailed explanations
+                // Mathematical foundations with comprehensive explanations
                 if (selectedRings.length > 0) {
                     const ringTypes = {
                         unit: selectedRings.filter(r => r === 'unit').length,
@@ -5269,19 +5268,19 @@
                         return sum;
                     }, 0);
                     
-                    let systemDesc = `${selectedRings.length} modular rings: `;
+                    let systemDesc = `Hierarchical modular ring system with ${selectedRings.length} active rings: `;
                     const parts = [];
-                    if (ringTypes.unit > 0) parts.push('Unit foundation');
-                    if (ringTypes.defaults > 0) parts.push(`M₁-M${ringTypes.defaults+1} sequence`);
-                    if (ringTypes.series > 0) parts.push(`${ringTypes.series} exponential series`);
-                    if (ringTypes.custom > 0) parts.push(`${ringTypes.custom} custom moduli`);
-                    if (ringTypes.sieve > 0) parts.push(`${ringTypes.sieve} sieve-generated`);
+                    if (ringTypes.unit > 0) parts.push('Unit circle foundation (M=1, φ(1)=1, single residue 0)');
+                    if (ringTypes.defaults > 0) parts.push(`consecutive sequence M₂ through M${ringTypes.defaults+1} establishing systematic progression`);
+                    if (ringTypes.series > 0) parts.push(`${ringTypes.series} exponential series rings following M_n = 30×2ⁿ pattern`);
+                    if (ringTypes.custom > 0) parts.push(`${ringTypes.custom} custom-selected moduli for targeted analysis`);
+                    if (ringTypes.sieve > 0) parts.push(`${ringTypes.sieve} sieve-generated rings from prime distribution studies`);
                     
-                    systemDesc += parts.join(', ') + `. Total character support: Σφ(Mᵢ) = ${totalEulerSum} residues.`;
+                    systemDesc += parts.join(', ') + `. Total character support across all rings: Σφ(Mᵢ) = ${totalEulerSum} coprime residues. This aggregate represents the complete domain where Dirichlet characters are non-zero, forming the foundation for L-function computation and Generalized Riemann Hypothesis verification. Ring selection enables systematic study of how totient function φ(M) scales with modulus M, revealing number-theoretic density patterns.`;
                     
                     legendItems.push({
                         color: subtleColor,
-                        text: 'Modular Ring System',
+                        text: 'Modular Ring System Architecture',
                         description: systemDesc
                     });
                 }
@@ -5404,19 +5403,19 @@
             const ringText = selectedRings.length > 0 ? `_${selectedRings.length}rings` : '';
             const gapText = selectedGaps.length > 0 ? `_${selectedGaps.length}gaps` : '';
             const resText = resolutionChoice === '4k' ? '_4K' : '';
-            const filename = `modular_rings${ringText}${gapText}${resText}_${timestamp}.png`;
+            const filename = `modular_rings${ringText}${gapText}${resText}_${timestamp}.jpg`;
             
-            // Create download link with optimized quality
+            // Create download link with JPEG quality optimization
             const link = document.createElement('a');
             link.download = filename;
             
+            // Always use JPEG format with high quality
+            link.href = tempCanvas.toDataURL('image/jpeg', 0.95);
+            
             if (resolutionChoice === '4k') {
-                // For 4K, use maximum quality
-                link.href = tempCanvas.toDataURL('image/png', 1.0);
-                updateAnimationStatus('4K Ultra HD screenshot saved!');
+                updateAnimationStatus('4K Ultra HD JPEG screenshot saved!');
             } else {
-                link.href = tempCanvas.toDataURL('image/png', 0.95);
-                updateAnimationStatus('Enhanced screenshot saved!');
+                updateAnimationStatus('Enhanced JPEG screenshot saved!');
             }
             
             link.click();
