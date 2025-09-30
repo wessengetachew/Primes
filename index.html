@@ -941,6 +941,72 @@
                     </div>
                     
                     <div class="custom-gap">
+                        <label><strong>Prime Sieve Engine:</strong></label>
+                        <div class="gap-input">
+                            Search up to: <input type="number" id="sieveLimit" min="100" value="10000" placeholder="10000">
+                        </div>
+                        <div class="gap-input">
+                            Using modulus: <input type="number" id="sieveModulus" min="2" value="30" placeholder="30">
+                            <button class="rh-btn" onclick="runPrimeSieve()">Generate Sieve</button>
+                        </div>
+                        <div class="gap-input">
+                            <button onclick="clearPrimeSieve()">Clear Sieve</button>
+                            <button onclick="exportPrimeData()">Export Data</button>
+                        </div>
+                        <div id="sieveProgress" style="display: none; margin-top: 10px;">
+                            <div style="background: rgba(255,255,255,0.2); border-radius: 10px; height: 20px;">
+                                <div id="progressBar" style="background: linear-gradient(45deg, #4ECDC4, #44A08D); height: 100%; border-radius: 10px; width: 0%; transition: width 0.3s;"></div>
+                            </div>
+                            <div id="progressText" style="text-align: center; margin-top: 5px; font-size: 12px;"></div>
+                        </div>
+                        
+                        <div id="sieveResults" style="display: none; margin-top: 15px;">
+                            <label><strong>Prime Distribution Analysis:</strong></label>
+                            <div id="primeStats" style="font-size: 13px; margin: 10px 0;"></div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showPrimeMarkers"> Highlight Primes on Rings
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showCompositeMarkers"> Show Composite Numbers
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showPrimeDensity"> Show Density Visualization
+                            </div>
+                        </div>
+                        
+                        <div id="primePatternAnalysis" style="display: none; margin-top: 15px;">
+                            <label><strong>Quick Sieve Presets:</strong></label>
+                            <div class="gap-input">
+                                <button onclick="quickSieve(1000, 6)">1K (mod 6)</button>
+                                <button onclick="quickSieve(10000, 30)">10K (mod 30)</button>
+                            </div>
+                            <div class="gap-input">
+                                <button onclick="quickSieve(100000, 210)">100K (mod 210)</button>
+                                <button onclick="quickSieve(1000000, 2310)">1M (mod 2310)</button>
+                            </div>
+                            
+                            <div style="margin-top: 15px;">
+                                <label><strong>Complete Distribution:</strong></label>
+                                <div id="residueDistribution" style="font-size: 12px; max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 10px;"></div>
+                                
+                                <div class="gap-input" style="margin-top: 15px;">
+                                    <button onclick="exportDetailedPrimeList()">Export All Primes</button>
+                                    <button onclick="togglePrimeSearchMode()">Search Primes</button>
+                                </div>
+                                
+                                <div id="primeSearchControls" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                    <label><strong>Prime Search:</strong></label>
+                                    <div class="gap-input">
+                                        Prime: <input type="number" id="searchPrime" min="2" max="1000000" placeholder="Enter prime">
+                                        <button onclick="findPrimeInResidue()">Find Residue</button>
+                                    </div>
+                                    <div id="searchResult" style="margin-top: 10px; font-size: 13px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap">
                         <label><strong>Visualization Range Controls:</strong></label>
                         <div class="gap-input">
                             Critical Line t-range: <input type="number" id="criticalTMin" min="0" value="0" style="width: 60px;"> to 
@@ -1326,23 +1392,14 @@
                     <div class="custom-gap" id="labelControls">
                         <label><strong>Label Format:</strong></label>
                         <div class="slider-group">
-                            <label>Display Format:</label>
-                            <select id="labelFormat" onchange="draw()">
+                            <select id="labelFormat" onchange="updateLabelFormat()">
                                 <option value="number" selected>Number (r)</option>
-                                <option value="angle">Angle (θ = 2πr/M)</option>
                                 <option value="fraction">Fraction (r/M)</option>
-                                <option value="farey">Farey Sequence (aligned)</option>
-                                <option value="both">Number + Angle</option>
-                                <option value="all">Number + Angle + Fraction</option>
-                            </select>
-                        </div>
-                        
-                        <div class="slider-group">
-                            <label>Angle Units:</label>
-                            <select id="angleUnits" onchange="draw()">
-                                <option value="radians">Radians (0 to 2π)</option>
-                                <option value="degrees" selected>Degrees (0° to 360°)</option>
-                                <option value="turns">Turns (0 to 1)</option>
+                                <option value="farey">Farey Sequence (r/M simplified)</option>
+                                <option value="angle">Angle (θ = 2πr/M)</option>
+                                <option value="gcd">GCD Value gcd(r,M)</option>
+                                <option value="coprime">Coprime Status (✓/✗)</option>
+                                <option value="combined">Combined (r, gcd, θ)</option>
                             </select>
                         </div>
                         
@@ -1357,10 +1414,28 @@
                             <input type="checkbox" id="labelNonGcdOne"> Label GCD≠1 Residues
                         </div>
                         
+                        <label><strong>GCD-Specific Labels:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showGcdValue"> Show gcd(r,M) value
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showCoprimeIndicator"> Show ✓/✗ coprime indicator
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showTotientPosition"> Show position in φ(M) sequence
+                        </div>
+                        
                         <div class="gap-input">
                             <strong>Label Specific Moduli:</strong><br>
                             Moduli: <input type="text" id="labelSpecificMods" placeholder="2,3,5,30" style="width: 120px;">
                             <button onclick="updateSpecificLabels()">Apply</button>
+                        </div>
+                        
+                        <div class="gap-input">
+                            <strong>Label Consecutive Range:</strong><br>
+                            From M: <input type="number" id="labelModStart" min="1" value="1" style="width: 60px;">
+                            To M: <input type="number" id="labelModEnd" min="1" value="10" style="width: 60px;">
+                            <button onclick="updateLabelRange()">Apply Range</button>
                         </div>
                         
                         <div class="gap-input">
@@ -1381,6 +1456,57 @@
                         <div class="checkbox-item">
                             <input type="checkbox" id="labelShowPrimeCounts" checked> Show Prime Counts (when sieve active)
                         </div>
+                    </div>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3 onclick="toggleSection('gcdAnalysisSection')" style="cursor: pointer; user-select: none;">
+                        <span class="collapse-icon" id="gcdAnalysisSectionIcon">▼</span>
+                        GCD Analysis & Visualization
+                    </h3>
+                    <div id="gcdAnalysisSection" class="collapsible-section">
+                    <div class="custom-gap">
+                        <label><strong>GCD Visual Analysis Mode:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="highlightGcdBoundary" onchange="draw()"> Highlight GCD=1 boundary
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showGcdConnections" onchange="draw()"> Show GCD structure connections
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="animateGcdHighlight" onchange="toggleGcdAnimation()"> Animate GCD=1 residues
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>GCD Information Display:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showTotientCount" onchange="draw()"> Show φ(M) count per ring
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showGcdDistribution" onchange="draw()"> Show GCD distribution chart
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="compareTotientDensity" onchange="draw()"> Compare totient densities
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap">
+                        <label><strong>GCD Research Tools:</strong></label>
+                        <div class="gap-input">
+                            <button onclick="analyzeGcdPatterns()">Analyze GCD Patterns</button>
+                            <button onclick="exportGcdData()">Export GCD Data</button>
+                        </div>
+                        <div class="gap-input">
+                            <button onclick="visualizeFareySequence()">Show Farey Sequence</button>
+                            <button onclick="testCoprimalityTheorems()">Test Coprimality Theorems</button>
+                        </div>
+                    </div>
+                    
+                    <div id="gcdAnalysisResults" style="display: none; margin-top: 15px; padding: 15px; background: rgba(72, 187, 120, 0.1); border-radius: 8px; border: 2px solid rgba(72, 187, 120, 0.3);">
+                        <label><strong>GCD Analysis Results:</strong></label>
+                        <div id="gcdResultsContent" style="font-size: 13px; margin-top: 10px;"></div>
                     </div>
                     </div>
                 </div>
@@ -1482,7 +1608,7 @@
                 <div class="gap-input">
                     <button onclick="resetView()">Reset View</button>
                     <button onclick="captureImage()">Capture Image</button>
-                    <button onclick="invertCanvas()">Invert Display</button>
+                    <button onclick="invertCanvas()">Invert Nest Order</button>
                 </div>
                 <div class="custom-gap">
                     <label><strong>Image Capture Options:</strong></label>
@@ -1797,6 +1923,23 @@
         let ringRotationSpeeds = {};
         let specificLabelMods = new Set();
         let inversionIntensity = 1.0;
+        let currentLabelFormat = 'number';
+        let gcdAnimationPhase = 0;
+        let gcdAnimationActive = false;
+        
+        function toggleGcdAnimation() {
+            gcdAnimationActive = document.getElementById('animateGcdHighlight').checked;
+            
+            if (gcdAnimationActive) {
+                updateAnimationStatus('GCD animation enabled');
+                if (!animating) {
+                    animating = true;
+                    animate();
+                }
+            } else {
+                updateAnimationStatus('GCD animation disabled');
+            }
+        }
         
         // Ring radius scaling state
         let radiusScalingMode = 'uniform';
@@ -3524,6 +3667,381 @@
             return a;
         }
         
+        // Format label based on selected mode
+        function formatLabel(r, modulus, ring) {
+            const labelFormat = document.getElementById('labelFormat').value;
+            const showGcdValue = document.getElementById('showGcdValue')?.checked;
+            const showCoprimeIndicator = document.getElementById('showCoprimeIndicator')?.checked;
+            const showTotientPosition = document.getElementById('showTotientPosition')?.checked;
+            
+            const gcdValue = gcd(r, Math.round(modulus));
+            const isGcdOne = gcdValue === 1;
+            
+            let baseLabel = '';
+            
+            switch(labelFormat) {
+                case 'number':
+                    baseLabel = r.toString();
+                    break;
+                    
+                case 'fraction':
+                    baseLabel = `${r}/${Math.round(modulus)}`;
+                    break;
+                    
+                case 'farey':
+                    // Simplified fraction (Farey sequence)
+                    const gcd_val = gcd(r, Math.round(modulus));
+                    const num = r / gcd_val;
+                    const den = Math.round(modulus) / gcd_val;
+                    baseLabel = den === 1 ? num.toString() : `${num}/${den}`;
+                    break;
+                    
+                case 'angle':
+                    // Angle in degrees
+                    const angleDeg = (360 * (modulus - r) / modulus).toFixed(1);
+                    baseLabel = `${angleDeg}°`;
+                    break;
+                    
+                case 'gcd':
+                    baseLabel = `gcd=${gcdValue}`;
+                    break;
+                    
+                case 'coprime':
+                    baseLabel = isGcdOne ? '✓' : '✗';
+                    break;
+                    
+                case 'combined':
+                    const angle = (360 * (modulus - r) / modulus).toFixed(0);
+                    baseLabel = `${r}\ngcd=${gcdValue}\n${angle}°`;
+                    break;
+                    
+                default:
+                    baseLabel = r.toString();
+            }
+            
+            // Add optional GCD information only if not in combined or gcd modes
+            let additionalInfo = [];
+            
+            if (showGcdValue && labelFormat !== 'gcd' && labelFormat !== 'combined') {
+                additionalInfo.push(`gcd=${gcdValue}`);
+            }
+            
+            if (showCoprimeIndicator && labelFormat !== 'coprime' && labelFormat !== 'combined') {
+                additionalInfo.push(isGcdOne ? '✓' : '✗');
+            }
+            
+            if (showTotientPosition && isGcdOne && labelFormat !== 'combined') {
+                const coprimes = getCoprimes(Math.round(modulus));
+                const position = coprimes.indexOf(r) + 1;
+                if (position > 0) {
+                    additionalInfo.push(`#${position}`);
+                }
+            }
+            
+            if (additionalInfo.length > 0) {
+                baseLabel += '\n' + additionalInfo.join(' ');
+            }
+            
+            return baseLabel;
+        }
+        
+        function updateLabelFormat() {
+            currentLabelFormat = document.getElementById('labelFormat').value;
+            updateAnimationStatus(`Label format: ${currentLabelFormat}`);
+            draw();
+        }
+        
+        // GCD Analysis Functions
+        function analyzeGcdPatterns() {
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) {
+                alert('Please select rings to analyze GCD patterns');
+                return;
+            }
+            
+            let analysis = {
+                rings: [],
+                totalGcdOne: 0,
+                totalResidues: 0,
+                avgTotientDensity: 0,
+                patterns: []
+            };
+            
+            selectedRings.forEach(ringId => {
+                const config = configs[ringId];
+                if (!config) return;
+                
+                const modulus = Math.round(config.mod);
+                const allResidues = getAllResidues(modulus);
+                const coprimes = getCoprimes(modulus);
+                const totientDensity = coprimes.length / allResidues.length;
+                
+                // Analyze GCD distribution
+                const gcdDistribution = {};
+                allResidues.forEach(r => {
+                    const gcdVal = gcd(r, modulus);
+                    gcdDistribution[gcdVal] = (gcdDistribution[gcdVal] || 0) + 1;
+                });
+                
+                analysis.rings.push({
+                    modulus: modulus,
+                    label: config.label,
+                    totalResidues: allResidues.length,
+                    gcdOneCount: coprimes.length,
+                    totientDensity: totientDensity,
+                    gcdDistribution: gcdDistribution,
+                    eulerPhi: coprimes.length
+                });
+                
+                analysis.totalGcdOne += coprimes.length;
+                analysis.totalResidues += allResidues.length;
+            });
+            
+            analysis.avgTotientDensity = analysis.totalGcdOne / analysis.totalResidues;
+            
+            // Identify patterns
+            analysis.patterns = identifyGcdPatterns(analysis.rings);
+            
+            displayGcdAnalysis(analysis);
+            
+            document.getElementById('gcdAnalysisResults').style.display = 'block';
+            updateAnimationStatus('GCD pattern analysis complete');
+        }
+        
+        function identifyGcdPatterns(rings) {
+            const patterns = [];
+            
+            // Pattern 1: Prime moduli have φ(p) = p-1
+            const primeRings = rings.filter(r => isPrime(r.modulus));
+            if (primeRings.length > 0) {
+                patterns.push({
+                    name: 'Prime Moduli',
+                    description: `${primeRings.length} prime moduli detected. Each has φ(p) = p-1, meaning almost all residues are coprime.`,
+                    rings: primeRings.map(r => r.label)
+                });
+            }
+            
+            // Pattern 2: Powers of 2 have φ(2^k) = 2^(k-1)
+            const powersOf2 = rings.filter(r => {
+                const mod = r.modulus;
+                return mod > 1 && (mod & (mod - 1)) === 0; // Check if power of 2
+            });
+            if (powersOf2.length > 0) {
+                patterns.push({
+                    name: 'Powers of 2',
+                    description: `${powersOf2.length} rings are powers of 2. φ(2^k) = 2^(k-1), exactly half coprime.`,
+                    rings: powersOf2.map(r => r.label)
+                });
+            }
+            
+            // Pattern 3: High totient density (> 0.4)
+            const highDensity = rings.filter(r => r.totientDensity > 0.4);
+            if (highDensity.length > 0) {
+                patterns.push({
+                    name: 'High Coprime Density',
+                    description: `${highDensity.length} rings have >40% coprime residues (prime-like behavior).`,
+                    rings: highDensity.map(r => `${r.label} (${(r.totientDensity * 100).toFixed(1)}%)`)
+                });
+            }
+            
+            // Pattern 4: Low totient density (< 0.2)
+            const lowDensity = rings.filter(r => r.totientDensity < 0.2);
+            if (lowDensity.length > 0) {
+                patterns.push({
+                    name: 'Low Coprime Density',
+                    description: `${lowDensity.length} rings have <20% coprime residues (highly composite).`,
+                    rings: lowDensity.map(r => `${r.label} (${(r.totientDensity * 100).toFixed(1)}%)`)
+                });
+            }
+            
+            return patterns;
+        }
+        
+        function displayGcdAnalysis(analysis) {
+            const resultsDiv = document.getElementById('gcdResultsContent');
+            
+            let html = `<strong>GCD Pattern Analysis</strong><br><br>`;
+            
+            html += `<strong>Overall Statistics:</strong><br>`;
+            html += `• Rings analyzed: ${analysis.rings.length}<br>`;
+            html += `• Total residues: ${analysis.totalResidues}<br>`;
+            html += `• Coprime residues (gcd=1): ${analysis.totalGcdOne}<br>`;
+            html += `• Average φ(M)/M density: ${(analysis.avgTotientDensity * 100).toFixed(2)}%<br><br>`;
+            
+            html += `<strong>Per-Ring Analysis:</strong><br>`;
+            analysis.rings.slice(0, 10).forEach(ring => {
+                html += `<div style="margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 5px;">`;
+                html += `<strong>M = ${ring.modulus}:</strong><br>`;
+                html += `• φ(${ring.modulus}) = ${ring.eulerPhi} coprime residues<br>`;
+                html += `• Density: ${(ring.totientDensity * 100).toFixed(1)}%<br>`;
+                
+                // Show GCD distribution
+                html += `• GCD distribution: `;
+                const gcdKeys = Object.keys(ring.gcdDistribution).sort((a, b) => parseInt(a) - parseInt(b));
+                html += gcdKeys.map(k => `gcd=${k}:${ring.gcdDistribution[k]}`).join(', ');
+                html += `</div>`;
+            });
+            
+            if (analysis.rings.length > 10) {
+                html += `<em>...and ${analysis.rings.length - 10} more rings</em><br><br>`;
+            }
+            
+            if (analysis.patterns.length > 0) {
+                html += `<br><strong>Identified Patterns:</strong><br>`;
+                analysis.patterns.forEach((pattern, idx) => {
+                    html += `<div style="margin: 8px 0; padding: 10px; background: rgba(72, 187, 120, 0.15); border-radius: 5px; border-left: 3px solid #48BB78;">`;
+                    html += `<strong>${idx + 1}. ${pattern.name}:</strong><br>`;
+                    html += `${pattern.description}<br>`;
+                    html += `<em>Rings: ${pattern.rings.slice(0, 5).join(', ')}${pattern.rings.length > 5 ? '...' : ''}</em>`;
+                    html += `</div>`;
+                });
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function exportGcdData() {
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) {
+                alert('Please select rings to export GCD data');
+                return;
+            }
+            
+            let exportText = `GCD Analysis Export\n`;
+            exportText += `Generated: ${new Date().toISOString()}\n`;
+            exportText += `Riemann Hypothesis Explorer by Wessen Getachew\n\n`;
+            exportText += `${'='.repeat(80)}\n\n`;
+            
+            selectedRings.forEach(ringId => {
+                const config = configs[ringId];
+                if (!config) return;
+                
+                const modulus = Math.round(config.mod);
+                const allResidues = getAllResidues(modulus);
+                const coprimes = getCoprimes(modulus);
+                
+                exportText += `Modulus M = ${modulus}\n`;
+                exportText += `${'-'.repeat(40)}\n`;
+                exportText += `φ(${modulus}) = ${coprimes.length}\n`;
+                exportText += `Totient density: ${(coprimes.length / allResidues.length * 100).toFixed(2)}%\n\n`;
+                
+                exportText += `Complete Residue Analysis:\n`;
+                allResidues.forEach(r => {
+                    const gcdVal = gcd(r, modulus);
+                    const isGcdOne = gcdVal === 1;
+                    const angle = (360 * (modulus - r) / modulus).toFixed(2);
+                    const fareyNum = r / gcdVal;
+                    const fareyDen = modulus / gcdVal;
+                    
+                    exportText += `  r=${r.toString().padStart(4)}`;
+                    exportText += `  gcd(${r},${modulus})=${gcdVal.toString().padStart(3)}`;
+                    exportText += `  ${isGcdOne ? '✓ COPRIME' : '✗ not coprime'}`;
+                    exportText += `  θ=${angle.padStart(7)}°`;
+                    exportText += `  Farey: ${fareyNum}/${fareyDen}\n`;
+                });
+                
+                exportText += `\nCoprime residues (gcd=1): [${coprimes.join(', ')}]\n`;
+                exportText += `\n${'='.repeat(80)}\n\n`;
+            });
+            
+            exportText += `Summary:\n`;
+            exportText += `Total rings: ${selectedRings.length}\n`;
+            exportText += `Total coprime residues: ${selectedRings.reduce((sum, id) => sum + (configs[id] ? getCoprimes(Math.round(configs[id].mod)).length : 0), 0)}\n`;
+            
+            const blob = new Blob([exportText], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `gcd_analysis_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            updateAnimationStatus('GCD data exported successfully');
+        }
+        
+        function visualizeFareySequence() {
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) {
+                alert('Please select rings to visualize Farey sequence');
+                return;
+            }
+            
+            // Set to Farey sequence labeling
+            document.getElementById('labelFormat').value = 'farey';
+            document.getElementById('showLabels').checked = true;
+            document.getElementById('labelGcdOne').checked = true;
+            document.getElementById('labelNonGcdOne').checked = true;
+            
+            updateLabelFormat();
+            updateAnimationStatus('Farey sequence visualization activated');
+        }
+        
+        function testCoprimalityTheorems() {
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length < 2) {
+                alert('Please select at least 2 rings to test coprimality theorems');
+                return;
+            }
+            
+            let results = [];
+            
+            // Theorem 1: gcd(a,mn) = 1 ⟺ gcd(a,m) = 1 AND gcd(a,n) = 1
+            results.push({
+                theorem: "Product Rule",
+                statement: "gcd(a,mn) = 1 ⟺ gcd(a,m)=1 AND gcd(a,n)=1",
+                tested: 0,
+                verified: 0
+            });
+            
+            // Theorem 2: φ(mn) = φ(m)φ(n) if gcd(m,n) = 1
+            results.push({
+                theorem: "Multiplicative Property",
+                statement: "φ(mn) = φ(m)φ(n) when gcd(m,n) = 1",
+                tested: 0,
+                verified: 0
+            });
+            
+            // Test theorems
+            for (let i = 0; i < Math.min(selectedRings.length, 5); i++) {
+                for (let j = i + 1; j < Math.min(selectedRings.length, 5); j++) {
+                    const m = Math.round(configs[selectedRings[i]]?.mod || 1);
+                    const n = Math.round(configs[selectedRings[j]]?.mod || 1);
+                    
+                    if (gcd(m, n) === 1) {
+                        const phi_m = getCoprimes(m).length;
+                        const phi_n = getCoprimes(n).length;
+                        const phi_mn = getCoprimes(m * n).length;
+                        
+                        results[1].tested++;
+                        if (phi_mn === phi_m * phi_n) {
+                            results[1].verified++;
+                        }
+                    }
+                }
+            }
+            
+            const resultsDiv = document.getElementById('gcdResultsContent');
+            document.getElementById('gcdAnalysisResults').style.display = 'block';
+            
+            let html = `<strong>Coprimality Theorem Testing</strong><br><br>`;
+            
+            results.forEach(result => {
+                if (result.tested > 0) {
+                    const percentage = (result.verified / result.tested * 100).toFixed(1);
+                    html += `<div style="margin: 8px 0; padding: 10px; background: rgba(72, 187, 120, 0.15); border-radius: 5px;">`;
+                    html += `<strong>${result.theorem}:</strong><br>`;
+                    html += `<em>${result.statement}</em><br>`;
+                    html += `Tested: ${result.tested} cases<br>`;
+                    html += `Verified: ${result.verified} (${percentage}%)<br>`;
+                    html += result.verified === result.tested ? '✓ All cases verified!' : '⚠ Some cases failed';
+                    html += `</div>`;
+                }
+            });
+            
+            resultsDiv.innerHTML = html;
+            updateAnimationStatus('Coprimality theorems tested');
+        }
+        
         // Theme toggle
         function toggleTheme() {
             currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -4417,6 +4935,24 @@
             updateAnimationStatus(`Specific labeling applied to moduli: [${Array.from(specificLabelMods).join(', ')}]`);
             draw();
         }
+        
+        function updateLabelRange() {
+            const modStart = parseInt(document.getElementById('labelModStart').value);
+            const modEnd = parseInt(document.getElementById('labelModEnd').value);
+            
+            if (modStart >= modEnd) {
+                alert('Start modulus must be less than end modulus');
+                return;
+            }
+            
+            specificLabelMods.clear();
+            for (let m = modStart; m <= modEnd; m++) {
+                specificLabelMods.add(m);
+            }
+            
+            updateAnimationStatus(`Label range applied: M${modStart} to M${modEnd}`);
+            draw();
+        }
 
         // High-quality animation recording system
         function startRecording() {
@@ -4854,375 +5390,32 @@
             return { title, subtitle };
         }
 
-        // Professional screenshot with comprehensive legend and details
+        // Simple and clean screenshot function
         function captureImage() {
             try {
-                const selectedRings = getSelectedRings();
-                const selectedGaps = getSelectedGaps();
-                const includeTitle = document.getElementById('includeTitle').checked;
-                const includeLegend = document.getElementById('includeLegend').checked;
-                const backgroundChoice = document.querySelector('input[name="screenshotBg"]:checked').value;
-                const resolutionChoice = document.querySelector('input[name="screenshotResolution"]:checked').value;
-                const colorMode = document.getElementById('residueColorMode').value;
+                // Get current canvas as JPEG
+                const dataURL = canvas.toDataURL('image/jpeg', 0.95);
                 
-                // Determine canvas dimensions - 20% larger
-                let baseWidth, baseHeight, scaleFactor;
-                if (resolutionChoice === '4k') {
-                    baseWidth = 3840 * 1.2;  // 20% larger
-                    baseHeight = 2880 * 1.2;
-                    scaleFactor = baseWidth / canvas.width;
-                    updateAnimationStatus('Generating professional 4K screenshot...');
-                } else {
-                    baseWidth = canvas.width * 1.44;  // 20% larger than before (1.2 * 1.2)
-                    baseHeight = canvas.height * 1.44;
-                    scaleFactor = 1.44;
-                }
-                
-                // Calculate layout with proper spacing
-                const titleHeight = includeTitle ? 140 * scaleFactor : 0;
-                const legendWidth = includeLegend ? 600 * scaleFactor : 0;
-                const padding = 40 * scaleFactor;
-                const contentPadding = 30 * scaleFactor;
-                
-                // Create enhanced screenshot canvas
-                const tempCanvas = document.createElement('canvas');
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCanvas.width = baseWidth + legendWidth + (includeLegend ? padding * 3 : contentPadding * 2);
-                tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 1600 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
-                
-                // Set background
-                tempCtx.fillStyle = backgroundChoice === 'white' ? '#ffffff' : '#000000';
-                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                
-                const textColor = backgroundChoice === 'white' ? '#2c3e50' : '#ffffff';
-                const accentColor = backgroundChoice === 'white' ? '#e67e22' : '#f39c12';
-                const subtleColor = backgroundChoice === 'white' ? '#7f8c8d' : '#bdc3c7';
-                
-                // Draw title
-                if (includeTitle) {
-                    const { title, subtitle } = generateConfigurationDescription(selectedRings, selectedGaps);
-                    
-                    tempCtx.fillStyle = accentColor;
-                    tempCtx.font = `bold ${36 * scaleFactor}px Segoe UI`;
-                    tempCtx.textAlign = 'center';
-                    const titleCenterX = contentPadding + baseWidth / 2;
-                    tempCtx.fillText(title, titleCenterX, 50 * scaleFactor);
-                    
-                    tempCtx.fillStyle = textColor;
-                    tempCtx.font = `${18 * scaleFactor}px Segoe UI`;
-                    
-                    const maxSubtitleWidth = baseWidth - contentPadding * 2;
-                    const words = subtitle.split(' ');
-                    let line = '';
-                    let y = 90 * scaleFactor;
-                    const lineHeight = 26 * scaleFactor;
-                    
-                    for (let i = 0; i < words.length; i++) {
-                        const testLine = line + words[i] + ' ';
-                        const metrics = tempCtx.measureText(testLine);
-                        
-                        if (metrics.width > maxSubtitleWidth && line !== '') {
-                            tempCtx.fillText(line.trim(), titleCenterX, y);
-                            line = words[i] + ' ';
-                            y += lineHeight;
-                        } else {
-                            line = testLine;
-                        }
-                    }
-                    tempCtx.fillText(line.trim(), titleCenterX, y);
-                }
-                
-                // Draw main canvas
-                const mainCanvasX = contentPadding;
-                const mainCanvasY = titleHeight + contentPadding;
-                
-                tempCtx.save();
-                tempCtx.translate(mainCanvasX, mainCanvasY);
-                tempCtx.scale(scaleFactor, scaleFactor);
-                tempCtx.drawImage(canvas, 0, 0);
-                tempCtx.restore();
-                
-                // Draw comprehensive legend
-                if (includeLegend) {
-                    const legendX = baseWidth + contentPadding + padding;
-                    const legendY = titleHeight + contentPadding;
-                    const legendContentWidth = legendWidth - padding * 2;
-                    const legendContentHeight = tempCanvas.height - titleHeight - contentPadding * 2;
-                    
-                    // Legend background
-                    tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(248, 249, 250, 0.98)' : 'rgba(15, 15, 20, 0.98)';
-                    tempCtx.fillRect(legendX, legendY, legendContentWidth, legendContentHeight);
-                    tempCtx.strokeStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)';
-                    tempCtx.lineWidth = 3 * scaleFactor;
-                    tempCtx.strokeRect(legendX, legendY, legendContentWidth, legendContentHeight);
-                    
-                    // Legend title
-                    tempCtx.fillStyle = accentColor;
-                    tempCtx.font = `bold ${22 * scaleFactor}px Segoe UI`;
-                    tempCtx.textAlign = 'left';
-                    let currentY = legendY + 40 * scaleFactor;
-                    tempCtx.fillText('Configuration Details', legendX + 20 * scaleFactor, currentY);
-                    
-                    currentY += 30 * scaleFactor;
-                    
-                    // SECTION 1: Active Parameters
-                    tempCtx.fillStyle = textColor;
-                    tempCtx.font = `bold ${16 * scaleFactor}px Segoe UI`;
-                    tempCtx.fillText('Active Parameters:', legendX + 20 * scaleFactor, currentY);
-                    
-                    tempCtx.font = `${13 * scaleFactor}px Segoe UI`;
-                    currentY += 22 * scaleFactor;
-                    
-                    // Ring counts
-                    const ringCounts = {
-                        unit: selectedRings.filter(r => r === 'unit').length,
-                        defaults: selectedRings.filter(r => r.startsWith('default_')).length,
-                        custom: selectedRings.filter(r => r.startsWith('custom_')).length,
-                        sieve: selectedRings.filter(r => r.startsWith('sieve_')).length,
-                        series: selectedRings.filter(r => !r.startsWith('default_') && !r.startsWith('custom_') && !r.startsWith('sieve_') && r !== 'unit').length
-                    };
-                    
-                    tempCtx.fillText(`• Total Rings: ${selectedRings.length}`, legendX + 25 * scaleFactor, currentY);
-                    currentY += 18 * scaleFactor;
-                    
-                    if (ringCounts.unit > 0) {
-                        tempCtx.fillText(`  └─ Unit Circle: ${ringCounts.unit}`, legendX + 30 * scaleFactor, currentY);
-                        currentY += 16 * scaleFactor;
-                    }
-                    if (ringCounts.defaults > 0) {
-                        const minD = Math.min(...selectedRings.filter(r => r.startsWith('default_')).map(r => configs[r].mod));
-                        const maxD = Math.max(...selectedRings.filter(r => r.startsWith('default_')).map(r => configs[r].mod));
-                        tempCtx.fillText(`  └─ Default Series: ${ringCounts.defaults} (M${minD}-M${maxD})`, legendX + 30 * scaleFactor, currentY);
-                        currentY += 16 * scaleFactor;
-                    }
-                    if (ringCounts.custom > 0) {
-                        tempCtx.fillText(`  └─ Custom Moduli: ${ringCounts.custom}`, legendX + 30 * scaleFactor, currentY);
-                        currentY += 16 * scaleFactor;
-                    }
-                    
-                    currentY += 8 * scaleFactor;
-                    
-                    // Euler totient sum
-                    const totalEuler = selectedRings.reduce((sum, rid) => {
-                        const cfg = configs[rid];
-                        return cfg ? sum + getCoprimes(cfg.mod).length : sum;
-                    }, 0);
-                    tempCtx.fillText(`• Character Support: Σφ(Mᵢ) = ${totalEuler}`, legendX + 25 * scaleFactor, currentY);
-                    currentY += 20 * scaleFactor;
-                    
-                    // Gap analysis
-                    if (selectedGaps.length > 0) {
-                        tempCtx.fillText(`• Gap Analysis: ${selectedGaps.length} active gaps`, legendX + 25 * scaleFactor, currentY);
-                        currentY += 18 * scaleFactor;
-                        selectedGaps.slice(0, 4).forEach((gap, idx) => {
-                            let gapName = '';
-                            if (gap === 2) gapName = ' (Twin)';
-                            else if (gap === 4) gapName = ' (Cousin)';
-                            else if (gap === 6) gapName = ' (Sexy)';
-                            tempCtx.fillText(`  └─ Gap ${gap}${gapName}`, legendX + 30 * scaleFactor, currentY);
-                            currentY += 16 * scaleFactor;
-                        });
-                    } else {
-                        tempCtx.fillText(`• Gap Analysis: None active`, legendX + 25 * scaleFactor, currentY);
-                        currentY += 18 * scaleFactor;
-                    }
-                    
-                    currentY += 8 * scaleFactor;
-                    
-                    // Lift configurations
-                    const liftTypes = [];
-                    if (document.getElementById('showDirectLifts').checked) liftTypes.push('Direct');
-                    if (document.getElementById('showModularLifts').checked) liftTypes.push('Modular');
-                    if (document.getElementById('showSkipDirectLifts').checked) liftTypes.push('Skip-Direct');
-                    if (document.getElementById('showSkipModularLifts').checked) liftTypes.push('Skip-Mod');
-                    
-                    tempCtx.fillText(`• Lift Homomorphisms: ${liftTypes.length > 0 ? liftTypes.join(', ') : 'None'}`, legendX + 25 * scaleFactor, currentY);
-                    currentY += 20 * scaleFactor;
-                    
-                    // Visual settings
-                    const colorModeNames = {
-                        'hue': 'Rainbow (Angular)',
-                        'value': 'By Value',
-                        'modulo': 'By Ring',
-                        'prime': 'Prime Analysis',
-                        'gcd_unified': 'GCD Unified',
-                        'gcd_per_mod': 'GCD per Ring',
-                        'gcd_per_residue': 'GCD per Residue',
-                        'gcd_mathematical': 'GCD Mathematical',
-                        'gcd_spectrum': 'GCD Spectrum',
-                        'custom': 'Custom Color'
-                    };
-                    
-                    tempCtx.fillText(`• Color Mode: ${colorModeNames[colorMode]}`, legendX + 25 * scaleFactor, currentY);
-                    currentY += 18 * scaleFactor;
-                    
-                    // Radius scaling
-                    const scalingModes = {
-                        'uniform': 'Uniform',
-                        'linear': 'Linear',
-                        'sqrt': 'Square-root',
-                        'log': 'Logarithmic',
-                        'totient': 'Totient',
-                        'density': 'Density',
-                        'inverse': 'Inverse',
-                        'exponential': 'Exponential'
-                    };
-                    tempCtx.fillText(`• Radius Scaling: ${scalingModes[radiusScalingMode]}`, legendX + 25 * scaleFactor, currentY);
-                    currentY += 18 * scaleFactor;
-                    
-                    if (radiusScalingMode !== 'uniform') {
-                        tempCtx.fillText(`  └─ Constant c = ${scalingConstant.toFixed(2)}`, legendX + 30 * scaleFactor, currentY);
-                        currentY += 16 * scaleFactor;
-                    }
-                    
-                    currentY += 8 * scaleFactor;
-                    
-                    // Prime sieve
-                    if (primeData.isActive) {
-                        tempCtx.fillText(`• Prime Sieve: ACTIVE`, legendX + 25 * scaleFactor, currentY);
-                        currentY += 18 * scaleFactor;
-                        tempCtx.fillText(`  └─ Modulus: ${primeData.modulus}, Limit: ${primeData.limit.toLocaleString()}`, legendX + 30 * scaleFactor, currentY);
-                        currentY += 16 * scaleFactor;
-                        tempCtx.fillText(`  └─ Primes Found: ${primeData.totalPrimes.toLocaleString()}`, legendX + 30 * scaleFactor, currentY);
-                        currentY += 16 * scaleFactor;
-                    }
-                    
-                    currentY += 15 * scaleFactor;
-                    
-                    // SECTION 2: Visual Legend
-                    tempCtx.fillStyle = accentColor;
-                    tempCtx.font = `bold ${16 * scaleFactor}px Segoe UI`;
-                    tempCtx.fillText('Visual Legend:', legendX + 20 * scaleFactor, currentY);
-                    currentY += 25 * scaleFactor;
-                    
-                    // Legend items with proper spacing
-                    const legendItems = [];
-                    
-                    // Always show key elements
-                    legendItems.push({
-                        color: '#FFD700',
-                        label: 'Unit Circle (M=1)',
-                        desc: 'Mathematical foundation, gcd(0,1)=1'
-                    });
-                    
-                    legendItems.push({
-                        color: '#FF6B6B',
-                        label: 'Character Support φ(M)',
-                        desc: 'Coprime residues where gcd(r,M)=1'
-                    });
-                    
-                    if (document.getElementById('showDirectLifts').checked) {
-                        legendItems.push({
-                            color: liftLineColor,
-                            label: 'Direct Lift Lines',
-                            desc: 'Ring homomorphisms φ: r → r'
-                        });
-                    }
-                    
-                    if (document.getElementById('showModularLifts').checked) {
-                        legendItems.push({
-                            color: modularLiftColor,
-                            label: 'Modular Lift Lines',
-                            desc: 'CRT transformations r → r+M×2ⁿ'
-                        });
-                    }
-                    
-                    if (selectedGaps.length > 0) {
-                        legendItems.push({
-                            color: '#4ECDC4',
-                            label: `Prime Gap Connections`,
-                            desc: `Active gaps: ${selectedGaps.slice(0,3).join(', ')}${selectedGaps.length > 3 ? '...' : ''}`
-                        });
-                    }
-                    
-                    if (primeData.isActive) {
-                        legendItems.push({
-                            color: '#FFD700',
-                            label: 'Prime Distribution',
-                            desc: `${primeData.totalPrimes} primes in mod ${primeData.modulus}`
-                        });
-                    }
-                    
-                    // Draw legend items with consistent spacing
-                    const itemSpacing = 55 * scaleFactor;
-                    const colorBoxSize = 18 * scaleFactor;
-                    
-                    tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
-                    legendItems.forEach((item, idx) => {
-                        const itemY = currentY + idx * itemSpacing;
-                        const colorX = legendX + 25 * scaleFactor;
-                        const textX = colorX + colorBoxSize + 15 * scaleFactor;
-                        
-                        // Color box
-                        tempCtx.fillStyle = item.color;
-                        tempCtx.fillRect(colorX, itemY - colorBoxSize/2, colorBoxSize, colorBoxSize);
-                        tempCtx.strokeStyle = backgroundChoice === 'white' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)';
-                        tempCtx.lineWidth = 1;
-                        tempCtx.strokeRect(colorX, itemY - colorBoxSize/2, colorBoxSize, colorBoxSize);
-                        
-                        // Label
-                        tempCtx.fillStyle = textColor;
-                        tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
-                        tempCtx.fillText(item.label, textX, itemY);
-                        
-                        // Description
-                        tempCtx.fillStyle = subtleColor;
-                        tempCtx.font = `${11 * scaleFactor}px Segoe UI`;
-                        tempCtx.fillText(item.desc, textX, itemY + 16 * scaleFactor);
-                    });
-                    
-                    currentY += legendItems.length * itemSpacing + 20 * scaleFactor;
-                    
-                    // Mathematical notation at bottom if space
-                    if (currentY < legendY + legendContentHeight - 100 * scaleFactor) {
-                        currentY = legendY + legendContentHeight - 80 * scaleFactor;
-                        tempCtx.fillStyle = subtleColor;
-                        tempCtx.font = `italic ${11 * scaleFactor}px Times New Roman`;
-                        tempCtx.fillText('Mathematical Relations:', legendX + 20 * scaleFactor, currentY);
-                        currentY += 18 * scaleFactor;
-                        tempCtx.font = `italic ${10 * scaleFactor}px Times New Roman`;
-                        tempCtx.fillText('φ(n) = n∏(1 - 1/p) | Euler totient', legendX + 25 * scaleFactor, currentY);
-                        currentY += 15 * scaleFactor;
-                        tempCtx.fillText('gcd(r,M)=1 ⟺ χ(r)≠0 | Character support', legendX + 25 * scaleFactor, currentY);
-                        currentY += 15 * scaleFactor;
-                        tempCtx.fillText('θ = 2π(M-r)/M | Angle positioning', legendX + 25 * scaleFactor, currentY);
-                    }
-                }
-                
-                // Professional watermark
-                tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)';
-                tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
-                tempCtx.textAlign = 'right';
-                const watermarkX = tempCanvas.width - 20 * scaleFactor;
-                tempCtx.fillText('Created by Wessen Getachew | Riemann Hypothesis Explorer', 
-                    watermarkX, tempCanvas.height - 15 * scaleFactor);
-                
-                // Generate filename
+                // Create filename with timestamp
                 const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,'-');
-                const ringText = selectedRings.length > 0 ? `_${selectedRings.length}rings` : '';
-                const gapText = selectedGaps.length > 0 ? `_${selectedGaps.length}gaps` : '';
-                const resText = resolutionChoice === '4k' ? '_4K' : '_HD';
-                const filename = `professional_modular_rings${ringText}${gapText}${resText}_${timestamp}.jpg`;
+                const filename = `modular_rings_${timestamp}.jpg`;
                 
-                // Convert and download
-                const dataURL = tempCanvas.toDataURL('image/jpeg', 0.98);
+                // Create download link
                 const link = document.createElement('a');
-                link.download = filename;
                 link.href = dataURL;
+                link.download = filename;
+                
+                // Trigger download
                 link.click();
                 
-                const statusMsg = resolutionChoice === '4k' 
-                    ? 'Professional 4K screenshot with detailed legend saved!' 
-                    : 'Professional HD screenshot with detailed legend saved!';
-                updateAnimationStatus(statusMsg);
-                
+                updateAnimationStatus('Image captured successfully! 📸');
             } catch (error) {
                 alert('Error capturing image: ' + error.message);
                 console.error('Capture error:', error);
             }
         }
         
-        // Enhanced invert function that works with ALL radius scaling modes
+        // Invert ring order (like nesting animation but instant)
         let ringOrderInverted = false;
         
         function invertCanvas() {
@@ -5233,26 +5426,13 @@
                 nestingInversionAmount = 1.0;
                 document.getElementById('nestingInversion').value = 1.0;
                 document.getElementById('nestingInversionValue').textContent = '1.00';
-                
-                // Get current scaling mode for status message
-                const scalingModes = {
-                    'uniform': 'Uniform',
-                    'linear': 'Linear',
-                    'sqrt': 'Square-root',
-                    'log': 'Logarithmic',
-                    'totient': 'Totient',
-                    'density': 'Density',
-                    'inverse': 'Inverse',
-                    'exponential': 'Exponential'
-                };
-                
-                updateAnimationStatus(`ALL rings inverted (largest inner, smallest outer) - ${scalingModes[radiusScalingMode]} scaling maintained`);
+                updateAnimationStatus('ALL rings inverted (M30 inner, M1 outer - complete reversal)');
             } else {
                 // Reset to normal order
                 nestingInversionAmount = 0.0;
                 document.getElementById('nestingInversion').value = 0.0;
                 document.getElementById('nestingInversionValue').textContent = '0.00';
-                updateAnimationStatus('Ring order restored to normal (smallest inner, largest outer)');
+                updateAnimationStatus('Ring order restored to normal (M1 inner, M30 outer)');
             }
             
             draw();
@@ -6464,9 +6644,6 @@
             
             // Nesting animation
             if (nestingAnimationActive) {
-                const nestingLoop = document.getElementById('nestingLoop').checked;
-                const nestingPingPong = document.getElementById('nestingPingPong').checked;
-                
                 nestingAnimationProgress += 0.01 * nestingAnimationSpeed * nestingAnimationDirection;
                 
                 if (nestingAnimationProgress >= 1) {
@@ -6503,7 +6680,7 @@
                 document.getElementById('nestingInversionValue').textContent = nestingInversionAmount.toFixed(2);
             }
             
-            if (!enableRotation && !isInverting && !nestingAnimationActive) {
+            if (!enableRotation && !isInverting && !nestingAnimationActive && !gcdAnimationActive) {
                 animating = false;
                 return;
             }
@@ -6707,6 +6884,17 @@
             const enableRotation = document.getElementById('enableRotation').checked;
             const liftLineColor = document.getElementById('liftLineColor').value;
             const modularLiftColor = document.getElementById('modularLiftColor').value;
+            
+            // GCD visualization options
+            const highlightGcdBoundary = document.getElementById('highlightGcdBoundary')?.checked || false;
+            const showGcdConnections = document.getElementById('showGcdConnections')?.checked || false;
+            const animateGcdHighlight = document.getElementById('animateGcdHighlight')?.checked || false;
+            const showTotientCount = document.getElementById('showTotientCount')?.checked || false;
+            
+            // Update GCD animation phase
+            if (gcdAnimationActive) {
+                gcdAnimationPhase += 0.03;
+            }
 
             // Clear canvas with enhanced background
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -6863,6 +7051,55 @@
                     residuesToDraw.push(...nonCoprimes.map(r => ({r, isGcdOne: false})));
                 }
                 
+                // Draw GCD boundary if enabled
+                if (highlightGcdBoundary && ring.coprimes.length > 0 && ring.n !== 'unit') {
+                    ctx.save();
+                    ctx.globalAlpha = 0.15;
+                    ring.coprimes.forEach(r => {
+                        const baseAngle = 2 * Math.PI * (ring.modulus - r) / ring.modulus;
+                        const angle = baseAngle + ringRotation;
+                        const x = ring.radius * Math.cos(angle);
+                        const y = ring.radius * Math.sin(angle);
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, 15, 0, 2 * Math.PI);
+                        ctx.fillStyle = '#48BB78';
+                        ctx.fill();
+                    });
+                    ctx.restore();
+                }
+                
+                // Draw GCD structure connections if enabled
+                if (showGcdConnections && ring.coprimes.length > 1 && ring.n !== 'unit') {
+                    ctx.save();
+                    ctx.globalAlpha = 0.2;
+                    ctx.strokeStyle = '#4ECDC4';
+                    ctx.lineWidth = 0.5;
+                    
+                    for (let i = 0; i < ring.coprimes.length; i++) {
+                        for (let j = i + 1; j < ring.coprimes.length; j++) {
+                            const r1 = ring.coprimes[i];
+                            const r2 = ring.coprimes[j];
+                            
+                            const baseAngle1 = 2 * Math.PI * (ring.modulus - r1) / ring.modulus;
+                            const baseAngle2 = 2 * Math.PI * (ring.modulus - r2) / ring.modulus;
+                            const angle1 = baseAngle1 + ringRotation;
+                            const angle2 = baseAngle2 + ringRotation;
+                            
+                            const x1 = ring.radius * Math.cos(angle1);
+                            const y1 = ring.radius * Math.sin(angle1);
+                            const x2 = ring.radius * Math.cos(angle2);
+                            const y2 = ring.radius * Math.sin(angle2);
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(x1, y1);
+                            ctx.lineTo(x2, y2);
+                            ctx.stroke();
+                        }
+                    }
+                    ctx.restore();
+                }
+                
                 residuesToDraw.forEach(({r, isGcdOne}) => {
                     // FIXED: Correct angle calculation to match mathematical convention
                     // For mod M, residue r should be at angle: 2π * (M - r) / M (clockwise from top)
@@ -6915,6 +7152,21 @@
                     
                     let color = getResidueColor(r, ring.modulus, ring.index, colorMode);
                     
+                    // Apply GCD animation highlighting
+                    if (animateGcdHighlight && isGcdOne) {
+                        const pulseIntensity = 0.5 + 0.5 * Math.sin(gcdAnimationPhase + ring.index * 0.2);
+                        pointSize *= (1 + pulseIntensity * 0.3);
+                        
+                        // Add animated glow
+                        ctx.save();
+                        ctx.globalAlpha = pulseIntensity * 0.4;
+                        ctx.beginPath();
+                        ctx.arc(x, y, pointSize * 2, 0, 2 * Math.PI);
+                        ctx.fillStyle = '#FFD700';
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                    
                     // Apply GCD-based styling
                     if (!isGcdOne) {
                         if (highlightGcdDifference) {
@@ -6964,7 +7216,7 @@
                     ctx.lineWidth = borderThickness;
                     ctx.stroke();
 
-                    // Enhanced labels with multiple format options
+                    // Enhanced labels with selective control and sizing
                     if (showLabels) {
                         const labelUnitCircle = document.getElementById('labelUnitCircle').checked;
                         const labelGcdOne = document.getElementById('labelGcdOne').checked;
@@ -6973,8 +7225,6 @@
                         const labelMinRadius = parseInt(document.getElementById('labelMinRadius').value);
                         const labelSize = parseFloat(document.getElementById('labelSize').value);
                         const labelOpacity = parseFloat(document.getElementById('labelOpacity').value);
-                        const labelFormat = document.getElementById('labelFormat').value;
-                        const angleUnits = document.getElementById('angleUnits').value;
                         
                         // Check if this ring should have labels
                         let shouldLabel = false;
@@ -6996,82 +7246,17 @@
                         
                         if (shouldLabel) {
                             ctx.fillStyle = `rgba(255, 255, 255, ${labelOpacity})`;
-                            let labelText = '';
                             
-                            // Format label based on selection
-                            switch(labelFormat) {
-                                case 'number':
-                                    labelText = r.toString();
-                                    break;
-                                    
-                                case 'angle':
-                                    const angleRad = baseAngle;
-                                    if (angleUnits === 'degrees') {
-                                        const deg = (angleRad * 180 / Math.PI).toFixed(1);
-                                        labelText = `${deg}°`;
-                                    } else if (angleUnits === 'radians') {
-                                        labelText = `${angleRad.toFixed(3)}`;
-                                    } else { // turns
-                                        const turns = (angleRad / (2 * Math.PI)).toFixed(3);
-                                        labelText = `${turns}τ`;
-                                    }
-                                    break;
-                                    
-                                case 'fraction':
-                                    if (ring.n === 'unit') {
-                                        labelText = '0/1';
-                                    } else {
-                                        // Simplify fraction
-                                        const g = gcd(r, Math.round(ring.modulus));
-                                        const num = r / g;
-                                        const den = Math.round(ring.modulus) / g;
-                                        labelText = `${num}/${den}`;
-                                    }
-                                    break;
-                                    
-                                case 'farey':
-                                    // Farey sequence alignment: show as fraction aligned to modulus
-                                    if (ring.n === 'unit') {
-                                        labelText = '0/1';
-                                    } else {
-                                        labelText = `${r}/${Math.round(ring.modulus)}`;
-                                    }
-                                    break;
-                                    
-                                case 'both':
-                                    const angleRad2 = baseAngle;
-                                    let angleStr = '';
-                                    if (angleUnits === 'degrees') {
-                                        angleStr = `${(angleRad2 * 180 / Math.PI).toFixed(0)}°`;
-                                    } else if (angleUnits === 'radians') {
-                                        angleStr = `${angleRad2.toFixed(2)}`;
-                                    } else {
-                                        angleStr = `${(angleRad2 / (2 * Math.PI)).toFixed(2)}τ`;
-                                    }
-                                    labelText = `${r}\n${angleStr}`;
-                                    break;
-                                    
-                                case 'all':
-                                    const angleRad3 = baseAngle;
-                                    let angleStr2 = '';
-                                    if (angleUnits === 'degrees') {
-                                        angleStr2 = `${(angleRad3 * 180 / Math.PI).toFixed(0)}°`;
-                                    } else if (angleUnits === 'radians') {
-                                        angleStr2 = `${angleRad3.toFixed(2)}`;
-                                    } else {
-                                        angleStr2 = `${(angleRad3 / (2 * Math.PI)).toFixed(2)}τ`;
-                                    }
-                                    const fracStr = ring.n === 'unit' ? '0/1' : `${r}/${Math.round(ring.modulus)}`;
-                                    labelText = `${r}\n${angleStr2}\n${fracStr}`;
-                                    break;
-                            }
+                            // Use formatLabel function to get properly formatted text
+                            let labelText = formatLabel(r, ring.modulus, ring);
                             
-                            // Add prime count to label if sieve is active
+                            // Add prime count to label if sieve is active and not already in format
                             if (primeData.isActive && ring.modulus === primeData.modulus && 
-                                primeData.residueDistribution[r] && labelShowPrimeCounts) {
+                                primeData.residueDistribution[r] && labelShowPrimeCounts && 
+                                currentLabelFormat !== 'combined') {
                                 const count = primeData.residueDistribution[r].count;
-                                if (count > 0 && document.getElementById('showPrimeMarkers').checked) {
-                                    labelText = labelText + `\n(${count})`;
+                                if (count > 0 && document.getElementById('showPrimeMarkers')?.checked) {
+                                    labelText = `${labelText} (${count})`;
                                 }
                             }
                             
@@ -7082,19 +7267,33 @@
                             ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
                             ctx.lineWidth = Math.max(1, fontSize * 0.2);
                             
-                            // Handle multi-line labels
+                            // Handle multi-line labels (for combined format)
                             const lines = labelText.split('\n');
                             const lineHeight = fontSize * 1.2;
-                            const startY = y - (ring.n === 'unit' ? fontSize * 0.8 : fontSize * 0.6) - ((lines.length - 1) * lineHeight / 2);
+                            const startY = y - (ring.n === 'unit' ? fontSize * 0.8 : fontSize * 0.6) - (lines.length - 1) * lineHeight / 2;
                             
-                            lines.forEach((line, idx) => {
-                                const lineY = startY + idx * lineHeight;
+                            lines.forEach((line, lineIndex) => {
+                                const lineY = startY + lineIndex * lineHeight;
                                 ctx.strokeText(line, x, lineY);
                                 ctx.fillText(line, x, lineY);
                             });
                         }
                     }
                 });
+                
+                // Show totient count if enabled
+                if (showTotientCount && ring.n !== 'unit') {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+                    ctx.font = 'bold 12px Segoe UI';
+                    ctx.textAlign = 'center';
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.lineWidth = 3;
+                    const countText = `φ=${ring.coprimes.length}`;
+                    ctx.strokeText(countText, 0, -ring.radius - 10);
+                    ctx.fillText(countText, 0, -ring.radius - 10);
+                    ctx.restore();
+                }
 
                 // Enhanced gap connections (skip for unit circle as it has no gaps)
                 if (ring.n !== 'unit' && showGcdOne) {
@@ -7544,4 +7743,4 @@
         }, 500);
     </script>
 </body>
-    </html>
+                                                                                              </html>
