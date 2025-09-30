@@ -941,72 +941,6 @@
                     </div>
                     
                     <div class="custom-gap">
-                        <label><strong>Prime Sieve Engine:</strong></label>
-                        <div class="gap-input">
-                            Search up to: <input type="number" id="sieveLimit" min="100" value="10000" placeholder="10000">
-                        </div>
-                        <div class="gap-input">
-                            Using modulus: <input type="number" id="sieveModulus" min="2" value="30" placeholder="30">
-                            <button class="rh-btn" onclick="runPrimeSieve()">Generate Sieve</button>
-                        </div>
-                        <div class="gap-input">
-                            <button onclick="clearPrimeSieve()">Clear Sieve</button>
-                            <button onclick="exportPrimeData()">Export Data</button>
-                        </div>
-                        <div id="sieveProgress" style="display: none; margin-top: 10px;">
-                            <div style="background: rgba(255,255,255,0.2); border-radius: 10px; height: 20px;">
-                                <div id="progressBar" style="background: linear-gradient(45deg, #4ECDC4, #44A08D); height: 100%; border-radius: 10px; width: 0%; transition: width 0.3s;"></div>
-                            </div>
-                            <div id="progressText" style="text-align: center; margin-top: 5px; font-size: 12px;"></div>
-                        </div>
-                        
-                        <div id="sieveResults" style="display: none; margin-top: 15px;">
-                            <label><strong>Prime Distribution Analysis:</strong></label>
-                            <div id="primeStats" style="font-size: 13px; margin: 10px 0;"></div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="showPrimeMarkers"> Highlight Primes on Rings
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="showCompositeMarkers"> Show Composite Numbers
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="showPrimeDensity"> Show Density Visualization
-                            </div>
-                        </div>
-                        
-                        <div id="primePatternAnalysis" style="display: none; margin-top: 15px;">
-                            <label><strong>Quick Sieve Presets:</strong></label>
-                            <div class="gap-input">
-                                <button onclick="quickSieve(1000, 6)">1K (mod 6)</button>
-                                <button onclick="quickSieve(10000, 30)">10K (mod 30)</button>
-                            </div>
-                            <div class="gap-input">
-                                <button onclick="quickSieve(100000, 210)">100K (mod 210)</button>
-                                <button onclick="quickSieve(1000000, 2310)">1M (mod 2310)</button>
-                            </div>
-                            
-                            <div style="margin-top: 15px;">
-                                <label><strong>Complete Distribution:</strong></label>
-                                <div id="residueDistribution" style="font-size: 12px; max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 10px;"></div>
-                                
-                                <div class="gap-input" style="margin-top: 15px;">
-                                    <button onclick="exportDetailedPrimeList()">Export All Primes</button>
-                                    <button onclick="togglePrimeSearchMode()">Search Primes</button>
-                                </div>
-                                
-                                <div id="primeSearchControls" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                    <label><strong>Prime Search:</strong></label>
-                                    <div class="gap-input">
-                                        Prime: <input type="number" id="searchPrime" min="2" max="1000000" placeholder="Enter prime">
-                                        <button onclick="findPrimeInResidue()">Find Residue</button>
-                                    </div>
-                                    <div id="searchResult" style="margin-top: 10px; font-size: 13px;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="custom-gap">
                         <label><strong>Visualization Range Controls:</strong></label>
                         <div class="gap-input">
                             Critical Line t-range: <input type="number" id="criticalTMin" min="0" value="0" style="width: 60px;"> to 
@@ -1526,7 +1460,7 @@
                 <div class="gap-input">
                     <button onclick="resetView()">Reset View</button>
                     <button onclick="captureImage()">Capture Image</button>
-                    <button onclick="invertCanvas()">Invert Nest Order</button>
+                    <button onclick="invertCanvas()">Invert Display</button>
                 </div>
                 <div class="custom-gap">
                     <label><strong>Image Capture Options:</strong></label>
@@ -5266,7 +5200,7 @@
             }
         }
         
-        // Invert ring order (like nesting animation but instant)
+        // Enhanced invert function that works with ALL radius scaling modes
         let ringOrderInverted = false;
         
         function invertCanvas() {
@@ -5277,13 +5211,26 @@
                 nestingInversionAmount = 1.0;
                 document.getElementById('nestingInversion').value = 1.0;
                 document.getElementById('nestingInversionValue').textContent = '1.00';
-                updateAnimationStatus('ALL rings inverted (M30 inner, M1 outer - complete reversal)');
+                
+                // Get current scaling mode for status message
+                const scalingModes = {
+                    'uniform': 'Uniform',
+                    'linear': 'Linear',
+                    'sqrt': 'Square-root',
+                    'log': 'Logarithmic',
+                    'totient': 'Totient',
+                    'density': 'Density',
+                    'inverse': 'Inverse',
+                    'exponential': 'Exponential'
+                };
+                
+                updateAnimationStatus(`ALL rings inverted (largest inner, smallest outer) - ${scalingModes[radiusScalingMode]} scaling maintained`);
             } else {
                 // Reset to normal order
                 nestingInversionAmount = 0.0;
                 document.getElementById('nestingInversion').value = 0.0;
                 document.getElementById('nestingInversionValue').textContent = '0.00';
-                updateAnimationStatus('Ring order restored to normal (M1 inner, M30 outer)');
+                updateAnimationStatus('Ring order restored to normal (smallest inner, largest outer)');
             }
             
             draw();
@@ -7497,4 +7444,4 @@
         }, 500);
     </script>
 </body>
-    </html>
+                                    </html>
