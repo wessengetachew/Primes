@@ -4220,22 +4220,41 @@
             for (let mod = modStart; mod <= modEnd; mod++) {
                 // Check if modulus already exists
                 const existing = Object.values(configs).find(config => config.mod === mod);
+                
                 if (!existing) {
-                    const customId = `custom_${customRingCounter++}`;
-                    configs[customId] = { 
-                        mod: mod, 
-                        label: mod.toString(),
-                        description: `Custom modulus ${mod}`
-                    };
-                    
-                    addRingControl(customId, `M${mod}`, true); // Auto-check new rings
-                    addedCount++;
+                    // Handle mod 1 as unit circle
+                    if (mod === 1) {
+                        // Unit circle already exists, just check it
+                        const unitCheckbox = document.querySelector('#ringControls input[value="unit"]');
+                        if (unitCheckbox) {
+                            unitCheckbox.checked = true;
+                            addedCount++;
+                        }
+                    } else {
+                        const customId = `custom_${customRingCounter++}`;
+                        configs[customId] = { 
+                            mod: mod, 
+                            label: mod.toString(),
+                            description: `Custom modulus ${mod}`
+                        };
+                        
+                        addRingControl(customId, `M${mod}`, true); // Auto-check new rings
+                        addedCount++;
+                    }
                 } else {
+                    // If ring exists, make sure it's checked
+                    const ringControls = document.querySelectorAll('#ringControls input[type="checkbox"]');
+                    ringControls.forEach(checkbox => {
+                        const config = configs[checkbox.value];
+                        if (config && config.mod === mod) {
+                            checkbox.checked = true;
+                        }
+                    });
                     skippedCount++;
                 }
             }
             
-            updateAnimationStatus(`Added ${addedCount} rings (M${modStart}-M${modEnd}), skipped ${skippedCount} existing`);
+            updateAnimationStatus(`Added ${addedCount} rings (M${modStart}-M${modEnd}), ensured ${skippedCount} existing rings selected`);
             draw();
         }
 
@@ -7135,4 +7154,4 @@
         }, 500);
     </script>
 </body>
-    </html>
+                        </html>
