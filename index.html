@@ -2719,363 +2719,120 @@
             ctx.fillText('Euler Totient φ(M) Comparison', canvas.width / 2, 20);
         }
         
-        // ========================================
-        // SECTION 1: RIGOROUS L-FUNCTION COMPUTATION
-        // Complete implementation with error bounds, zeros, and functional equations
-        // ========================================
+        // RIGOROUS L-FUNCTION COMPUTATION
+        // Implementation of Dirichlet L-functions with error bounds
         
-        // Complex number arithmetic utilities
-        class Complex {
-            constructor(re, im = 0) {
-                this.re = re;
-                this.im = im;
-            }
-            
-            static fromPolar(r, theta) {
-                return new Complex(r * Math.cos(theta), r * Math.sin(theta));
-            }
-            
-            add(z) {
-                return new Complex(this.re + z.re, this.im + z.im);
-            }
-            
-            subtract(z) {
-                return new Complex(this.re - z.re, this.im - z.im);
-            }
-            
-            multiply(z) {
-                if (typeof z === 'number') {
-                    return new Complex(this.re * z, this.im * z);
-                }
-                return new Complex(
-                    this.re * z.re - this.im * z.im,
-                    this.re * z.im + this.im * z.re
-                );
-            }
-            
-            divide(z) {
-                if (typeof z === 'number') {
-                    return new Complex(this.re / z, this.im / z);
-                }
-                const denom = z.re * z.re + z.im * z.im;
-                return new Complex(
-                    (this.re * z.re + this.im * z.im) / denom,
-                    (this.im * z.re - this.re * z.im) / denom
-                );
-            }
-            
-            conjugate() {
-                return new Complex(this.re, -this.im);
-            }
-            
-            abs() {
-                return Math.sqrt(this.re * this.re + this.im * this.im);
-            }
-            
-            arg() {
-                return Math.atan2(this.im, this.re);
-            }
-            
-            pow(n) {
-                if (n === 0) return new Complex(1, 0);
-                if (n === 1) return this;
-                
-                const r = this.abs();
-                const theta = this.arg();
-                return Complex.fromPolar(Math.pow(r, n), n * theta);
-            }
-            
-            exp() {
-                const expRe = Math.exp(this.re);
-                return new Complex(expRe * Math.cos(this.im), expRe * Math.sin(this.im));
-            }
-            
-            log() {
-                return new Complex(Math.log(this.abs()), this.arg());
-            }
-            
-            toString() {
-                const sign = this.im >= 0 ? '+' : '-';
-                return `${this.re.toFixed(6)} ${sign} ${Math.abs(this.im).toFixed(6)}i`;
-            }
-        }
-        
-        // Enhanced Dirichlet Character with proper implementation
         class DirichletCharacter {
             constructor(modulus, index) {
                 this.modulus = modulus;
                 this.index = index;
-                this.coprimes = getCoprimes(modulus);
-                this.phi = this.coprimes.length;
                 this.conductor = this.computeConductor();
                 this.isPrimitive = (this.conductor === this.modulus);
-                this.order = this.computeOrder();
-                
-                // Build character table
-                this.characterTable = this.buildCharacterTable();
             }
             
-            // Build complete character table for all residues
-            buildCharacterTable() {
-                const table = {};
-                
-                // Character is 0 on non-coprime residues
-                for (let a = 0; a < this.modulus; a++) {
-                    if (gcd(a, this.modulus) !== 1) {
-                        table[a] = new Complex(0, 0);
-                    }
-                }
-                
-                // For principal character, all coprimes map to 1
-                if (this.index === 0) {
-                    this.coprimes.forEach(a => {
-                        table[a] = new Complex(1, 0);
-                    });
-                    return table;
-                }
-                
-                // For non-principal characters, use primitive root structure
-                this.coprimes.forEach((a, i) => {
-                    const angle = 2 * Math.PI * this.index * i / this.phi;
-                    table[a] = new Complex(Math.cos(angle), Math.sin(angle));
-                });
-                
-                return table;
-            }
-            
-            // Get character value χ(n)
+            // Compute character value χ(n)
             value(n) {
                 n = ((n % this.modulus) + this.modulus) % this.modulus;
-                return this.characterTable[n] || new Complex(0, 0);
+                if (gcd(n, this.modulus) !== 1) return 0;
+                
+                // Principal character
+                if (this.index === 0) return 1;
+                
+                // For general character, use multiplicative property
+                // This is a simplified implementation
+                const phi = getCoprimes(this.modulus).length;
+                const angle = 2 * Math.PI * this.index * this.discreteLog(n) / phi;
+                return { re: Math.cos(angle), im: Math.sin(angle) };
             }
             
-            // Compute conductor (smallest modulus for induced character)
+            // Discrete logarithm (simplified for coprime residues)
+            discreteLog(n) {
+                const coprimes = getCoprimes(this.modulus);
+                const index = coprimes.indexOf(n % this.modulus);
+                return index >= 0 ? index : 0;
+            }
+            
+            // Compute conductor of the character
             computeConductor() {
-                // For simplicity, return modulus (full implementation would check divisors)
+                // Simplified: for full implementation, check primitivity
                 return this.modulus;
             }
             
-            // Compute character order
-            computeOrder() {
-                if (this.index === 0) return 1;
-                
-                // Find smallest positive integer k such that χ^k = χ_0
-                for (let k = 1; k <= this.phi; k++) {
-                    if ((this.index * k) % this.phi === 0) {
-                        return k;
-                    }
-                }
-                return this.phi;
-            }
-            
-            // Gauss sum: τ(χ) = Σ χ(a) e^(2πia/m)
+            // Gauss sum
             gaussSum() {
-                let sum = new Complex(0, 0);
-                
+                let sumRe = 0, sumIm = 0;
                 for (let a = 0; a < this.modulus; a++) {
-                    const chiVal = this.value(a);
-                    if (chiVal.abs() > 0) {
+                    const chi = this.value(a);
+                    if (chi !== 0) {
                         const angle = 2 * Math.PI * a / this.modulus;
-                        const exp = new Complex(Math.cos(angle), Math.sin(angle));
-                        sum = sum.add(chiVal.multiply(exp));
+                        const expRe = Math.cos(angle);
+                        const expIm = Math.sin(angle);
+                        if (typeof chi === 'object') {
+                            sumRe += chi.re * expRe - chi.im * expIm;
+                            sumIm += chi.re * expIm + chi.im * expRe;
+                        } else {
+                            sumRe += chi * expRe;
+                            sumIm += chi * expIm;
+                        }
                     }
                 }
-                
-                return sum;
-            }
-            
-            // Check if character is even (χ(-1) = 1) or odd (χ(-1) = -1)
-            isEven() {
-                const chiNegOne = this.value(this.modulus - 1);
-                return Math.abs(chiNegOne.re - 1) < 1e-10;
+                return { re: sumRe, im: sumIm };
             }
         }
         
-        // Advanced L-Function Calculator with Riemann-Siegel formula
         class LFunctionCalculator {
             constructor(character, precision = 1e-10) {
                 this.chi = character;
                 this.precision = precision;
-                this.maxTerms = 50000;
-                this.cache = new Map(); // Cache computed values
+                this.maxTerms = 10000;
             }
             
-            // Compute L(s, χ) using optimal method based on s
-            computeAtPoint(s, options = {}) {
-                const sigma = typeof s === 'object' ? s.re : s;
-                const t = typeof s === 'object' ? s.im : 0;
-                
-                const maxTerms = options.maxTerms || this.maxTerms;
-                const useRiemannSiegel = options.useRiemannSiegel || (t > 10 && sigma === 0.5);
-                
-                // Check cache
-                const cacheKey = `${sigma.toFixed(6)}_${t.toFixed(6)}_${maxTerms}`;
-                if (this.cache.has(cacheKey)) {
-                    return this.cache.get(cacheKey);
-                }
-                
-                let result;
-                if (useRiemannSiegel && this.chi.index === 0) {
-                    // Use Riemann-Siegel formula for Riemann zeta on critical line
-                    result = this.computeRiemannSiegel(t);
-                } else if (sigma > 1) {
-                    // Use Dirichlet series for σ > 1
-                    result = this.computeDirichletSeries(new Complex(sigma, t), maxTerms);
-                } else if (sigma >= 0.5) {
-                    // Use Euler-Maclaurin for 0.5 ≤ σ ≤ 1
-                    result = this.computeEulerMaclaurin(new Complex(sigma, t), maxTerms);
-                } else {
-                    // Use functional equation for σ < 0.5
-                    result = this.computeViaFunctionalEquation(new Complex(sigma, t));
-                }
-                
-                // Cache result
-                this.cache.set(cacheKey, result);
-                return result;
-            }
-            
-            // Dirichlet series: L(s,χ) = Σ χ(n)/n^s
-            computeDirichletSeries(s, maxTerms) {
-                let sum = new Complex(0, 0);
+            // Compute L(s, χ) using Dirichlet series
+            computeAtPoint(s, maxTerms = this.maxTerms) {
+                let sumRe = 0, sumIm = 0;
                 let errorBound = 0;
                 
+                const sigma = s.re;
+                const t = s.im;
+                
+                // Dirichlet series: L(s,χ) = Σ χ(n)/n^s
                 for (let n = 1; n <= maxTerms; n++) {
-                    const chiVal = this.chi.value(n);
-                    if (chiVal.abs() === 0) continue;
+                    const chi = this.chi.value(n);
+                    if (chi === 0) continue;
                     
-                    // Compute n^(-s)
-                    const logN = Math.log(n);
-                    const nPowerS = new Complex(-s.re * logN, -s.im * logN).exp();
+                    // Compute n^(-s) = n^(-σ) * e^(-it log n)
+                    const nPowerSigma = Math.pow(n, -sigma);
+                    const angle = -t * Math.log(n);
+                    const cosAngle = Math.cos(angle);
+                    const sinAngle = Math.sin(angle);
                     
-                    sum = sum.add(chiVal.multiply(nPowerS));
+                    if (typeof chi === 'object') {
+                        const termRe = (chi.re * cosAngle - chi.im * sinAngle) * nPowerSigma;
+                        const termIm = (chi.re * sinAngle + chi.im * cosAngle) * nPowerSigma;
+                        sumRe += termRe;
+                        sumIm += termIm;
+                    } else {
+                        sumRe += chi * cosAngle * nPowerSigma;
+                        sumIm += chi * sinAngle * nPowerSigma;
+                    }
                 }
                 
-                // Error bound using comparison with zeta function
-                if (s.re > 1) {
-                    errorBound = this.riemannZeta(s.re) / Math.pow(maxTerms, s.re - 1);
+                // Error bound: |tail| ≤ ζ(σ) / N^(σ-1) for σ > 1
+                if (sigma > 1) {
+                    errorBound = this.riemannZeta(sigma) / Math.pow(maxTerms, sigma - 1);
                 } else {
-                    errorBound = 1 / Math.pow(maxTerms, Math.max(0.1, s.re));
+                    // For σ ≤ 1, use functional equation (more complex)
+                    errorBound = 1 / Math.pow(maxTerms, Math.max(0.1, sigma));
                 }
                 
                 return {
-                    value: sum,
+                    value: { re: sumRe, im: sumIm },
                     error: errorBound,
-                    terms: maxTerms,
-                    method: 'Dirichlet Series',
-                    converged: errorBound < this.precision
+                    terms: maxTerms
                 };
             }
             
-            // Riemann-Siegel formula for ζ(1/2 + it)
-            computeRiemannSiegel(t) {
-                const s = new Complex(0.5, t);
-                const sqrtT = Math.sqrt(Math.abs(t) / (2 * Math.PI));
-                const N = Math.floor(sqrtT);
-                
-                // Main sum
-                let sum = new Complex(0, 0);
-                for (let n = 1; n <= N; n++) {
-                    const nPowerS = new Complex(-0.5 * Math.log(n), -t * Math.log(n)).exp();
-                    sum = sum.add(nPowerS);
-                }
-                
-                // Correction term (simplified)
-                const theta = t / 2 * Math.log(t / (2 * Math.PI)) - t / 2 - Math.PI / 8;
-                const correction = new Complex(Math.cos(theta), Math.sin(theta))
-                    .multiply(Math.pow(sqrtT - N, 2) / 2);
-                
-                const result = sum.multiply(2).add(correction);
-                
-                return {
-                    value: result,
-                    error: 1 / Math.sqrt(Math.abs(t)),
-                    terms: N,
-                    method: 'Riemann-Siegel',
-                    converged: true
-                };
-            }
-            
-            // Euler-Maclaurin summation for better convergence
-            computeEulerMaclaurin(s, maxTerms) {
-                // Start with Dirichlet series
-                let sum = new Complex(0, 0);
-                const N = maxTerms;
-                
-                for (let n = 1; n <= N; n++) {
-                    const chiVal = this.chi.value(n);
-                    if (chiVal.abs() === 0) continue;
-                    
-                    const logN = Math.log(n);
-                    const nPowerS = new Complex(-s.re * logN, -s.im * logN).exp();
-                    sum = sum.add(chiVal.multiply(nPowerS));
-                }
-                
-                // Euler-Maclaurin correction (simplified)
-                const logN = Math.log(N);
-                const NPowerS = new Complex(-s.re * logN, -s.im * logN).exp();
-                const correction = NPowerS.divide(s.re - 1).multiply(0.5);
-                sum = sum.add(correction);
-                
-                const errorBound = Math.abs(1 / (Math.pow(N, s.re - 1) * (s.re - 1)));
-                
-                return {
-                    value: sum,
-                    error: errorBound,
-                    terms: N,
-                    method: 'Euler-Maclaurin',
-                    converged: errorBound < this.precision
-                };
-            }
-            
-            // Functional equation: L(s,χ) ↔ L(1-s,χ̄)
-            computeViaFunctionalEquation(s) {
-                // L(s,χ) = ε(χ) * (conductor/π)^(s-1/2) * Γ((1-s+a)/2) / Γ((s+a)/2) * L(1-s,χ̄)
-                
-                const oneMinusS = new Complex(1, 0).subtract(s);
-                const conjugateChar = new DirichletCharacter(this.chi.modulus, -this.chi.index % this.chi.phi);
-                
-                // Compute L(1-s, χ̄) using Dirichlet series (should converge for Re(1-s) > 1)
-                const lOneMinusS = this.computeDirichletSeries(oneMinusS, this.maxTerms);
-                
-                // Gauss sum factor
-                const gauss = this.chi.gaussSum();
-                const epsilon = gauss.divide(Math.sqrt(this.chi.modulus));
-                
-                // Gamma ratio (approximate)
-                const a = this.chi.isEven() ? 0 : 1;
-                const gammaRatio = this.approximateGammaRatio(s, a);
-                
-                // Combine factors
-                const prefactor = Math.pow(this.chi.conductor / Math.PI, s.re - 0.5);
-                const result = epsilon.multiply(gammaRatio).multiply(lOneMinusS.value).multiply(prefactor);
-                
-                return {
-                    value: result,
-                    error: lOneMinusS.error * 2, // Propagate error
-                    terms: lOneMinusS.terms,
-                    method: 'Functional Equation',
-                    converged: lOneMinusS.converged
-                };
-            }
-            
-            // Approximate Gamma function ratio
-            approximateGammaRatio(s, a) {
-                // Γ((1-s+a)/2) / Γ((s+a)/2)
-                // Using Stirling approximation for large |t|
-                
-                const arg1 = new Complex((1 - s.re + a) / 2, -s.im / 2);
-                const arg2 = new Complex((s.re + a) / 2, s.im / 2);
-                
-                // log Γ(z) ≈ (z - 1/2) log z - z + log(√2π)
-                const logGamma1 = arg1.subtract(new Complex(0.5, 0)).multiply(arg1.log())
-                    .subtract(arg1).add(new Complex(Math.log(Math.sqrt(2 * Math.PI)), 0));
-                const logGamma2 = arg2.subtract(new Complex(0.5, 0)).multiply(arg2.log())
-                    .subtract(arg2).add(new Complex(Math.log(Math.sqrt(2 * Math.PI)), 0));
-                
-                return logGamma1.subtract(logGamma2).exp();
-            }
-            
-            // Riemann zeta for real s > 1
+            // Riemann zeta function (for error bounds)
             riemannZeta(s) {
                 if (s <= 1) return Infinity;
                 let sum = 0;
@@ -3085,136 +2842,85 @@
                 return sum;
             }
             
-            // Find zeros on critical line using rigorous algorithm
-            findZerosOnCriticalLine(tMin, tMax, options = {}) {
-                const step = options.step || 0.5;
-                const refineStep = options.refineStep || 0.01;
-                const tolerance = options.tolerance || 1e-6;
-                
+            // Find zeros using argument principle and Newton's method
+            findZerosInRange(tMin, tMax, step = 0.1) {
                 const zeros = [];
-                let prevValue = this.computeAtPoint(new Complex(0.5, tMin));
-                let prevArg = Math.atan2(prevValue.value.im, prevValue.value.re);
+                const sigma = 0.5; // Critical line
                 
-                for (let t = tMin + step; t <= tMax; t += step) {
-                    const currentValue = this.computeAtPoint(new Complex(0.5, t));
-                    const currentArg = Math.atan2(currentValue.value.im, currentValue.value.re);
+                let prevArg = 0;
+                for (let t = tMin; t <= tMax; t += step) {
+                    const result = this.computeAtPoint({ re: sigma, im: t }, 5000);
+                    const magnitude = Math.sqrt(result.value.re ** 2 + result.value.im ** 2);
+                    const arg = Math.atan2(result.value.im, result.value.re);
                     
-                    // Detect argument change indicating zero crossing
-                    let argChange = currentArg - prevArg;
-                    while (argChange > Math.PI) argChange -= 2 * Math.PI;
-                    while (argChange < -Math.PI) argChange += 2 * Math.PI;
-                    
-                    if (Math.abs(argChange) > Math.PI / 3) {
-                        // Potential zero detected, refine
-                        const refinedZero = this.refineZero(0.5, t - step / 2, t + step / 2, tolerance);
+                    // Check for sign change in argument (indicates zero)
+                    if (t > tMin) {
+                        let argChange = arg - prevArg;
+                        // Normalize to [-π, π]
+                        while (argChange > Math.PI) argChange -= 2 * Math.PI;
+                        while (argChange < -Math.PI) argChange += 2 * Math.PI;
                         
-                        if (refinedZero) {
-                            // Verify it's actually a zero
-                            const verification = this.computeAtPoint(new Complex(0.5, refinedZero.t));
-                            if (verification.value.abs() < 0.1) {
-                                zeros.push(refinedZero);
+                        // Significant argument change suggests a zero
+                        if (Math.abs(argChange) > Math.PI / 2 && magnitude < 1) {
+                            // Refine using Newton's method
+                            const refinedT = this.refineZero(sigma, t - step / 2);
+                            if (refinedT !== null) {
+                                zeros.push({
+                                    t: refinedT,
+                                    sigma: sigma,
+                                    error: result.error
+                                });
                             }
                         }
                     }
-                    
-                    prevValue = currentValue;
-                    prevArg = currentArg;
+                    prevArg = arg;
                 }
                 
                 return zeros;
             }
             
-            // Bisection + Newton refinement for zero finding
-            refineZero(sigma, tMin, tMax, tolerance) {
-                let left = tMin;
-                let right = tMax;
-                let iterations = 0;
-                const maxIterations = 50;
+            // Newton's method to refine zero location
+            refineZero(sigma, tInitial, maxIter = 20) {
+                let t = tInitial;
+                const h = 0.001;
                 
-                // Bisection to get close
-                while (right - left > tolerance && iterations < maxIterations) {
-                    const mid = (left + right) / 2;
-                    const fMid = this.computeAtPoint(new Complex(sigma, mid));
-                    const fLeft = this.computeAtPoint(new Complex(sigma, left));
+                for (let iter = 0; iter < maxIter; iter++) {
+                    const f = this.computeAtPoint({ re: sigma, im: t }, 5000);
+                    const fPlus = this.computeAtPoint({ re: sigma, im: t + h }, 5000);
                     
-                    const midMag = fMid.value.abs();
-                    const leftMag = fLeft.value.abs();
+                    const fMag = Math.sqrt(f.value.re ** 2 + f.value.im ** 2);
                     
-                    if (midMag < leftMag) {
-                        right = mid;
-                    } else {
-                        left = mid;
-                    }
+                    // Numerical derivative
+                    const dfRe = (fPlus.value.re - f.value.re) / h;
+                    const dfIm = (fPlus.value.im - f.value.im) / h;
+                    const dfMag = Math.sqrt(dfRe ** 2 + dfIm ** 2);
                     
-                    iterations++;
-                }
-                
-                const t = (left + right) / 2;
-                
-                // Newton refinement
-                const h = 0.0001;
-                for (let i = 0; i < 10; i++) {
-                    const f = this.computeAtPoint(new Complex(sigma, t));
-                    const fPlus = this.computeAtPoint(new Complex(sigma, t + h));
+                    if (dfMag < 1e-10) break;
                     
-                    const derivative = fPlus.value.subtract(f.value).divide(h);
-                    const derivativeMag = derivative.abs();
+                    // Newton step
+                    const delta = fMag / dfMag;
+                    t -= delta;
                     
-                    if (derivativeMag < 1e-10) break;
-                    
-                    const correction = f.value.divide(derivative);
-                    const newT = t - correction.re;
-                    
-                    if (Math.abs(correction.re) < tolerance) {
-                        return {
-                            t: newT,
-                            sigma: sigma,
-                            residual: f.value.abs(),
-                            iterations: i + 1,
-                            verified: true
-                        };
+                    if (Math.abs(delta) < 1e-6) {
+                        return t;
                     }
                 }
                 
-                return {
-                    t: t,
-                    sigma: sigma,
-                    residual: this.computeAtPoint(new Complex(sigma, t)).value.abs(),
-                    iterations: iterations,
-                    verified: false
-                };
+                return null;
             }
             
-            // Compute Euler product: L(s,χ) = ∏_p (1 - χ(p)/p^s)^(-1)
-            computeEulerProduct(s, maxPrime = 1000) {
-                let product = new Complex(1, 0);
-                
-                // Generate primes up to maxPrime
-                const primes = sieveOfEratosthenes(maxPrime);
-                
-                for (const p of primes) {
-                    const chiP = this.chi.value(p);
-                    if (chiP.abs() === 0) continue;
-                    
-                    // Compute p^(-s)
-                    const logP = Math.log(p);
-                    const pPowerS = new Complex(-s.re * logP, -s.im * logP).exp();
-                    
-                    // (1 - χ(p)/p^s)^(-1)
-                    const term = new Complex(1, 0).subtract(chiP.multiply(pPowerS));
-                    product = product.divide(term);
-                }
+            // Functional equation: L(s, χ) relates to L(1-s, χ̄)
+            functionalEquation(s) {
+                // Full implementation would involve Gamma functions and Gauss sums
+                // This is a placeholder showing the structure
+                const gauss = this.chi.gaussSum();
+                const gaussMag = Math.sqrt(gauss.re ** 2 + gauss.im ** 2);
                 
                 return {
-                    value: product,
-                    primesUsed: primes.length,
-                    maxPrime: maxPrime
+                    prefactor: gaussMag / Math.sqrt(this.chi.modulus),
+                    gammaRatio: 'Γ((1-s+a)/2) / Γ((s+a)/2)', // Symbolic
+                    note: 'Complete implementation requires complex Gamma function'
                 };
-            }
-            
-            // Clear computation cache
-            clearCache() {
-                this.cache.clear();
             }
         }
         
@@ -4886,30 +4592,30 @@
             const backgroundChoice = document.querySelector('input[name="screenshotBg"]:checked').value;
             const resolutionChoice = document.querySelector('input[name="screenshotResolution"]:checked').value;
             
-            // Determine canvas dimensions - 25% larger visualization, 4K default
+            // Determine canvas dimensions with proper spacing
             let baseWidth, baseHeight, scaleFactor;
             if (resolutionChoice === '4k') {
-                baseWidth = 4000;  // Main content area (25% larger)
-                baseHeight = 3000; // Main content area (25% larger)
+                baseWidth = 3200;  // Main content area
+                baseHeight = 2400; // Main content area
                 scaleFactor = baseWidth / canvas.width;
-                updateAnimationStatus('Generating 4K JPEG screenshot...');
+                updateAnimationStatus('Generating 4K screenshot...');
             } else {
-                baseWidth = canvas.width * 1.25;  // 25% larger main area
-                baseHeight = canvas.height * 1.25; // 25% larger main area
-                scaleFactor = 1.25;
+                baseWidth = canvas.width * 1.2;  // 20% larger main area
+                baseHeight = canvas.height * 1.2; // 20% larger main area
+                scaleFactor = 1.2;
             }
             
-            // Calculate layout dimensions with proper spacing - maximize legend space
-            const titleHeight = includeTitle ? 140 * scaleFactor : 0;
-            const legendWidth = includeLegend ? 700 * scaleFactor : 0; // Much wider legend
-            const padding = 40 * scaleFactor;
-            const contentPadding = 25 * scaleFactor;
+            // Calculate layout dimensions with proper spacing
+            const titleHeight = includeTitle ? 100 * scaleFactor : 0;
+            const legendWidth = includeLegend ? 500 * scaleFactor : 0; // Wider legend
+            const padding = 30 * scaleFactor;
+            const contentPadding = 20 * scaleFactor; // Padding around main content
             
-            // Create enhanced screenshot canvas with optimized layout
+            // Create enhanced screenshot canvas with proper layout
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
             tempCanvas.width = baseWidth + legendWidth + (includeLegend ? padding * 3 : contentPadding * 2);
-            tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 1800 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
+            tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 1200 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
             
             // Set background
             tempCtx.fillStyle = backgroundChoice === 'white' ? '#ffffff' : '#000000';
@@ -4987,270 +4693,82 @@
                 tempCtx.font = `bold ${18 * scaleFactor}px Segoe UI`;
                 tempCtx.textAlign = 'left';
                 let currentY = legendY + 30 * scaleFactor;
-                tempCtx.fillText('Configuration & Legend', legendX + 15 * scaleFactor, currentY);
+                tempCtx.fillText('Mathematical Legend', legendX + 15 * scaleFactor, currentY);
                 
-                currentY += 15 * scaleFactor;
-                
-                // ===== DETAILED PARAMETER SECTION =====
-                tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(52, 73, 94, 0.95)' : 'rgba(255, 255, 255, 0.95)';
-                tempCtx.font = `bold ${14 * scaleFactor}px Segoe UI`;
-                currentY += 20 * scaleFactor;
-                tempCtx.fillText('Active Parameters:', legendX + 15 * scaleFactor, currentY);
-                
-                tempCtx.font = `${11 * scaleFactor}px Segoe UI`;
-                currentY += 18 * scaleFactor;
-                
-                // Count active rings by category
-                const ringCounts = {
-                    unit: selectedRings.filter(r => r === 'unit').length,
-                    defaults: selectedRings.filter(r => r.startsWith('default_')).length,
-                    custom: selectedRings.filter(r => r.startsWith('custom_')).length,
-                    sieve: selectedRings.filter(r => r.startsWith('sieve_')).length,
-                    series: selectedRings.filter(r => !r.startsWith('default_') && !r.startsWith('custom_') && !r.startsWith('sieve_') && r !== 'unit').length
-                };
-                
-                // Ring system details
-                tempCtx.fillText(`├─ Total Rings: ${selectedRings.length}`, legendX + 20 * scaleFactor, currentY);
-                currentY += 15 * scaleFactor;
-                
-                if (ringCounts.unit > 0) {
-                    tempCtx.fillText(`│  ├─ Unit Circle: ${ringCounts.unit}`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 14 * scaleFactor;
-                }
-                if (ringCounts.defaults > 0) {
-                    const minDefault = Math.min(...selectedRings.filter(r => r.startsWith('default_')).map(r => configs[r].mod));
-                    const maxDefault = Math.max(...selectedRings.filter(r => r.startsWith('default_')).map(r => configs[r].mod));
-                    tempCtx.fillText(`│  ├─ Default: ${ringCounts.defaults} (M${minDefault}-M${maxDefault})`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 14 * scaleFactor;
-                }
-                if (ringCounts.series > 0) {
-                    tempCtx.fillText(`│  ├─ Series: ${ringCounts.series}`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 14 * scaleFactor;
-                }
-                if (ringCounts.custom > 0) {
-                    tempCtx.fillText(`│  ├─ Custom: ${ringCounts.custom}`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 14 * scaleFactor;
-                }
-                if (ringCounts.sieve > 0) {
-                    tempCtx.fillText(`│  └─ Sieve: ${ringCounts.sieve}`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 14 * scaleFactor;
-                }
-                
-                // Calculate total Euler totient sum
-                const totalEulerSum = selectedRings.reduce((sum, ringId) => {
-                    const config = configs[ringId];
-                    if (config) {
-                        return sum + getCoprimes(config.mod).length;
-                    }
-                    return sum;
-                }, 0);
-                
-                tempCtx.fillText(`├─ Total Character Support: Σφ(Mᵢ) = ${totalEulerSum}`, legendX + 20 * scaleFactor, currentY);
-                currentY += 18 * scaleFactor;
-                
-                // Gap analysis details
-                if (selectedGaps.length > 0) {
-                    tempCtx.fillText(`├─ Gap Analysis: ${selectedGaps.length} active`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 15 * scaleFactor;
-                    
-                    selectedGaps.slice(0, 3).forEach((gap, idx) => {
-                        let gapName = '';
-                        if (gap === 2) gapName = ' (Twin)';
-                        else if (gap === 4) gapName = ' (Cousin)';
-                        else if (gap === 6) gapName = ' (Sexy)';
-                        const prefix = idx === selectedGaps.length - 1 || idx === 2 ? '│  └─' : '│  ├─';
-                        tempCtx.fillText(`${prefix} Gap ${gap}${gapName}`, legendX + 20 * scaleFactor, currentY);
-                        currentY += 14 * scaleFactor;
-                    });
-                    
-                    if (selectedGaps.length > 3) {
-                        tempCtx.fillText(`│     ... and ${selectedGaps.length - 3} more`, legendX + 20 * scaleFactor, currentY);
-                        currentY += 14 * scaleFactor;
-                    }
-                } else {
-                    tempCtx.fillText(`├─ Gap Analysis: None`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 15 * scaleFactor;
-                }
-                
-                // Lift configurations
-                const liftTypes = [];
-                if (document.getElementById('showDirectLifts').checked) liftTypes.push('Direct');
-                if (document.getElementById('showModularLifts').checked) liftTypes.push('Modular');
-                if (document.getElementById('showSkipDirectLifts').checked) liftTypes.push('Skip-Direct');
-                if (document.getElementById('showSkipModularLifts').checked) liftTypes.push('Skip-Modular');
-                
-                tempCtx.fillText(`├─ Lift Homomorphisms: ${liftTypes.length > 0 ? liftTypes.join(', ') : 'None'}`, legendX + 20 * scaleFactor, currentY);
-                currentY += 18 * scaleFactor;
-                
-                // Visual settings
-                const colorModeNames = {
-                    'hue': 'Rainbow (Angular)',
-                    'value': 'By Value',
-                    'modulo': 'By Ring',
-                    'prime': 'Prime Analysis',
-                    'gcd_unified': 'GCD Unified',
-                    'gcd_per_mod': 'GCD per Ring',
-                    'gcd_per_residue': 'GCD per Residue',
-                    'gcd_mathematical': 'GCD Mathematical',
-                    'gcd_spectrum': 'GCD Spectrum',
-                    'custom': 'Custom Color'
-                };
-                
-                tempCtx.fillText(`├─ Color Mode: ${colorModeNames[colorMode] || colorMode}`, legendX + 20 * scaleFactor, currentY);
-                currentY += 15 * scaleFactor;
-                
-                // Radius scaling
-                const scalingModes = {
-                    'uniform': 'Uniform',
-                    'linear': 'Linear r=c·m',
-                    'sqrt': 'Square-root r=c·√m',
-                    'log': 'Logarithmic r=c·log(m)',
-                    'totient': 'Totient r=c·φ(m)',
-                    'density': 'Density r=c·φ(m)/m',
-                    'inverse': 'Inverse r=c/m',
-                    'exponential': 'Exponential r=c·aᵐ'
-                };
-                
-                tempCtx.fillText(`├─ Radius Scaling: ${scalingModes[radiusScalingMode] || radiusScalingMode}`, legendX + 20 * scaleFactor, currentY);
-                currentY += 15 * scaleFactor;
-                
-                if (radiusScalingMode !== 'uniform') {
-                    tempCtx.fillText(`│  └─ Constant c = ${scalingConstant.toFixed(2)}`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 14 * scaleFactor;
-                }
-                
-                // Prime sieve details
-                if (primeData.isActive) {
-                    tempCtx.fillText(`├─ Prime Sieve: ACTIVE`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 15 * scaleFactor;
-                    tempCtx.fillText(`│  ├─ Modulus: ${primeData.modulus}`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 14 * scaleFactor;
-                    tempCtx.fillText(`│  ├─ Limit: ${primeData.limit.toLocaleString()}`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 14 * scaleFactor;
-                    tempCtx.fillText(`│  ├─ Primes Found: ${primeData.totalPrimes.toLocaleString()}`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 14 * scaleFactor;
-                    
-                    const eulerPhi = getCoprimes(primeData.modulus).length;
-                    const avgPerClass = (primeData.totalPrimes / eulerPhi).toFixed(1);
-                    tempCtx.fillText(`│  └─ Avg per class: ${avgPerClass}`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 14 * scaleFactor;
-                    
-                    // Uniformity analysis
-                    if (primeData.totalPrimes > 100) {
-                        const uniformity = calculateEquidistributionScore();
-                        tempCtx.fillText(`│     ├─ Uniformity: ${(uniformity.uniformityScore * 100).toFixed(1)}%`, legendX + 20 * scaleFactor, currentY);
-                        currentY += 14 * scaleFactor;
-                        tempCtx.fillText(`│     └─ GRH Support: ${uniformity.grhSupport}`, legendX + 20 * scaleFactor, currentY);
-                        currentY += 14 * scaleFactor;
-                    }
-                } else {
-                    tempCtx.fillText(`├─ Prime Sieve: Inactive`, legendX + 20 * scaleFactor, currentY);
-                    currentY += 15 * scaleFactor;
-                }
-                
-                // Animation state
-                const animationState = [];
-                if (document.getElementById('enableRotation').checked) {
-                    animationState.push(`Rotation (${document.getElementById('globalSpeed').value}x)`);
-                }
-                if (isInverting) {
-                    animationState.push('Inversion');
-                }
-                if (nestingAnimationActive) {
-                    animationState.push('Nesting');
-                }
-                
-                tempCtx.fillText(`├─ Animation: ${animationState.length > 0 ? animationState.join(', ') : 'Static'}`, legendX + 20 * scaleFactor, currentY);
-                currentY += 15 * scaleFactor;
-                
-                // Display settings
-                const displaySettings = [];
-                if (document.getElementById('showLabels').checked) displaySettings.push('Labels');
-                if (document.getElementById('showGcdOne').checked) displaySettings.push('χ≠0');
-                if (document.getElementById('showNonGcdOne').checked) displaySettings.push('χ=0');
-                if (document.getElementById('showUnitCircle').checked) displaySettings.push('Unit Circle');
-                
-                tempCtx.fillText(`└─ Display: ${displaySettings.join(', ')}`, legendX + 20 * scaleFactor, currentY);
-                currentY += 25 * scaleFactor;
-                
-                // ===== VISUAL LEGEND ITEMS =====
-                tempCtx.fillStyle = accentColor;
-                tempCtx.font = `bold ${14 * scaleFactor}px Segoe UI`;
-                tempCtx.fillText('Visual Elements:', legendX + 15 * scaleFactor, currentY);
-                
-                currentY += 20 * scaleFactor;
+                currentY += 30 * scaleFactor;
                 
                 // Comprehensive legend items with enhanced details
                 const legendItems = [
                     { 
                         color: '#FFD700', 
                         text: 'Unit Circle (M=1)', 
-                        description: 'Mathematical foundation where gcd(0,1)=1. Contains single residue 0. Critical for understanding modular arithmetic structure and ring homomorphisms. All subsequent rings build upon this fundamental unit.'
+                        description: 'Mathematical foundation where gcd(0,1)=1. Contains single residue 0. Critical for understanding modular arithmetic structure and ring homomorphisms.'
                     },
                     { 
                         color: '#FF6B6B', 
-                        text: 'Euler Totient Residues φ(M)', 
-                        description: `Coprime residues where gcd(r,M)=1 forming character support domains. These ${totalEulerSum} total residues across all active rings define where Dirichlet characters χ(r) are non-zero, establishing the foundation for L-function analysis and Riemann Hypothesis testing. Each ring contributes φ(M) coprime classes essential for prime distribution uniformity predictions.`
+                        text: 'Euler Totient Residues', 
+                        description: `φ(M) coprime residues where gcd(r,M)=1. These form character support for Dirichlet L-functions. Essential for RH analysis.`
                     },
                     { 
                         color: '#4ECDC4', 
                         text: 'Prime Gap Patterns', 
-                        description: `Connections between primes separated by specific gaps testing Hardy-Littlewood conjectures: Twin primes (gap 2) are pairs like (3,5), (11,13), (17,19) where p and p+2 are both prime. Cousin primes (gap 4) are pairs like (3,7), (7,11), (13,17). Sexy primes (gap 6) include (5,11), (7,13), (13,19). These patterns reveal deep structure in prime distribution and test whether infinitely many such pairs exist.`
+                        description: 'Connections between primes separated by specific gaps: Twin primes (gap 2), cousin primes (gap 4), sexy primes (gap 6). Tests Hardy-Littlewood conjectures.'
                     }
                 ];
                 
-                // Add active mathematical features to legend with comprehensive explanations
+                // Add active mathematical features to legend with detailed explanations
                 if (document.getElementById('showDirectLifts').checked) {
                     legendItems.push({ 
                         color: document.getElementById('liftLineColor').value, 
-                        text: 'Direct Lift Homomorphisms φ: Z/M₁Z → Z/M₂Z', 
-                        description: `Ring homomorphisms preserving residue structure where φ(r) = r. These golden lines connect residue r in ring M₁ directly to the same residue r in ring M₂, maintaining algebraic structure. Essential for understanding character compatibility across different moduli. When M₂ is a multiple of M₁, these lifts naturally preserve the multiplicative group structure and totient function relationships, revealing how coprime residue systems nest within larger modular rings.`
+                        text: 'Direct Lift Homomorphisms', 
+                        description: 'Ring homomorphisms φ: Z/M₁Z → Z/M₂Z where φ(r) = r. Preserve residue structure across different moduli. Fundamental to L-function relationships and character compatibility.'
                     });
                 }
                 
                 if (document.getElementById('showModularLifts').checked) {
                     legendItems.push({ 
                         color: document.getElementById('modularLiftColor').value, 
-                        text: 'Chinese Remainder Theorem Lifts r ↦ r + M×2ⁿ', 
-                        description: `Transformations using Chinese Remainder Theorem mapping residue r in M₁ to shifted position r + M₁×2ⁿ in larger ring M₂. These pink/red connections reveal the multiplicative structure hidden in modular arithmetic. The shift by M₁×2ⁿ (where n is the level difference) preserves coprimality: if gcd(r, M₁)=1, then gcd(r + M₁×2ⁿ, M₂)=1, ensuring character support is maintained. This demonstrates how residue classes split and recombine when moving between moduli related by powers of 2.`
+                        text: 'Chinese Remainder Lifts', 
+                        description: 'Transformations r ↦ r + M×2ⁿ using Chinese Remainder Theorem. Maps residues to shifted positions revealing multiplicative structure.',
+                        dashed: true
                     });
                 }
                 
-                // Enhanced color mode information with comprehensive mathematical context
+                // Enhanced color mode information with mathematical context
                 const colorMode = document.getElementById('residueColorMode').value;
                 const colorModeDescriptions = {
-                    'hue': `Rainbow coloring by angular position θ = 2π(M-r)/M creates a visual spectrum around each ring. This geometric representation maps residues to angles, revealing rotational symmetry in modular arithmetic. Colors transition smoothly from 0° (red) through 120° (green) to 240° (blue), with each residue's hue determined by its proportional position around the circle. This visualization naturally highlights periodic patterns and symmetries inherent in the multiplicative structure of (Z/MZ)*.`,
-                    'value': `Coloring by residue value using deterministic hash function h(r) = (r × 37) mod 360 creates consistent colors across all rings for the same residue number. This cross-ring consistency reveals which residue values (like 1, 5, 7, 11) appear across multiple moduli, helping identify universal patterns in coprime residue systems. The hash function distributes colors pseudo-randomly while maintaining reproducibility, making it easy to track specific residue values as they appear in increasingly large modular rings.`,
-                    'modulo': `Unique color per ring/modulus using h(M) = (M × 67) mod 360 assigns each modular ring its own distinct hue. All residues within M₃₀ share one color family, all residues within M₆₀ share another, making it trivial to distinguish which ring system each point belongs to. This mode emphasizes the hierarchical structure of the nested rings and helps visualize how φ(M) changes as modulus increases, with color families clearly delineating each level of the modular tower.`,
-                    'prime': `Prime vs composite residue analysis distinguishes prime numbers (red/pink #FF6B6B) from composite numbers (teal/cyan #4ECDC4) within each ring. Tests primality patterns within modular constraints. Small primes often cluster in specific residue classes - for example, all primes >3 satisfy p ≡ 1 or 5 (mod 6), appearing only in coprime classes. This visualization reveals how primality interacts with modular structure and helps identify which residue classes can contain primes.`,
-                    'gcd_unified': `Unified coloring for Dirichlet character support where χ(r) ≠ 0. All coprime residues (gcd(r,M)=1) across every ring receive the same base color, creating a strong visual distinction between character support domains (colored) and character vanishing domains (dimmed gray). This unified approach emphasizes the categorical difference between residues where L-functions have contributions vs. residues that contribute zero, making character support boundaries crystal clear across the entire visualization.`,
-                    'gcd_per_mod': `Character support with unique color per modulus. Each ring M gets its own hue family h(M) for its φ(M) coprime residues. This reveals how character support varies with modulus: larger moduli may have lower totient density ρ = φ(M)/M, visible as the proportion of colored vs gray points. The color family approach shows both the character support structure and the relative "richness" of coprime classes - M₃₀ has ρ = 8/30 ≈ 27% while M₆₀ has ρ = 16/60 ≈ 27%, revealing the stability of totient density for related moduli.`,
-                    'gcd_per_residue': `Character support with unique color per residue value. Residue r=1 gets the same color in every ring where gcd(1,M)=1 (always), r=7 gets its consistent color across all rings, etc. This cross-ring consistency illuminates residue class universality - values like 1, 11, 13, 17, 19, 23, 29, 31 that are coprime to many moduli form colorful trails across multiple rings, while values with many factors (like 6, 10, 12, 15) rarely achieve coprime status, appearing mostly gray.`,
-                    'gcd_mathematical': `Mathematical progression based on φ(M) density and totient ordering. Color assignment h(r) = (position_in_φ(M) × 360/φ(M) + M×7) mod 360 uses each residue's index within the coprime sequence and the ring's modulus. This creates mathematically meaningful color progressions that reflect both local structure (position among coprimes) and global structure (which ring). The result is a spiraling color pattern that visualizes how coprime residues are distributed - evenly spaced moduli create rainbow spirals while irregular moduli create more complex color patterns.`,
-                    'gcd_spectrum': `Spectral distribution using totient density ρ = φ(M)/M to determine both hue and saturation. Color formula h(r) = (ρ×240 + r×15) mod 360 with saturation s = 60 + ρ×30 creates more vibrant colors for rings with higher coprime density. Rings where most residues are coprime (like prime moduli with ρ ≈ 1 - 1/M) appear more saturated, while rings with many factors (like M=30 with ρ=8/30) appear more muted. This encodes arithmetic complexity directly into color intensity - number-theoretically "richer" rings literally look more colorful.`,
-                    'custom': `User-defined single color scheme allowing focused analysis of specific mathematical properties without color-based distractions. All coprime residues receive the chosen custom color while non-coprime residues remain dimmed. This monochromatic approach emphasizes geometric structure over classification, ideal for studying lift patterns, gap connections, or ring arrangements without the cognitive load of interpreting multiple color meanings. Useful for presentation contexts where color interpretation should be minimized.`
+                    'hue': 'Rainbow coloring by angular position θ = 2πr/M. Visualizes rotational symmetry in modular rings.',
+                    'value': 'Coloring by residue value using hash function. Highlights numerical patterns across different moduli.',
+                    'modulo': 'Unique color per modulus/ring. Distinguishes different modular arithmetic systems in the visualization.',
+                    'prime': 'Prime vs composite residue analysis. Tests primality patterns within modular arithmetic constraints.',
+                    'gcd_unified': 'Unified coloring for Dirichlet character support where χ(r) ≠ 0. Shows L-function domains clearly.',
+                    'gcd_per_mod': 'Character support with unique color per modulus. Reveals φ(M) structure across ring system.',
+                    'gcd_per_residue': 'Character support with unique color per residue value. Highlights residue class universality.',
+                    'gcd_mathematical': 'Mathematical progression based on φ(M) density and totient ordering. Shows Euler function relationships.',
+                    'gcd_spectrum': 'Spectral distribution using totient density ρ = φ(M)/M. Visualizes character support concentration.',
+                    'custom': 'User-defined single color scheme for focused analysis of specific mathematical properties.'
                 };
                 
                 if (colorModeDescriptions[colorMode]) {
                     legendItems.push({
                         color: 'linear-gradient(45deg, #667eea, #764ba2)',
-                        text: `Coloring Mode: ${colorModeNames[colorMode] || colorMode}`,
+                        text: 'Coloring Scheme Details',
                         description: colorModeDescriptions[colorMode]
                     });
                 }
                 
-                // Enhanced prime sieve information with comprehensive mathematical significance
+                // Enhanced prime sieve information with mathematical significance
                 if (primeData.isActive) {
                     const coprimes = getCoprimes(primeData.modulus);
                     const uniformity = calculateEquidistributionScore();
                     legendItems.push({
                         color: '#FFD700',
-                        text: `Prime Sieve Analysis: ${primeData.totalPrimes} primes ≤ ${primeData.limit} (mod ${primeData.modulus})`,
-                        description: `Active prime distribution testing with ${primeData.totalPrimes} primes analyzed up to limit ${primeData.limit} in modular system M=${primeData.modulus}. Distribution across φ(${primeData.modulus})=${coprimes.length} coprime residue classes shows uniformity score of ${(uniformity.uniformityScore * 100).toFixed(1)}%, testing Generalized Riemann Hypothesis predictions. GRH predicts primes distribute uniformly among coprime classes, with each class containing approximately ${(primeData.totalPrimes/coprimes.length).toFixed(1)} primes. Measured χ² statistic of ${uniformity.chiSquared.toFixed(2)} with ${uniformity.degreesOfFreedom} degrees of freedom ${uniformity.isUniform ? 'supports' : 'requires further analysis for'} uniformity hypothesis. Current GRH support level: ${uniformity.grhSupport}.`
+                        text: 'Prime Sieve Analysis Active',
+                        description: `Testing ${primeData.totalPrimes} primes ≤ ${primeData.limit} in mod ${primeData.modulus}. Distribution across φ(${primeData.modulus})=${coprimes.length} coprime classes. Uniformity: ${(uniformity.uniformityScore * 100).toFixed(1)}% (GRH prediction).`
                     });
                 }
                 
-                // Mathematical foundations with comprehensive explanations
+                // Mathematical foundations with detailed explanations
                 if (selectedRings.length > 0) {
                     const ringTypes = {
                         unit: selectedRings.filter(r => r === 'unit').length,
@@ -5268,19 +4786,19 @@
                         return sum;
                     }, 0);
                     
-                    let systemDesc = `Hierarchical modular ring system with ${selectedRings.length} active rings: `;
+                    let systemDesc = `${selectedRings.length} modular rings: `;
                     const parts = [];
-                    if (ringTypes.unit > 0) parts.push('Unit circle foundation (M=1, φ(1)=1, single residue 0)');
-                    if (ringTypes.defaults > 0) parts.push(`consecutive sequence M₂ through M${ringTypes.defaults+1} establishing systematic progression`);
-                    if (ringTypes.series > 0) parts.push(`${ringTypes.series} exponential series rings following M_n = 30×2ⁿ pattern`);
-                    if (ringTypes.custom > 0) parts.push(`${ringTypes.custom} custom-selected moduli for targeted analysis`);
-                    if (ringTypes.sieve > 0) parts.push(`${ringTypes.sieve} sieve-generated rings from prime distribution studies`);
+                    if (ringTypes.unit > 0) parts.push('Unit foundation');
+                    if (ringTypes.defaults > 0) parts.push(`M₁-M${ringTypes.defaults+1} sequence`);
+                    if (ringTypes.series > 0) parts.push(`${ringTypes.series} exponential series`);
+                    if (ringTypes.custom > 0) parts.push(`${ringTypes.custom} custom moduli`);
+                    if (ringTypes.sieve > 0) parts.push(`${ringTypes.sieve} sieve-generated`);
                     
-                    systemDesc += parts.join(', ') + `. Total character support across all rings: Σφ(Mᵢ) = ${totalEulerSum} coprime residues. This aggregate represents the complete domain where Dirichlet characters are non-zero, forming the foundation for L-function computation and Generalized Riemann Hypothesis verification. Ring selection enables systematic study of how totient function φ(M) scales with modulus M, revealing number-theoretic density patterns.`;
+                    systemDesc += parts.join(', ') + `. Total character support: Σφ(Mᵢ) = ${totalEulerSum} residues.`;
                     
                     legendItems.push({
                         color: subtleColor,
-                        text: 'Modular Ring System Architecture',
+                        text: 'Modular Ring System',
                         description: systemDesc
                     });
                 }
@@ -5403,19 +4921,19 @@
             const ringText = selectedRings.length > 0 ? `_${selectedRings.length}rings` : '';
             const gapText = selectedGaps.length > 0 ? `_${selectedGaps.length}gaps` : '';
             const resText = resolutionChoice === '4k' ? '_4K' : '';
-            const filename = `modular_rings${ringText}${gapText}${resText}_${timestamp}.jpg`;
+            const filename = `modular_rings${ringText}${gapText}${resText}_${timestamp}.png`;
             
-            // Create download link with JPEG quality optimization
+            // Create download link with optimized quality
             const link = document.createElement('a');
             link.download = filename;
             
-            // Always use JPEG format with high quality
-            link.href = tempCanvas.toDataURL('image/jpeg', 0.95);
-            
             if (resolutionChoice === '4k') {
-                updateAnimationStatus('4K Ultra HD JPEG screenshot saved!');
+                // For 4K, use maximum quality
+                link.href = tempCanvas.toDataURL('image/png', 1.0);
+                updateAnimationStatus('4K Ultra HD screenshot saved!');
             } else {
-                updateAnimationStatus('Enhanced JPEG screenshot saved!');
+                link.href = tempCanvas.toDataURL('image/png', 0.95);
+                updateAnimationStatus('Enhanced screenshot saved!');
             }
             
             link.click();
@@ -7081,4 +6599,4 @@
         }, 500);
     </script>
 </body>
-    </html>
+                                                                                              </html>
