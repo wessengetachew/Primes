@@ -782,6 +782,37 @@
                         <input type="checkbox" id="showEquidistributionTest"> Test Prime Equidistribution
                     </div>
                     
+                    <div class="custom-gap" style="margin-top: 15px;">
+                        <label><strong>RH Visualization Controls:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showCriticalLine" checked onchange="toggleRhVisualization('criticalLineCanvas')"> Critical Line Analysis
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showCharacterCanvas" checked onchange="toggleRhVisualization('characterCanvas')"> Character Support Domains
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showPrimeDistCanvas" checked onchange="toggleRhVisualization('primeDistCanvas')"> Prime Distribution
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showZetaZeros" checked onchange="toggleRhVisualization('zetaZerosCanvas')"> Zeta Function Zeros
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showPrimeCounting" checked onchange="toggleRhVisualization('primeCountingCanvas')"> Prime Counting π(x)
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showResidueHeatmap" checked onchange="toggleRhVisualization('residueHeatmapCanvas')"> Residue Heatmap
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showChiSquared" checked onchange="toggleRhVisualization('chiSquaredCanvas')"> Chi-Squared Test
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showModulusComparison" checked onchange="toggleRhVisualization('modulusComparisonCanvas')"> Modulus Comparison
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showLFunction" checked onchange="toggleRhVisualization('lFunctionCanvas')"> L-Function Magnitude
+                        </div>
+                    </div>
+                    
                     <div class="custom-gap">
                         <label><strong>GRH Test Parameters:</strong></label>
                         <div class="gap-input">
@@ -1083,6 +1114,9 @@
                     <div id="animationSection" class="collapsible-section">
                     <div class="checkbox-item">
                         <input type="checkbox" id="enableRotation" onchange="toggleRotation()"> Enable Individual Ring Rotation
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="enableColorInvert" onchange="toggleColorInvert()"> Invert Colors (Dark/Light Mode)
                     </div>
                     <div class="slider-group">
                         <label>Global Animation Speed: <span id="globalSpeedValue">1.0</span>x</label>
@@ -1645,6 +1679,7 @@
         let hoveredResidue = null;
         let selectedResidue = null;
         let showKeyboardShortcuts = false;
+        let colorInverted = false;
         
         // Color palettes
         const colorPalettes = {
@@ -1928,7 +1963,7 @@
 
         function updateCriticalLineVisualization() {
             const canvas = document.getElementById('criticalLineCanvas');
-            if (!canvas) return;
+            if (!canvas || !document.getElementById('showCriticalLine')?.checked) return;
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1992,7 +2027,7 @@
 
         function updateCharacterSupportVisualization() {
             const canvas = document.getElementById('characterCanvas');
-            if (!canvas) return;
+            if (!canvas || !document.getElementById('showCharacterCanvas')?.checked) return;
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2045,7 +2080,7 @@
 
         function updatePrimeDistributionVisualization() {
             const canvas = document.getElementById('primeDistCanvas');
-            if (!canvas) return;
+            if (!canvas || !document.getElementById('showPrimeDistCanvas')?.checked) return;
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2106,7 +2141,7 @@
         
         function updateZetaZerosVisualization() {
             const canvas = document.getElementById('zetaZerosCanvas');
-            if (!canvas) return;
+            if (!canvas || !document.getElementById('showZetaZeros')?.checked) return;
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2227,7 +2262,7 @@
         
         function updatePrimeCountingVisualization() {
             const canvas = document.getElementById('primeCountingCanvas');
-            if (!canvas) return;
+            if (!canvas || !document.getElementById('showPrimeCounting')?.checked) return;
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2309,7 +2344,7 @@
         
         function updateResidueHeatmap() {
             const canvas = document.getElementById('residueHeatmapCanvas');
-            if (!canvas) return;
+            if (!canvas || !document.getElementById('showResidueHeatmap')?.checked) return;
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2379,7 +2414,7 @@
         
         function updateChiSquaredVisualization() {
             const canvas = document.getElementById('chiSquaredCanvas');
-            if (!canvas) return;
+            if (!canvas || !document.getElementById('showChiSquared')?.checked) return;
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2444,7 +2479,7 @@
         
         function updateModulusComparison() {
             const canvas = document.getElementById('modulusComparisonCanvas');
-            if (!canvas) return;
+            if (!canvas || !document.getElementById('showModulusComparison')?.checked) return;
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2711,7 +2746,7 @@
         
         function updateLFunctionVisualization() {
             const canvas = document.getElementById('lFunctionCanvas');
-            if (!canvas) return;
+            if (!canvas || !document.getElementById('showLFunction')?.checked) return;
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2889,6 +2924,41 @@
                 updateAnimationStatus('Complete GRH suite analysis finished');
             }, 1000);
         }
+        // Color invert function
+        function toggleColorInvert() {
+            colorInverted = document.getElementById('enableColorInvert').checked;
+            
+            if (colorInverted) {
+                // Apply CSS filter to invert main canvas
+                canvas.style.filter = 'invert(1) hue-rotate(180deg)';
+                updateAnimationStatus('Color inversion enabled');
+            } else {
+                canvas.style.filter = 'none';
+                updateAnimationStatus('Color inversion disabled');
+            }
+            
+            draw();
+        }
+        
+        // RH visualization toggle function
+        function toggleRhVisualization(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const container = canvas?.parentElement;
+            
+            if (!container) return;
+            
+            const checkboxId = canvasId.replace('Canvas', '');
+            const isVisible = document.getElementById('show' + checkboxId.charAt(0).toUpperCase() + checkboxId.slice(1))?.checked;
+            
+            if (isVisible) {
+                container.style.display = 'block';
+                // Redraw the specific visualization
+                updateRhVisualizations();
+            } else {
+                container.style.display = 'none';
+            }
+        }
+        
         function gcd(a, b) {
             while (b !== 0) {
                 let temp = b;
@@ -5333,6 +5403,20 @@
             document.getElementById('showGcdOne').checked = true;
             document.getElementById('showNonGcdOne').checked = false;
             document.getElementById('highlightGcdDifference').checked = false;
+            document.getElementById('enableColorInvert').checked = false;
+            colorInverted = false;
+            canvas.style.filter = 'none';
+            
+            // Reset RH visualization controls
+            document.getElementById('showCriticalLine').checked = true;
+            document.getElementById('showCharacterCanvas').checked = true;
+            document.getElementById('showPrimeDistCanvas').checked = true;
+            document.getElementById('showZetaZeros').checked = true;
+            document.getElementById('showPrimeCounting').checked = true;
+            document.getElementById('showResidueHeatmap').checked = true;
+            document.getElementById('showChiSquared').checked = true;
+            document.getElementById('showModulusComparison').checked = true;
+            document.getElementById('showLFunction').checked = true;
             
             // Reset nesting animation
             document.getElementById('enableNestingAnimation').checked = false;
@@ -6210,4 +6294,4 @@
         }, 500);
     </script>
 </body>
-                                        </html>
+                            </html>
