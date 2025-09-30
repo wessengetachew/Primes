@@ -1324,6 +1324,28 @@
                     </div>
                     
                     <div class="custom-gap" id="labelControls">
+                        <label><strong>Label Format:</strong></label>
+                        <div class="slider-group">
+                            <label>Display Format:</label>
+                            <select id="labelFormat" onchange="draw()">
+                                <option value="number" selected>Number (r)</option>
+                                <option value="angle">Angle (θ = 2πr/M)</option>
+                                <option value="fraction">Fraction (r/M)</option>
+                                <option value="farey">Farey Sequence (aligned)</option>
+                                <option value="both">Number + Angle</option>
+                                <option value="all">Number + Angle + Fraction</option>
+                            </select>
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Angle Units:</label>
+                            <select id="angleUnits" onchange="draw()">
+                                <option value="radians">Radians (0 to 2π)</option>
+                                <option value="degrees" selected>Degrees (0° to 360°)</option>
+                                <option value="turns">Turns (0 to 1)</option>
+                            </select>
+                        </div>
+                        
                         <label><strong>Selective Labeling:</strong></label>
                         <div class="checkbox-item">
                             <input type="checkbox" id="labelUnitCircle" checked> Label Unit Circle
@@ -6942,7 +6964,7 @@
                     ctx.lineWidth = borderThickness;
                     ctx.stroke();
 
-                    // Enhanced labels with selective control and sizing
+                    // Enhanced labels with multiple format options
                     if (showLabels) {
                         const labelUnitCircle = document.getElementById('labelUnitCircle').checked;
                         const labelGcdOne = document.getElementById('labelGcdOne').checked;
@@ -6951,6 +6973,8 @@
                         const labelMinRadius = parseInt(document.getElementById('labelMinRadius').value);
                         const labelSize = parseFloat(document.getElementById('labelSize').value);
                         const labelOpacity = parseFloat(document.getElementById('labelOpacity').value);
+                        const labelFormat = document.getElementById('labelFormat').value;
+                        const angleUnits = document.getElementById('angleUnits').value;
                         
                         // Check if this ring should have labels
                         let shouldLabel = false;
@@ -6972,14 +6996,82 @@
                         
                         if (shouldLabel) {
                             ctx.fillStyle = `rgba(255, 255, 255, ${labelOpacity})`;
-                            let labelText = r.toString();
+                            let labelText = '';
+                            
+                            // Format label based on selection
+                            switch(labelFormat) {
+                                case 'number':
+                                    labelText = r.toString();
+                                    break;
+                                    
+                                case 'angle':
+                                    const angleRad = baseAngle;
+                                    if (angleUnits === 'degrees') {
+                                        const deg = (angleRad * 180 / Math.PI).toFixed(1);
+                                        labelText = `${deg}°`;
+                                    } else if (angleUnits === 'radians') {
+                                        labelText = `${angleRad.toFixed(3)}`;
+                                    } else { // turns
+                                        const turns = (angleRad / (2 * Math.PI)).toFixed(3);
+                                        labelText = `${turns}τ`;
+                                    }
+                                    break;
+                                    
+                                case 'fraction':
+                                    if (ring.n === 'unit') {
+                                        labelText = '0/1';
+                                    } else {
+                                        // Simplify fraction
+                                        const g = gcd(r, Math.round(ring.modulus));
+                                        const num = r / g;
+                                        const den = Math.round(ring.modulus) / g;
+                                        labelText = `${num}/${den}`;
+                                    }
+                                    break;
+                                    
+                                case 'farey':
+                                    // Farey sequence alignment: show as fraction aligned to modulus
+                                    if (ring.n === 'unit') {
+                                        labelText = '0/1';
+                                    } else {
+                                        labelText = `${r}/${Math.round(ring.modulus)}`;
+                                    }
+                                    break;
+                                    
+                                case 'both':
+                                    const angleRad2 = baseAngle;
+                                    let angleStr = '';
+                                    if (angleUnits === 'degrees') {
+                                        angleStr = `${(angleRad2 * 180 / Math.PI).toFixed(0)}°`;
+                                    } else if (angleUnits === 'radians') {
+                                        angleStr = `${angleRad2.toFixed(2)}`;
+                                    } else {
+                                        angleStr = `${(angleRad2 / (2 * Math.PI)).toFixed(2)}τ`;
+                                    }
+                                    labelText = `${r}\n${angleStr}`;
+                                    break;
+                                    
+                                case 'all':
+                                    const angleRad3 = baseAngle;
+                                    let angleStr2 = '';
+                                    if (angleUnits === 'degrees') {
+                                        angleStr2 = `${(angleRad3 * 180 / Math.PI).toFixed(0)}°`;
+                                    } else if (angleUnits === 'radians') {
+                                        angleStr2 = `${angleRad3.toFixed(2)}`;
+                                    } else {
+                                        angleStr2 = `${(angleRad3 / (2 * Math.PI)).toFixed(2)}τ`;
+                                    }
+                                    const fracStr = ring.n === 'unit' ? '0/1' : `${r}/${Math.round(ring.modulus)}`;
+                                    labelText = `${r}\n${angleStr2}\n${fracStr}`;
+                                    break;
+                            }
                             
                             // Add prime count to label if sieve is active
                             if (primeData.isActive && ring.modulus === primeData.modulus && 
                                 primeData.residueDistribution[r] && labelShowPrimeCounts) {
                                 const count = primeData.residueDistribution[r].count;
                                 if (count > 0 && document.getElementById('showPrimeMarkers').checked) {
-                                    labelText = `${r}(${count})`;
+                                    labelText = labelText + `\n(${count})`;
                                 }
                             }
                             
@@ -6989,9 +7081,17 @@
                             ctx.textAlign = 'center';
                             ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
                             ctx.lineWidth = Math.max(1, fontSize * 0.2);
-                            const labelY = y - (ring.n === 'unit' ? fontSize * 0.8 : fontSize * 0.6);
-                            ctx.strokeText(labelText, x, labelY);
-                            ctx.fillText(labelText, x, labelY);
+                            
+                            // Handle multi-line labels
+                            const lines = labelText.split('\n');
+                            const lineHeight = fontSize * 1.2;
+                            const startY = y - (ring.n === 'unit' ? fontSize * 0.8 : fontSize * 0.6) - ((lines.length - 1) * lineHeight / 2);
+                            
+                            lines.forEach((line, idx) => {
+                                const lineY = startY + idx * lineHeight;
+                                ctx.strokeText(line, x, lineY);
+                                ctx.fillText(line, x, lineY);
+                            });
                         }
                     }
                 });
@@ -7444,4 +7544,4 @@
         }, 500);
     </script>
 </body>
-                                    </html>
+                                                              </html>
