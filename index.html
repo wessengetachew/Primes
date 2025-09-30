@@ -4898,25 +4898,368 @@
             return { title, subtitle };
         }
 
-        // Simple and clean screenshot function
+        // Professional screenshot with comprehensive legend and details
         function captureImage() {
             try {
-                // Get current canvas as JPEG
-                const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+                const selectedRings = getSelectedRings();
+                const selectedGaps = getSelectedGaps();
+                const includeTitle = document.getElementById('includeTitle').checked;
+                const includeLegend = document.getElementById('includeLegend').checked;
+                const backgroundChoice = document.querySelector('input[name="screenshotBg"]:checked').value;
+                const resolutionChoice = document.querySelector('input[name="screenshotResolution"]:checked').value;
+                const colorMode = document.getElementById('residueColorMode').value;
                 
-                // Create filename with timestamp
+                // Determine canvas dimensions - 20% larger
+                let baseWidth, baseHeight, scaleFactor;
+                if (resolutionChoice === '4k') {
+                    baseWidth = 3840 * 1.2;  // 20% larger
+                    baseHeight = 2880 * 1.2;
+                    scaleFactor = baseWidth / canvas.width;
+                    updateAnimationStatus('Generating professional 4K screenshot...');
+                } else {
+                    baseWidth = canvas.width * 1.44;  // 20% larger than before (1.2 * 1.2)
+                    baseHeight = canvas.height * 1.44;
+                    scaleFactor = 1.44;
+                }
+                
+                // Calculate layout with proper spacing
+                const titleHeight = includeTitle ? 140 * scaleFactor : 0;
+                const legendWidth = includeLegend ? 600 * scaleFactor : 0;
+                const padding = 40 * scaleFactor;
+                const contentPadding = 30 * scaleFactor;
+                
+                // Create enhanced screenshot canvas
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = baseWidth + legendWidth + (includeLegend ? padding * 3 : contentPadding * 2);
+                tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 1600 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
+                
+                // Set background
+                tempCtx.fillStyle = backgroundChoice === 'white' ? '#ffffff' : '#000000';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                
+                const textColor = backgroundChoice === 'white' ? '#2c3e50' : '#ffffff';
+                const accentColor = backgroundChoice === 'white' ? '#e67e22' : '#f39c12';
+                const subtleColor = backgroundChoice === 'white' ? '#7f8c8d' : '#bdc3c7';
+                
+                // Draw title
+                if (includeTitle) {
+                    const { title, subtitle } = generateConfigurationDescription(selectedRings, selectedGaps);
+                    
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${36 * scaleFactor}px Segoe UI`;
+                    tempCtx.textAlign = 'center';
+                    const titleCenterX = contentPadding + baseWidth / 2;
+                    tempCtx.fillText(title, titleCenterX, 50 * scaleFactor);
+                    
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.font = `${18 * scaleFactor}px Segoe UI`;
+                    
+                    const maxSubtitleWidth = baseWidth - contentPadding * 2;
+                    const words = subtitle.split(' ');
+                    let line = '';
+                    let y = 90 * scaleFactor;
+                    const lineHeight = 26 * scaleFactor;
+                    
+                    for (let i = 0; i < words.length; i++) {
+                        const testLine = line + words[i] + ' ';
+                        const metrics = tempCtx.measureText(testLine);
+                        
+                        if (metrics.width > maxSubtitleWidth && line !== '') {
+                            tempCtx.fillText(line.trim(), titleCenterX, y);
+                            line = words[i] + ' ';
+                            y += lineHeight;
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    tempCtx.fillText(line.trim(), titleCenterX, y);
+                }
+                
+                // Draw main canvas
+                const mainCanvasX = contentPadding;
+                const mainCanvasY = titleHeight + contentPadding;
+                
+                tempCtx.save();
+                tempCtx.translate(mainCanvasX, mainCanvasY);
+                tempCtx.scale(scaleFactor, scaleFactor);
+                tempCtx.drawImage(canvas, 0, 0);
+                tempCtx.restore();
+                
+                // Draw comprehensive legend
+                if (includeLegend) {
+                    const legendX = baseWidth + contentPadding + padding;
+                    const legendY = titleHeight + contentPadding;
+                    const legendContentWidth = legendWidth - padding * 2;
+                    const legendContentHeight = tempCanvas.height - titleHeight - contentPadding * 2;
+                    
+                    // Legend background
+                    tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(248, 249, 250, 0.98)' : 'rgba(15, 15, 20, 0.98)';
+                    tempCtx.fillRect(legendX, legendY, legendContentWidth, legendContentHeight);
+                    tempCtx.strokeStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)';
+                    tempCtx.lineWidth = 3 * scaleFactor;
+                    tempCtx.strokeRect(legendX, legendY, legendContentWidth, legendContentHeight);
+                    
+                    // Legend title
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${22 * scaleFactor}px Segoe UI`;
+                    tempCtx.textAlign = 'left';
+                    let currentY = legendY + 40 * scaleFactor;
+                    tempCtx.fillText('Configuration Details', legendX + 20 * scaleFactor, currentY);
+                    
+                    currentY += 30 * scaleFactor;
+                    
+                    // SECTION 1: Active Parameters
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.font = `bold ${16 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText('Active Parameters:', legendX + 20 * scaleFactor, currentY);
+                    
+                    tempCtx.font = `${13 * scaleFactor}px Segoe UI`;
+                    currentY += 22 * scaleFactor;
+                    
+                    // Ring counts
+                    const ringCounts = {
+                        unit: selectedRings.filter(r => r === 'unit').length,
+                        defaults: selectedRings.filter(r => r.startsWith('default_')).length,
+                        custom: selectedRings.filter(r => r.startsWith('custom_')).length,
+                        sieve: selectedRings.filter(r => r.startsWith('sieve_')).length,
+                        series: selectedRings.filter(r => !r.startsWith('default_') && !r.startsWith('custom_') && !r.startsWith('sieve_') && r !== 'unit').length
+                    };
+                    
+                    tempCtx.fillText(`• Total Rings: ${selectedRings.length}`, legendX + 25 * scaleFactor, currentY);
+                    currentY += 18 * scaleFactor;
+                    
+                    if (ringCounts.unit > 0) {
+                        tempCtx.fillText(`  └─ Unit Circle: ${ringCounts.unit}`, legendX + 30 * scaleFactor, currentY);
+                        currentY += 16 * scaleFactor;
+                    }
+                    if (ringCounts.defaults > 0) {
+                        const minD = Math.min(...selectedRings.filter(r => r.startsWith('default_')).map(r => configs[r].mod));
+                        const maxD = Math.max(...selectedRings.filter(r => r.startsWith('default_')).map(r => configs[r].mod));
+                        tempCtx.fillText(`  └─ Default Series: ${ringCounts.defaults} (M${minD}-M${maxD})`, legendX + 30 * scaleFactor, currentY);
+                        currentY += 16 * scaleFactor;
+                    }
+                    if (ringCounts.custom > 0) {
+                        tempCtx.fillText(`  └─ Custom Moduli: ${ringCounts.custom}`, legendX + 30 * scaleFactor, currentY);
+                        currentY += 16 * scaleFactor;
+                    }
+                    
+                    currentY += 8 * scaleFactor;
+                    
+                    // Euler totient sum
+                    const totalEuler = selectedRings.reduce((sum, rid) => {
+                        const cfg = configs[rid];
+                        return cfg ? sum + getCoprimes(cfg.mod).length : sum;
+                    }, 0);
+                    tempCtx.fillText(`• Character Support: Σφ(Mᵢ) = ${totalEuler}`, legendX + 25 * scaleFactor, currentY);
+                    currentY += 20 * scaleFactor;
+                    
+                    // Gap analysis
+                    if (selectedGaps.length > 0) {
+                        tempCtx.fillText(`• Gap Analysis: ${selectedGaps.length} active gaps`, legendX + 25 * scaleFactor, currentY);
+                        currentY += 18 * scaleFactor;
+                        selectedGaps.slice(0, 4).forEach((gap, idx) => {
+                            let gapName = '';
+                            if (gap === 2) gapName = ' (Twin)';
+                            else if (gap === 4) gapName = ' (Cousin)';
+                            else if (gap === 6) gapName = ' (Sexy)';
+                            tempCtx.fillText(`  └─ Gap ${gap}${gapName}`, legendX + 30 * scaleFactor, currentY);
+                            currentY += 16 * scaleFactor;
+                        });
+                    } else {
+                        tempCtx.fillText(`• Gap Analysis: None active`, legendX + 25 * scaleFactor, currentY);
+                        currentY += 18 * scaleFactor;
+                    }
+                    
+                    currentY += 8 * scaleFactor;
+                    
+                    // Lift configurations
+                    const liftTypes = [];
+                    if (document.getElementById('showDirectLifts').checked) liftTypes.push('Direct');
+                    if (document.getElementById('showModularLifts').checked) liftTypes.push('Modular');
+                    if (document.getElementById('showSkipDirectLifts').checked) liftTypes.push('Skip-Direct');
+                    if (document.getElementById('showSkipModularLifts').checked) liftTypes.push('Skip-Mod');
+                    
+                    tempCtx.fillText(`• Lift Homomorphisms: ${liftTypes.length > 0 ? liftTypes.join(', ') : 'None'}`, legendX + 25 * scaleFactor, currentY);
+                    currentY += 20 * scaleFactor;
+                    
+                    // Visual settings
+                    const colorModeNames = {
+                        'hue': 'Rainbow (Angular)',
+                        'value': 'By Value',
+                        'modulo': 'By Ring',
+                        'prime': 'Prime Analysis',
+                        'gcd_unified': 'GCD Unified',
+                        'gcd_per_mod': 'GCD per Ring',
+                        'gcd_per_residue': 'GCD per Residue',
+                        'gcd_mathematical': 'GCD Mathematical',
+                        'gcd_spectrum': 'GCD Spectrum',
+                        'custom': 'Custom Color'
+                    };
+                    
+                    tempCtx.fillText(`• Color Mode: ${colorModeNames[colorMode]}`, legendX + 25 * scaleFactor, currentY);
+                    currentY += 18 * scaleFactor;
+                    
+                    // Radius scaling
+                    const scalingModes = {
+                        'uniform': 'Uniform',
+                        'linear': 'Linear',
+                        'sqrt': 'Square-root',
+                        'log': 'Logarithmic',
+                        'totient': 'Totient',
+                        'density': 'Density',
+                        'inverse': 'Inverse',
+                        'exponential': 'Exponential'
+                    };
+                    tempCtx.fillText(`• Radius Scaling: ${scalingModes[radiusScalingMode]}`, legendX + 25 * scaleFactor, currentY);
+                    currentY += 18 * scaleFactor;
+                    
+                    if (radiusScalingMode !== 'uniform') {
+                        tempCtx.fillText(`  └─ Constant c = ${scalingConstant.toFixed(2)}`, legendX + 30 * scaleFactor, currentY);
+                        currentY += 16 * scaleFactor;
+                    }
+                    
+                    currentY += 8 * scaleFactor;
+                    
+                    // Prime sieve
+                    if (primeData.isActive) {
+                        tempCtx.fillText(`• Prime Sieve: ACTIVE`, legendX + 25 * scaleFactor, currentY);
+                        currentY += 18 * scaleFactor;
+                        tempCtx.fillText(`  └─ Modulus: ${primeData.modulus}, Limit: ${primeData.limit.toLocaleString()}`, legendX + 30 * scaleFactor, currentY);
+                        currentY += 16 * scaleFactor;
+                        tempCtx.fillText(`  └─ Primes Found: ${primeData.totalPrimes.toLocaleString()}`, legendX + 30 * scaleFactor, currentY);
+                        currentY += 16 * scaleFactor;
+                    }
+                    
+                    currentY += 15 * scaleFactor;
+                    
+                    // SECTION 2: Visual Legend
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${16 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText('Visual Legend:', legendX + 20 * scaleFactor, currentY);
+                    currentY += 25 * scaleFactor;
+                    
+                    // Legend items with proper spacing
+                    const legendItems = [];
+                    
+                    // Always show key elements
+                    legendItems.push({
+                        color: '#FFD700',
+                        label: 'Unit Circle (M=1)',
+                        desc: 'Mathematical foundation, gcd(0,1)=1'
+                    });
+                    
+                    legendItems.push({
+                        color: '#FF6B6B',
+                        label: 'Character Support φ(M)',
+                        desc: 'Coprime residues where gcd(r,M)=1'
+                    });
+                    
+                    if (document.getElementById('showDirectLifts').checked) {
+                        legendItems.push({
+                            color: liftLineColor,
+                            label: 'Direct Lift Lines',
+                            desc: 'Ring homomorphisms φ: r → r'
+                        });
+                    }
+                    
+                    if (document.getElementById('showModularLifts').checked) {
+                        legendItems.push({
+                            color: modularLiftColor,
+                            label: 'Modular Lift Lines',
+                            desc: 'CRT transformations r → r+M×2ⁿ'
+                        });
+                    }
+                    
+                    if (selectedGaps.length > 0) {
+                        legendItems.push({
+                            color: '#4ECDC4',
+                            label: `Prime Gap Connections`,
+                            desc: `Active gaps: ${selectedGaps.slice(0,3).join(', ')}${selectedGaps.length > 3 ? '...' : ''}`
+                        });
+                    }
+                    
+                    if (primeData.isActive) {
+                        legendItems.push({
+                            color: '#FFD700',
+                            label: 'Prime Distribution',
+                            desc: `${primeData.totalPrimes} primes in mod ${primeData.modulus}`
+                        });
+                    }
+                    
+                    // Draw legend items with consistent spacing
+                    const itemSpacing = 55 * scaleFactor;
+                    const colorBoxSize = 18 * scaleFactor;
+                    
+                    tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
+                    legendItems.forEach((item, idx) => {
+                        const itemY = currentY + idx * itemSpacing;
+                        const colorX = legendX + 25 * scaleFactor;
+                        const textX = colorX + colorBoxSize + 15 * scaleFactor;
+                        
+                        // Color box
+                        tempCtx.fillStyle = item.color;
+                        tempCtx.fillRect(colorX, itemY - colorBoxSize/2, colorBoxSize, colorBoxSize);
+                        tempCtx.strokeStyle = backgroundChoice === 'white' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)';
+                        tempCtx.lineWidth = 1;
+                        tempCtx.strokeRect(colorX, itemY - colorBoxSize/2, colorBoxSize, colorBoxSize);
+                        
+                        // Label
+                        tempCtx.fillStyle = textColor;
+                        tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
+                        tempCtx.fillText(item.label, textX, itemY);
+                        
+                        // Description
+                        tempCtx.fillStyle = subtleColor;
+                        tempCtx.font = `${11 * scaleFactor}px Segoe UI`;
+                        tempCtx.fillText(item.desc, textX, itemY + 16 * scaleFactor);
+                    });
+                    
+                    currentY += legendItems.length * itemSpacing + 20 * scaleFactor;
+                    
+                    // Mathematical notation at bottom if space
+                    if (currentY < legendY + legendContentHeight - 100 * scaleFactor) {
+                        currentY = legendY + legendContentHeight - 80 * scaleFactor;
+                        tempCtx.fillStyle = subtleColor;
+                        tempCtx.font = `italic ${11 * scaleFactor}px Times New Roman`;
+                        tempCtx.fillText('Mathematical Relations:', legendX + 20 * scaleFactor, currentY);
+                        currentY += 18 * scaleFactor;
+                        tempCtx.font = `italic ${10 * scaleFactor}px Times New Roman`;
+                        tempCtx.fillText('φ(n) = n∏(1 - 1/p) | Euler totient', legendX + 25 * scaleFactor, currentY);
+                        currentY += 15 * scaleFactor;
+                        tempCtx.fillText('gcd(r,M)=1 ⟺ χ(r)≠0 | Character support', legendX + 25 * scaleFactor, currentY);
+                        currentY += 15 * scaleFactor;
+                        tempCtx.fillText('θ = 2π(M-r)/M | Angle positioning', legendX + 25 * scaleFactor, currentY);
+                    }
+                }
+                
+                // Professional watermark
+                tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)';
+                tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
+                tempCtx.textAlign = 'right';
+                const watermarkX = tempCanvas.width - 20 * scaleFactor;
+                tempCtx.fillText('Created by Wessen Getachew | Riemann Hypothesis Explorer', 
+                    watermarkX, tempCanvas.height - 15 * scaleFactor);
+                
+                // Generate filename
                 const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,'-');
-                const filename = `modular_rings_${timestamp}.jpg`;
+                const ringText = selectedRings.length > 0 ? `_${selectedRings.length}rings` : '';
+                const gapText = selectedGaps.length > 0 ? `_${selectedGaps.length}gaps` : '';
+                const resText = resolutionChoice === '4k' ? '_4K' : '_HD';
+                const filename = `professional_modular_rings${ringText}${gapText}${resText}_${timestamp}.jpg`;
                 
-                // Create download link
+                // Convert and download
+                const dataURL = tempCanvas.toDataURL('image/jpeg', 0.98);
                 const link = document.createElement('a');
-                link.href = dataURL;
                 link.download = filename;
-                
-                // Trigger download
+                link.href = dataURL;
                 link.click();
                 
-                updateAnimationStatus('Image captured successfully! 📸');
+                const statusMsg = resolutionChoice === '4k' 
+                    ? 'Professional 4K screenshot with detailed legend saved!' 
+                    : 'Professional HD screenshot with detailed legend saved!';
+                updateAnimationStatus(statusMsg);
+                
             } catch (error) {
                 alert('Error capturing image: ' + error.message);
                 console.error('Capture error:', error);
@@ -7154,4 +7497,4 @@
         }, 500);
     </script>
 </body>
-                        </html>
+    </html>
