@@ -796,6 +796,25 @@
                     </div>
                     
                     <div class="custom-gap">
+                        <label><strong>Visualization Range Controls:</strong></label>
+                        <div class="gap-input">
+                            Critical Line t-range: <input type="number" id="criticalTMin" min="0" value="0" style="width: 60px;"> to 
+                            <input type="number" id="criticalTMax" min="1" value="50" style="width: 60px;">
+                        </div>
+                        <div class="gap-input">
+                            Zeta Zeros Count: <input type="number" id="zetaZerosCount" min="1" max="50" value="10" style="width: 60px;">
+                            <label style="font-size: 11px; opacity: 0.8;">(first N zeros)</label>
+                        </div>
+                        <div class="gap-input">
+                            π(x) limit: <input type="number" id="primeCountLimit" min="100" value="10000" style="width: 80px;">
+                        </div>
+                        <div class="gap-input">
+                            <button class="rh-btn" onclick="applyVisualizationRanges()">Apply Ranges</button>
+                            <button onclick="resetVisualizationRanges()">Reset Defaults</button>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap">
                         <label><strong>Prime Sieve Engine:</strong></label>
                         <div class="gap-input">
                             Search up to: <input type="number" id="sieveLimit" min="100" value="10000" placeholder="10000">
@@ -1570,6 +1589,32 @@
     </div>
 
     <script>
+        // RH visualization range state
+        let rhVisualizationRanges = {
+            criticalTMin: 0,
+            criticalTMax: 50,
+            zetaZerosCount: 10,
+            primeCountLimit: 10000
+        };
+        
+        function applyVisualizationRanges() {
+            rhVisualizationRanges.criticalTMin = parseFloat(document.getElementById('criticalTMin').value) || 0;
+            rhVisualizationRanges.criticalTMax = parseFloat(document.getElementById('criticalTMax').value) || 50;
+            rhVisualizationRanges.zetaZerosCount = parseInt(document.getElementById('zetaZerosCount').value) || 10;
+            rhVisualizationRanges.primeCountLimit = parseInt(document.getElementById('primeCountLimit').value) || 10000;
+            
+            updateRhVisualizations();
+            updateAnimationStatus('RH visualization ranges updated');
+        }
+        
+        function resetVisualizationRanges() {
+            document.getElementById('criticalTMin').value = 0;
+            document.getElementById('criticalTMax').value = 50;
+            document.getElementById('zetaZerosCount').value = 10;
+            document.getElementById('primeCountLimit').value = 10000;
+            applyVisualizationRanges();
+        }
+        
         // Enhanced global state management
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
@@ -1891,7 +1936,10 @@
             // Draw complex plane with critical line
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
-            const scale = 80;
+            const tMin = rhVisualizationRanges.criticalTMin;
+            const tMax = rhVisualizationRanges.criticalTMax;
+            const tRange = tMax - tMin;
+            const scale = Math.min(80, (canvas.height - 100) / tRange);
             
             // Draw axes
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -1904,7 +1952,7 @@
             ctx.stroke();
             
             // Draw critical line Re(s) = 1/2
-            const criticalLineX = centerX + 0.5 * scale;
+            const criticalLineX = centerX + 0.5 * scale * 2;
             ctx.strokeStyle = '#48BB78';
             ctx.lineWidth = 3;
             ctx.beginPath();
@@ -1912,29 +1960,34 @@
             ctx.lineTo(criticalLineX, canvas.height);
             ctx.stroke();
             
-            // Add zeros on critical line
+            // Add zeros on critical line within range
             const selectedRings = getSelectedRings();
-            selectedRings.slice(0, 5).forEach((ringId, index) => {
-                const config = configs[ringId];
-                if (config) {
-                    const t = 14.134 + index * 10.15; // First few RH zeros
-                    const zeroY = centerY - t * 5;
-                    if (zeroY > 0 && zeroY < canvas.height) {
+            const firstZeros = [14.134, 21.022, 25.011, 30.425, 32.935, 37.586, 40.919, 43.327, 48.005, 49.774];
+            
+            firstZeros.slice(0, Math.min(10, selectedRings.length)).forEach((t, index) => {
+                if (t >= tMin && t <= tMax) {
+                    const zeroY = centerY - (t - (tMin + tMax) / 2) * scale;
+                    if (zeroY > 20 && zeroY < canvas.height - 20) {
                         ctx.fillStyle = '#FFD700';
                         ctx.beginPath();
                         ctx.arc(criticalLineX, zeroY, 4, 0, 2 * Math.PI);
                         ctx.fill();
+                        
+                        // Label
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '9px Segoe UI';
+                        ctx.textAlign = 'left';
+                        ctx.fillText(`t=${t.toFixed(2)}`, criticalLineX + 10, zeroY + 3);
                     }
                 }
             });
             
-            // Labels
+            // Labels with range info
             ctx.fillStyle = '#FFD700';
             ctx.font = '12px Segoe UI';
             ctx.textAlign = 'center';
             ctx.fillText('Re(s) = 1/2', criticalLineX, canvas.height - 10);
-            ctx.fillText('Im(s)', centerX - 15, 15);
-            ctx.fillText('Re(s)', canvas.width - 20, centerY - 10);
+            ctx.fillText(`Im(s) ∈ [${tMin}, ${tMax}]`, centerX, 15);
         }
 
         function updateCharacterSupportVisualization() {
@@ -2059,8 +2112,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             // VERIFIED RIEMANN ZETA ZEROS (from mathematical literature)
-            // These are rigorously computed to high precision
-            const verifiedZeros = [
+            const allVerifiedZeros = [
                 { t: 14.134725141734693790, precision: 18, source: 'Riemann 1859' },
                 { t: 21.022039638771554993, precision: 18, source: 'Gram 1903' },
                 { t: 25.010857580145688763, precision: 18, source: 'Backlund 1914' },
@@ -2070,12 +2122,27 @@
                 { t: 40.918719012147495187, precision: 18, source: 'Rosser 1941' },
                 { t: 43.327073280914999519, precision: 18, source: 'Turing 1953' },
                 { t: 48.005150881167159727, precision: 18, source: 'Lehmer 1956' },
-                { t: 49.773832477672302181, precision: 18, source: 'Lehmer 1956' }
+                { t: 49.773832477672302181, precision: 18, source: 'Lehmer 1956' },
+                { t: 52.970321477714460644, precision: 17, source: 'Lehmer 1956' },
+                { t: 56.446247697063394804, precision: 17, source: 'Lehmer 1956' },
+                { t: 59.347044002602353665, precision: 17, source: 'Lehmer 1956' },
+                { t: 60.831778524609809844, precision: 17, source: 'Lehmer 1956' },
+                { t: 65.112544048081606660, precision: 17, source: 'Lehmer 1956' },
+                { t: 67.079810529494173714, precision: 17, source: 'Lehmer 1956' },
+                { t: 69.546401711173979252, precision: 17, source: 'Lehmer 1956' },
+                { t: 72.067157674481907582, precision: 17, source: 'Lehmer 1956' },
+                { t: 75.704690699083933168, precision: 17, source: 'Lehmer 1956' },
+                { t: 77.144840068874805224, precision: 17, source: 'Lehmer 1956' }
             ];
+            
+            const zerosToShow = allVerifiedZeros.slice(0, rhVisualizationRanges.zetaZerosCount);
             
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
-            const scale = 3;
+            const maxT = Math.max(...zerosToShow.map(z => z.t));
+            const minT = Math.min(...zerosToShow.map(z => z.t));
+            const tRange = maxT - minT || 1;
+            const scale = Math.min(3, (canvas.height - 80) / tRange);
             
             // Draw complex plane axes
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -2099,9 +2166,10 @@
             ctx.setLineDash([]);
             
             // Draw verified zeros with precision indicators
-            verifiedZeros.forEach((zero, index) => {
-                const y = centerY - zero.t * scale;
-                if (y > 0 && y < canvas.height) {
+            zerosToShow.forEach((zero, index) => {
+                const avgT = (minT + maxT) / 2;
+                const y = centerY - (zero.t - avgT) * scale;
+                if (y > 20 && y < canvas.height - 20) {
                     // Animated pulsing effect
                     const phase = zetaAnimationFrame + index * 0.3;
                     const pulse = 1 + 0.3 * Math.sin(phase);
@@ -2121,13 +2189,6 @@
                     ctx.arc(criticalX, y, precisionRadius * pulse, 0, 2 * Math.PI);
                     ctx.stroke();
                     
-                    // Glow effect
-                    ctx.strokeStyle = `rgba(255, 215, 0, ${alpha * 0.3})`;
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.arc(criticalX, y, (8 + zero.precision / 2) * pulse, 0, 2 * Math.PI);
-                    ctx.stroke();
-                    
                     // Label with precision
                     ctx.fillStyle = '#ffffff';
                     ctx.font = '9px Segoe UI';
@@ -2139,22 +2200,6 @@
                     ctx.fillText(`±10⁻${zero.precision}`, criticalX + 15, y + 12);
                 }
             });
-            
-            // Add computational note
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.font = '10px Segoe UI';
-            ctx.textAlign = 'left';
-            ctx.fillText('Verified zeros:', 10, canvas.height - 40);
-            ctx.fillText('First 10 non-trivial', 10, canvas.height - 28);
-            ctx.fillText('zeros of ζ(s)', 10, canvas.height - 16);
-            
-            // Labels
-            ctx.fillStyle = '#FFD700';
-            ctx.font = '12px Segoe UI';
-            ctx.textAlign = 'center';
-            ctx.fillText('Critical Line [VERIFIED]', criticalX, 15);
-            ctx.fillText('Re(s)', canvas.width - 20, centerY - 10);
-            ctx.fillText('Im(s)', centerX + 15, 15);
             
             // Statistics box
             ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -2169,9 +2214,15 @@
             ctx.fillText('Zero Statistics:', 15, 25);
             ctx.font = '10px Segoe UI';
             ctx.fillStyle = '#ffffff';
-            ctx.fillText(`Count: ${verifiedZeros.length}`, 15, 40);
-            ctx.fillText(`Range: 14.1 - 49.8`, 15, 52);
-            ctx.fillText(`Min precision: 18 digits`, 15, 64);
+            ctx.fillText(`Count: ${zerosToShow.length}`, 15, 40);
+            ctx.fillText(`Range: ${minT.toFixed(1)} - ${maxT.toFixed(1)}`, 15, 52);
+            ctx.fillText(`Min precision: ${Math.min(...zerosToShow.map(z => z.precision))} digits`, 15, 64);
+            
+            // Labels
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Critical Line [${zerosToShow.length} VERIFIED]`, criticalX, 15);
         }
         
         function updatePrimeCountingVisualization() {
@@ -6159,4 +6210,4 @@
         }, 500);
     </script>
 </body>
-                            </html>
+                                        </html>
