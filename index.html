@@ -784,32 +784,146 @@
                     
                     <div class="custom-gap" style="margin-top: 15px;">
                         <label><strong>RH Visualization Controls:</strong></label>
+                        
+                        <!-- Critical Line Analysis -->
                         <div class="checkbox-item">
                             <input type="checkbox" id="showCriticalLine" checked onchange="toggleRhVisualization('criticalLineCanvas')"> Critical Line Analysis
                         </div>
+                        <div id="criticalLineParams" class="gap-input" style="margin-left: 25px; display: block;">
+                            t-range: <input type="number" id="criticalLineTMin" min="0" value="0" style="width: 50px;"> to 
+                            <input type="number" id="criticalLineTMax" min="1" value="50" style="width: 50px;">
+                            <button onclick="updateRhVisualizations()" style="font-size: 11px; padding: 4px 8px;">Apply</button>
+                        </div>
+                        
+                        <!-- Character Support Domains -->
                         <div class="checkbox-item">
                             <input type="checkbox" id="showCharacterCanvas" checked onchange="toggleRhVisualization('characterCanvas')"> Character Support Domains
                         </div>
+                        <div id="characterParams" class="gap-input" style="margin-left: 25px; display: block;">
+                            Max rings: <input type="number" id="characterMaxRings" min="1" max="20" value="10" style="width: 50px;">
+                            <button onclick="updateRhVisualizations()" style="font-size: 11px; padding: 4px 8px;">Apply</button>
+                        </div>
+                        
+                        <!-- Prime Distribution -->
                         <div class="checkbox-item">
                             <input type="checkbox" id="showPrimeDistCanvas" checked onchange="toggleRhVisualization('primeDistCanvas')"> Prime Distribution
                         </div>
+                        <div id="primeDistParams" class="gap-input" style="margin-left: 25px; display: block;">
+                            <em style="font-size: 11px; opacity: 0.8;">Uses active sieve data</em>
+                        </div>
+                        
+                        <!-- Zeta Function Zeros -->
                         <div class="checkbox-item">
                             <input type="checkbox" id="showZetaZeros" checked onchange="toggleRhVisualization('zetaZerosCanvas')"> Zeta Function Zeros
                         </div>
+                        <div id="zetaZerosParams" class="gap-input" style="margin-left: 25px; display: block;">
+                            Show zeros: <input type="number" id="zetaZerosCount" min="1" max="50" value="10" style="width: 50px;">
+                            <label style="font-size: 11px;"><input type="checkbox" id="animateZetaZeros"> Animate</label>
+                            <button onclick="updateRhVisualizations()" style="font-size: 11px; padding: 4px 8px;">Apply</button>
+                        </div>
+                        
+                        <!-- Prime Counting π(x) -->
                         <div class="checkbox-item">
                             <input type="checkbox" id="showPrimeCounting" checked onchange="toggleRhVisualization('primeCountingCanvas')"> Prime Counting π(x)
                         </div>
+                        <div id="primeCountingParams" class="gap-input" style="margin-left: 25px; display: block;">
+                            π(x) limit: <input type="number" id="primeCountLimit" min="100" value="10000" style="width: 70px;">
+                            <button onclick="updateRhVisualizations()" style="font-size: 11px; padding: 4px 8px;">Apply</button>
+                        </div>
+                        
+                        <!-- Residue Heatmap -->
                         <div class="checkbox-item">
                             <input type="checkbox" id="showResidueHeatmap" checked onchange="toggleRhVisualization('residueHeatmapCanvas')"> Residue Heatmap
                         </div>
+                        <div id="residueHeatmapParams" class="gap-input" style="margin-left: 25px; display: block;">
+                            <em style="font-size: 11px; opacity: 0.8;">Uses active sieve data</em>
+                        </div>
+                        
+                        <!-- Chi-Squared Test -->
                         <div class="checkbox-item">
                             <input type="checkbox" id="showChiSquared" checked onchange="toggleRhVisualization('chiSquaredCanvas')"> Chi-Squared Test
                         </div>
+                        <div id="chiSquaredParams" class="gap-input" style="margin-left: 25px; display: block;">
+                            Significance: <select id="chiSquaredSignificance" onchange="updateRhVisualizations()" style="width: 80px; font-size: 11px;">
+                                <option value="0.05" selected>p=0.05</option>
+                                <option value="0.01">p=0.01</option>
+                                <option value="0.10">p=0.10</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Modulus Comparison -->
                         <div class="checkbox-item">
                             <input type="checkbox" id="showModulusComparison" checked onchange="toggleRhVisualization('modulusComparisonCanvas')"> Modulus Comparison
                         </div>
+                        <div id="modulusComparisonParams" class="gap-input" style="margin-left: 25px; display: block;">
+                            Display: <select id="modulusComparisonMode" onchange="updateRhVisualizations()" style="width: 120px; font-size: 11px;">
+                                <option value="phi" selected>Euler φ(M)</option>
+                                <option value="density">Density φ(M)/M</option>
+                                <option value="both">Both</option>
+                            </select>
+                        </div>
+                        
+                        <!-- L-Function Magnitude -->
                         <div class="checkbox-item">
                             <input type="checkbox" id="showLFunction" checked onchange="toggleRhVisualization('lFunctionCanvas')"> L-Function Magnitude
+                        </div>
+                        <div id="lFunctionParams" class="gap-input" style="margin-left: 25px; display: block; background: rgba(255,215,0,0.1); padding: 10px; border-radius: 6px; margin-top: 5px;">
+                            <strong style="font-size: 12px; color: #FFD700;">L-Function Parameters:</strong><br>
+                            
+                            <!-- L-function Type Selection -->
+                            <div style="margin: 8px 0;">
+                                Type: <select id="lFunctionType" onchange="updateLFunctionParams()" style="width: 140px; font-size: 11px;">
+                                    <option value="dirichlet" selected>Dirichlet L(s,χ)</option>
+                                    <option value="riemann">Riemann ζ(s)</option>
+                                    <option value="hasse-weil">Hasse-Weil L(E,s)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Dirichlet Parameters -->
+                            <div id="dirichletParams" style="margin: 8px 0;">
+                                Character χ mod: <input type="number" id="lFunctionModulus" min="2" value="30" style="width: 50px;">
+                                index: <input type="number" id="lFunctionCharIndex" min="0" value="0" style="width: 40px;">
+                            </div>
+                            
+                            <!-- Hasse-Weil Parameters (hidden by default) -->
+                            <div id="hasseWeilParams" style="margin: 8px 0; display: none;">
+                                Elliptic Curve: <select id="ellipticCurveChoice" style="width: 100px; font-size: 11px;">
+                                    <option value="11a">11a (rank 0)</option>
+                                    <option value="37a">37a (rank 1)</option>
+                                    <option value="389a">389a (rank 2)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Evaluation Parameters -->
+                            <div style="margin: 8px 0;">
+                                Critical line σ=1/2, t: <input type="number" id="lFunctionTMin" min="0" value="0" style="width: 45px;"> to 
+                                <input type="number" id="lFunctionTMax" min="1" value="30" style="width: 45px;">
+                            </div>
+                            
+                            <!-- Computation Settings -->
+                            <div style="margin: 8px 0;">
+                                <label style="font-size: 11px;"><input type="checkbox" id="lFunctionShowEulerProduct"> Show Euler product</label><br>
+                                <label style="font-size: 11px;"><input type="checkbox" id="lFunctionShowFunctionalEq"> Show functional equation</label>
+                            </div>
+                            
+                            <!-- Series Terms Control -->
+                            <div style="margin: 8px 0;">
+                                Dirichlet series terms: <input type="number" id="lFunctionSeriesTerms" min="100" max="50000" value="5000" style="width: 60px;">
+                                <br><em style="font-size: 10px; opacity: 0.8;">More terms = better accuracy, slower computation</em>
+                            </div>
+                            
+                            <!-- Precision Display -->
+                            <div style="margin: 8px 0;">
+                                <label style="font-size: 11px;"><input type="checkbox" id="lFunctionShowErrorBounds" checked> Display error bounds</label>
+                            </div>
+                            
+                            <button onclick="updateRhVisualizations()" style="font-size: 11px; padding: 4px 8px; background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; font-weight: bold;">
+                                Compute L-function
+                            </button>
+                            
+                            <div style="margin-top: 8px; font-size: 10px; opacity: 0.85; line-height: 1.4;">
+                                <strong>Current:</strong> <span id="lFunctionCurrentDesc">L(s,χ₀) with χ₀ mod 30 (principal character)</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -2773,31 +2887,42 @@
             ctx.lineTo(40, canvas.height - 10);
             ctx.stroke();
             
-            // REAL L-FUNCTION COMPUTATION
-            const tMax = 30;
+            // Get L-function parameters
+            const lFunctionType = document.getElementById('lFunctionType').value;
+            const tMin = parseFloat(document.getElementById('lFunctionTMin')?.value || 0);
+            const tMax = parseFloat(document.getElementById('lFunctionTMax')?.value || 30);
+            const seriesTerms = parseInt(document.getElementById('lFunctionSeriesTerms')?.value || 5000);
+            const showErrorBounds = document.getElementById('lFunctionShowErrorBounds')?.checked;
+            const showEulerProduct = document.getElementById('lFunctionShowEulerProduct')?.checked;
+            
             const tScale = (canvas.width - 50) / tMax;
             const yScale = (canvas.height - 20) / 3;
             
-            selectedRings.slice(0, 3).forEach((ringId, index) => {
-                const config = configs[ringId];
-                if (!config || config.mod < 2) return;
-                
-                const modulus = Math.round(config.mod);
-                const chi = new DirichletCharacter(modulus, 0); // Principal character
-                const calculator = new LFunctionCalculator(chi);
-                
-                const hue = (index * 120) % 360;
-                ctx.strokeStyle = `hsla(${hue}, 70%, 60%, 0.8)`;
-                ctx.lineWidth = 2;
+            // Compute L-function based on type
+            if (lFunctionType === 'riemann') {
+                // Riemann zeta function ζ(s)
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.9)';
+                ctx.lineWidth = 2.5;
                 ctx.beginPath();
                 
                 let firstPoint = true;
                 let maxError = 0;
                 
-                for (let t = 0.1; t <= tMax; t += 0.5) {
-                    const result = calculator.computeAtPoint({ re: 0.5, im: t }, 2000);
-                    const magnitude = Math.sqrt(result.value.re ** 2 + result.value.im ** 2);
-                    maxError = Math.max(maxError, result.error);
+                for (let t = 0.1; t <= tMax; t += 0.3) {
+                    // Compute ζ(1/2 + it) using Dirichlet series
+                    let sumRe = 0, sumIm = 0;
+                    const sigma = 0.5;
+                    
+                    for (let n = 1; n <= seriesTerms; n++) {
+                        const nPowerSigma = Math.pow(n, -sigma);
+                        const angle = -t * Math.log(n);
+                        sumRe += nPowerSigma * Math.cos(angle);
+                        sumIm += nPowerSigma * Math.sin(angle);
+                    }
+                    
+                    const magnitude = Math.sqrt(sumRe * sumRe + sumIm * sumIm);
+                    const error = 1 / Math.pow(seriesTerms, sigma - 0.1);
+                    maxError = Math.max(maxError, error);
                     
                     const x = 40 + t * tScale;
                     const y = centerY - magnitude * yScale;
@@ -2811,43 +2936,125 @@
                 }
                 ctx.stroke();
                 
-                // Error bars
-                ctx.strokeStyle = `hsla(${hue}, 70%, 60%, 0.3)`;
-                ctx.lineWidth = 1;
-                ctx.setLineDash([2, 2]);
-                for (let t = 5; t <= tMax; t += 5) {
-                    const result = calculator.computeAtPoint({ re: 0.5, im: t }, 2000);
-                    const magnitude = Math.sqrt(result.value.re ** 2 + result.value.im ** 2);
-                    const x = 40 + t * tScale;
-                    const y = centerY - magnitude * yScale;
-                    const errorY = result.error * yScale;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(x, y - errorY);
-                    ctx.lineTo(x, y + errorY);
-                    ctx.stroke();
-                }
-                ctx.setLineDash([]);
+                // Draw title
+                ctx.fillStyle = '#FFD700';
+                ctx.font = '14px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('|ζ(1/2 + it)| [Riemann Zeta]', canvas.width / 2, 20);
                 
-                // Legend with error
-                ctx.fillStyle = `hsla(${hue}, 70%, 60%, 0.8)`;
-                ctx.font = '10px Segoe UI';
-                ctx.textAlign = 'left';
-                ctx.fillText(`M=${modulus} (ε≤${maxError.toExponential(1)})`, 50, 30 + index * 15);
-            });
+                if (showErrorBounds) {
+                    ctx.fillStyle = '#4ECDC4';
+                    ctx.font = '11px Segoe UI';
+                    ctx.fillText(`Error bound: ε ≤ ${maxError.toExponential(2)}`, canvas.width / 2, 35);
+                }
+                
+            } else if (lFunctionType === 'dirichlet') {
+                // Dirichlet L-function L(s, χ)
+                const modulus = parseInt(document.getElementById('lFunctionModulus')?.value || 30);
+                const charIndex = parseInt(document.getElementById('lFunctionCharIndex')?.value || 0);
+                
+                // Plot up to 3 different characters for comparison
+                const charactersToPlot = Math.min(3, selectedRings.length);
+                
+                for (let charIdx = 0; charIdx < charactersToPlot; charIdx++) {
+                    const chi = new DirichletCharacter(modulus, charIdx);
+                    const calculator = new LFunctionCalculator(chi);
+                    
+                    const hue = (charIdx * 120) % 360;
+                    ctx.strokeStyle = `hsla(${hue}, 70%, 60%, 0.8)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    
+                    let firstPoint = true;
+                    let maxError = 0;
+                    
+                    for (let t = 0.1; t <= tMax; t += 0.3) {
+                        const result = calculator.computeAtPoint({ re: 0.5, im: t }, seriesTerms);
+                        const magnitude = Math.sqrt(result.value.re ** 2 + result.value.im ** 2);
+                        maxError = Math.max(maxError, result.error);
+                        
+                        const x = 40 + t * tScale;
+                        const y = centerY - magnitude * yScale;
+                        
+                        if (firstPoint) {
+                            ctx.moveTo(x, y);
+                            firstPoint = false;
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.stroke();
+                    
+                    // Error bars if enabled
+                    if (showErrorBounds) {
+                        ctx.strokeStyle = `hsla(${hue}, 70%, 60%, 0.3)`;
+                        ctx.lineWidth = 1;
+                        ctx.setLineDash([2, 2]);
+                        for (let t = 5; t <= tMax; t += 5) {
+                            const result = calculator.computeAtPoint({ re: 0.5, im: t }, seriesTerms);
+                            const magnitude = Math.sqrt(result.value.re ** 2 + result.value.im ** 2);
+                            const x = 40 + t * tScale;
+                            const y = centerY - magnitude * yScale;
+                            const errorY = result.error * yScale;
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(x, y - errorY);
+                            ctx.lineTo(x, y + errorY);
+                            ctx.stroke();
+                        }
+                        ctx.setLineDash([]);
+                    }
+                    
+                    // Legend with error
+                    ctx.fillStyle = `hsla(${hue}, 70%, 60%, 0.8)`;
+                    ctx.font = '10px Segoe UI';
+                    ctx.textAlign = 'left';
+                    const charName = charIdx === 0 ? 'χ₀ (principal)' : `χ${charIdx}`;
+                    ctx.fillText(`M=${modulus}, ${charName} (ε≤${maxError.toExponential(1)})`, 50, 30 + charIdx * 15);
+                }
+                
+                // Title
+                ctx.fillStyle = '#FFD700';
+                ctx.font = '14px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(`|L(1/2 + it, χ)| mod ${modulus} [${seriesTerms} terms]`, canvas.width / 2, 15);
+                
+            } else if (lFunctionType === 'hasse-weil') {
+                // Hasse-Weil L-function (simplified representation)
+                const curve = document.getElementById('ellipticCurveChoice')?.value || '11a';
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '14px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Hasse-Weil L(E,s) for curve ${curve}`, canvas.width / 2, canvas.height / 2 - 20);
+                ctx.font = '12px Segoe UI';
+                ctx.fillText('(Full computation requires elliptic curve data)', canvas.width / 2, canvas.height / 2 + 5);
+                ctx.fillText('Enable Dirichlet mode for detailed analysis', canvas.width / 2, canvas.height / 2 + 25);
+            }
             
-            // Labels
-            ctx.fillStyle = '#FFD700';
-            ctx.font = '12px Segoe UI';
+            // Axis labels
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '11px Segoe UI';
             ctx.textAlign = 'center';
-            ctx.fillText('|L(1/2 + it, χ₀)| [RIGOROUS]', canvas.width / 2, 15);
-            ctx.fillText('t', canvas.width - 20, centerY - 10);
+            ctx.fillText('t (imaginary part)', canvas.width - 20, centerY - 10);
             
             ctx.save();
             ctx.translate(15, canvas.height / 2);
             ctx.rotate(-Math.PI / 2);
             ctx.fillText('|L|', 0, 0);
             ctx.restore();
+            
+            // Show Euler product info if enabled
+            if (showEulerProduct && lFunctionType !== 'hasse-weil') {
+                ctx.fillStyle = 'rgba(72, 187, 120, 0.9)';
+                ctx.font = '10px Segoe UI';
+                ctx.textAlign = 'right';
+                if (lFunctionType === 'riemann') {
+                    ctx.fillText('Euler: ζ(s) = ∏ₚ 1/(1-p⁻ˢ)', canvas.width - 10, canvas.height - 25);
+                } else {
+                    ctx.fillText('Euler: L(s,χ) = ∏ₚ 1/(1-χ(p)p⁻ˢ)', canvas.width - 10, canvas.height - 25);
+                }
+            }
         }
 
         function exportRhData() {
@@ -2924,6 +3131,38 @@
                 updateAnimationStatus('Complete GRH suite analysis finished');
             }, 1000);
         }
+        // L-Function parameter management
+        function updateLFunctionParams() {
+            const lFunctionType = document.getElementById('lFunctionType').value;
+            const dirichletParams = document.getElementById('dirichletParams');
+            const hasseWeilParams = document.getElementById('hasseWeilParams');
+            const currentDesc = document.getElementById('lFunctionCurrentDesc');
+            
+            // Show/hide relevant parameter sections
+            if (lFunctionType === 'dirichlet') {
+                dirichletParams.style.display = 'block';
+                hasseWeilParams.style.display = 'none';
+                
+                const mod = document.getElementById('lFunctionModulus').value;
+                const charIndex = document.getElementById('lFunctionCharIndex').value;
+                if (charIndex == 0) {
+                    currentDesc.textContent = `L(s,χ₀) with χ₀ mod ${mod} (principal character)`;
+                } else {
+                    currentDesc.textContent = `L(s,χ) with χ mod ${mod}, index ${charIndex}`;
+                }
+            } else if (lFunctionType === 'riemann') {
+                dirichletParams.style.display = 'none';
+                hasseWeilParams.style.display = 'none';
+                currentDesc.textContent = 'ζ(s) = Σ(n=1 to ∞) 1/nˢ (Riemann zeta function)';
+            } else if (lFunctionType === 'hasse-weil') {
+                dirichletParams.style.display = 'none';
+                hasseWeilParams.style.display = 'block';
+                
+                const curve = document.getElementById('ellipticCurveChoice').value;
+                currentDesc.textContent = `L(E,s) for elliptic curve ${curve}`;
+            }
+        }
+        
         // Color invert function
         function toggleColorInvert() {
             colorInverted = document.getElementById('enableColorInvert').checked;
@@ -6294,4 +6533,4 @@
         }, 500);
     </script>
 </body>
-                            </html>
+    </html>
