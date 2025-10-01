@@ -769,6 +769,51 @@
                         Riemann Hypothesis Research Hub
                     </h3>
                     <div id="rhSection" class="collapsible-section">
+                    
+                    <div class="custom-gap" style="background: linear-gradient(45deg, rgba(255, 215, 0, 0.12), rgba(72, 187, 120, 0.12)); border: 2px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+                        <label><strong>Distance Measurement Tool:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="enableDistanceTool" onchange="toggleDistanceTool()"> Enable Point-to-Point Distance
+                        </div>
+                        <div id="distanceControls" style="display: none; margin-top: 10px;">
+                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">
+                                Click two residue points to measure Euclidean distance using:<br>
+                                <em style="font-family: 'Times New Roman', serif;">d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]</em>
+                            </div>
+                            <div id="distanceDisplay" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; min-height: 60px;">
+                                <strong>Distance Calculator Ready</strong><br>
+                                <em>Click any two residue points on the rings</em>
+                            </div>
+                            <div class="gap-input" style="margin-top: 10px;">
+                                <button onclick="clearDistanceMeasurement()">Clear Selection</button>
+                                <button onclick="exportDistanceData()">Export Measurements</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-gap" style="background: linear-gradient(45deg, rgba(138, 43, 226, 0.12), rgba(75, 0, 130, 0.12)); border: 2px solid rgba(138, 43, 226, 0.3); margin-bottom: 15px;">
+                        <label><strong>Farey Sequence & Franel-Landau Analysis:</strong></label>
+                        <div class="gap-input">
+                            Farey order N: <input type="number" id="fareyOrder" min="2" max="1000" value="30" style="width: 70px;">
+                            <button class="rh-btn" onclick="generateFareySequence()">Compute Farey</button>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showFareyVisualization" onchange="updateRhVisualizations()"> Show Farey Discrepancy Plot
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="showFranelLandau" onchange="updateRhVisualizations()"> Show Franel-Landau Test
+                        </div>
+                        <div id="fareyResults" style="display: none; margin-top: 10px; background: rgba(138, 43, 226, 0.1); padding: 12px; border-radius: 6px;">
+                            <strong>Farey Sequence Results:</strong><br>
+                            <div id="fareyStats" style="font-size: 12px; margin-top: 8px;"></div>
+                        </div>
+                        <div style="font-size: 11px; opacity: 0.85; margin-top: 8px; line-height: 1.4;">
+                            <strong>Franel-Landau Theorem:</strong> RH is equivalent to<br>
+                            <em style="font-family: 'Times New Roman', serif;">D(N) = O(N^(1/2+ε))</em><br>
+                            where D(N) measures discrepancy from uniform spacing
+                        </div>
+                    </div>
+                    
                     <div class="checkbox-item">
                         <input type="checkbox" id="enableRhAnalysis"> Enable RH Predictions
                     </div>
@@ -1613,10 +1658,10 @@
                 <div class="custom-gap">
                     <label><strong>Image Capture Options:</strong></label>
                     <div class="checkbox-item">
-                        <input type="radio" name="screenshotResolution" value="standard" checked> Standard
+                        <input type="radio" name="screenshotResolution" value="standard"> Standard
                     </div>
                     <div class="checkbox-item">
-                        <input type="radio" name="screenshotResolution" value="4k"> 4K
+                        <input type="radio" name="screenshotResolution" value="4k" checked> 4K (Default)
                     </div>
                     <div class="checkbox-item">
                         <input type="radio" name="screenshotBg" value="black" checked> Black Background
@@ -1698,6 +1743,18 @@
                         <canvas id="primeDistCanvas" width="400" height="300"></canvas>
                         <div class="rh-visual-title">Prime Equidistribution</div>
                         <div class="rh-visual-desc">GRH uniformity predictions</div>
+                    </div>
+                    
+                    <div class="prime-distribution-display">
+                        <canvas id="fareyDiscrepancyCanvas" width="400" height="300"></canvas>
+                        <div class="rh-visual-title">Farey Discrepancy</div>
+                        <div class="rh-visual-desc">Franel-Landau RH equivalence</div>
+                    </div>
+                    
+                    <div class="prime-distribution-display">
+                        <canvas id="franelLandauCanvas" width="400" height="300"></canvas>
+                        <div class="rh-visual-title">Franel-Landau Test</div>
+                        <div class="rh-visual-desc">D(N) = O(N^(1/2+ε)) verification</div>
                     </div>
                     
                     <div class="prime-distribution-display">
@@ -1926,6 +1983,19 @@
         let currentLabelFormat = 'number';
         let gcdAnimationPhase = 0;
         let gcdAnimationActive = false;
+        
+        // Distance measurement state
+        let distanceMeasurementActive = false;
+        let selectedPoint1 = null;
+        let selectedPoint2 = null;
+        
+        // Farey sequence state
+        let fareyData = {
+            N: 30,
+            sequence: [],
+            discrepancy: 0,
+            isActive: false
+        };
         
         function toggleGcdAnimation() {
             gcdAnimationActive = document.getElementById('animateGcdHighlight').checked;
@@ -3671,6 +3741,391 @@
                 a = temp;
             }
             return a;
+        }
+        
+        // ========================================
+        // DISTANCE MEASUREMENT FUNCTIONS
+        // ========================================
+        
+        function toggleDistanceTool() {
+            distanceMeasurementActive = document.getElementById('enableDistanceTool').checked;
+            const controls = document.getElementById('distanceControls');
+            controls.style.display = distanceMeasurementActive ? 'block' : 'none';
+            
+            if (!distanceMeasurementActive) {
+                clearDistanceMeasurement();
+            } else {
+                updateAnimationStatus('Distance tool active - click two points');
+            }
+        }
+        
+        function calculateEuclideanDistance(point1, point2) {
+            // General distance formula: d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]
+            // But for any two points, use standard Euclidean distance
+            
+            const r1 = point1.radius;
+            const r2 = point2.radius;
+            const theta1 = point1.angle;
+            const theta2 = point2.angle;
+            
+            // Convert to Cartesian coordinates
+            const x1 = r1 * Math.cos(theta1);
+            const y1 = r1 * Math.sin(theta1);
+            const x2 = r2 * Math.cos(theta2);
+            const y2 = r2 * Math.sin(theta2);
+            
+            const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+            
+            // Also calculate using the law of cosines for verification
+            const angleDiff = Math.abs(theta2 - theta1);
+            const distanceLawOfCosines = Math.sqrt(r1**2 + r2**2 - 2*r1*r2*Math.cos(angleDiff));
+            
+            return {
+                euclidean: distance,
+                lawOfCosines: distanceLawOfCosines,
+                cartesian: { x1, y1, x2, y2 },
+                polar: { r1, theta1: theta1 * 180/Math.PI, r2, theta2: theta2 * 180/Math.PI }
+            };
+        }
+        
+        function clearDistanceMeasurement() {
+            selectedPoint1 = null;
+            selectedPoint2 = null;
+            
+            const display = document.getElementById('distanceDisplay');
+            display.innerHTML = `<strong>Distance Calculator Ready</strong><br><em>Click any two residue points on the rings</em>`;
+            
+            draw();
+        }
+        
+        function exportDistanceData() {
+            if (!selectedPoint1 || !selectedPoint2) {
+                alert('Please select two points first');
+                return;
+            }
+            
+            const dist = calculateEuclideanDistance(selectedPoint1, selectedPoint2);
+            
+            let exportText = `DISTANCE MEASUREMENT REPORT\n`;
+            exportText += `Generated: ${new Date().toISOString()}\n`;
+            exportText += `Riemann Hypothesis Explorer - Distance Analysis\n\n`;
+            exportText += `${'='.repeat(60)}\n\n`;
+            
+            exportText += `POINT 1:\n`;
+            exportText += `  Ring: M = ${selectedPoint1.modulus}\n`;
+            exportText += `  Residue: r = ${selectedPoint1.residue}\n`;
+            exportText += `  Radius: r₁ = ${selectedPoint1.radius.toFixed(3)} units\n`;
+            exportText += `  Angle: θ₁ = ${dist.polar.theta1.toFixed(2)}°\n`;
+            exportText += `  Cartesian: (${dist.cartesian.x1.toFixed(3)}, ${dist.cartesian.y1.toFixed(3)})\n`;
+            exportText += `  GCD(r,M): ${gcd(selectedPoint1.residue, Math.round(selectedPoint1.modulus))}\n\n`;
+            
+            exportText += `POINT 2:\n`;
+            exportText += `  Ring: M = ${selectedPoint2.modulus}\n`;
+            exportText += `  Residue: r = ${selectedPoint2.residue}\n`;
+            exportText += `  Radius: r₂ = ${selectedPoint2.radius.toFixed(3)} units\n`;
+            exportText += `  Angle: θ₂ = ${dist.polar.theta2.toFixed(2)}°\n`;
+            exportText += `  Cartesian: (${dist.cartesian.x2.toFixed(3)}, ${dist.cartesian.y2.toFixed(3)})\n`;
+            exportText += `  GCD(r,M): ${gcd(selectedPoint2.residue, Math.round(selectedPoint2.modulus))}\n\n`;
+            
+            exportText += `${'='.repeat(60)}\n`;
+            exportText += `DISTANCE CALCULATIONS:\n`;
+            exportText += `${'='.repeat(60)}\n\n`;
+            exportText += `Euclidean Distance:\n`;
+            exportText += `  d = ${dist.euclidean.toFixed(6)} units\n\n`;
+            exportText += `Law of Cosines Verification:\n`;
+            exportText += `  d = √[r₁² + r₂² - 2r₁r₂cos(θ₂-θ₁)]\n`;
+            exportText += `  d = ${dist.lawOfCosines.toFixed(6)} units\n\n`;
+            exportText += `Difference: ${Math.abs(dist.euclidean - dist.lawOfCosines).toExponential(3)} units\n`;
+            exportText += `(Should be near machine precision)\n\n`;
+            
+            exportText += `General Formula (for point on ring M to unit circle):\n`;
+            exportText += `  d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]\n\n`;
+            
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `distance_measurement_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            updateAnimationStatus('Distance measurement exported');
+        }
+        
+        // ========================================
+        // FAREY SEQUENCE & FRANEL-LANDAU FUNCTIONS
+        // ========================================
+        
+        function generateFareySequence() {
+            const N = parseInt(document.getElementById('fareyOrder').value);
+            
+            if (N < 2 || N > 1000) {
+                alert('Please enter a Farey order between 2 and 1000');
+                return;
+            }
+            
+            updateAnimationStatus('Computing Farey sequence...');
+            
+            // Generate Farey sequence F_N
+            const farey = [];
+            
+            for (let q = 1; q <= N; q++) {
+                for (let a = 0; a <= q; a++) {
+                    if (gcd(a, q) === 1) {
+                        farey.push({ a, q, value: a / q });
+                    }
+                }
+            }
+            
+            // Sort by value
+            farey.sort((x, y) => x.value - y.value);
+            
+            // Remove duplicates (keep first occurrence)
+            const uniqueFarey = [];
+            let lastVal = -1;
+            farey.forEach(f => {
+                if (Math.abs(f.value - lastVal) > 1e-10) {
+                    uniqueFarey.push(f);
+                    lastVal = f.value;
+                }
+            });
+            
+            const L_N = uniqueFarey.length;
+            
+            // Compute linear uniform parametrization U_N
+            const uniform = [];
+            for (let j = 1; j <= L_N; j++) {
+                uniform.push(j / L_N);
+            }
+            
+            // Compute absolute discrepancy sum D(N)
+            let discrepancySum = 0;
+            for (let j = 0; j < L_N; j++) {
+                const fareyVal = uniqueFarey[j].value;
+                const uniformVal = (j + 1) / L_N; // j+1 because j is 0-indexed but uniform is 1-indexed
+                discrepancySum += Math.abs(fareyVal - uniformVal);
+            }
+            
+            // Store results
+            fareyData = {
+                N: N,
+                sequence: uniqueFarey,
+                L_N: L_N,
+                uniform: uniform,
+                discrepancy: discrepancySum,
+                isActive: true
+            };
+            
+            // Theoretical bound under RH: D(N) = O(N^(1/2 + ε))
+            const rhBound = Math.pow(N, 0.5 + 0.1); // Using ε = 0.1
+            const rhBoundStrict = Math.pow(N, 0.5);
+            
+            fareyData.rhBound = rhBound;
+            fareyData.rhBoundStrict = rhBoundStrict;
+            fareyData.satisfiesRH = discrepancySum < rhBound;
+            
+            // Display results
+            document.getElementById('fareyResults').style.display = 'block';
+            const stats = document.getElementById('fareyStats');
+            
+            stats.innerHTML = `
+                <strong>Farey Order N = ${N}</strong><br>
+                • Sequence length: |F_${N}| = ${L_N}<br>
+                • Discrepancy D(${N}) = ${discrepancySum.toFixed(6)}<br>
+                • RH bound N^(1/2+ε): ${rhBound.toFixed(3)} (ε=0.1)<br>
+                • RH strict N^(1/2): ${rhBoundStrict.toFixed(3)}<br>
+                • Satisfies RH bound: ${fareyData.satisfiesRH ? '<strong style="color: #4ECDC4;">✓ YES</strong>' : '<strong style="color: #FF6B6B;">✗ NO</strong>'}<br>
+                • Ratio D(N)/N^(1/2): ${(discrepancySum / rhBoundStrict).toFixed(4)}
+            `;
+            
+            // Update visualizations
+            updateRhVisualizations();
+            updateAnimationStatus(`Farey sequence F_${N} computed (${L_N} fractions)`);
+        }
+        
+        function updateFareyDiscrepancyVisualization() {
+            const canvas = document.getElementById('fareyDiscrepancyCanvas');
+            if (!canvas || !document.getElementById('showFareyVisualization')?.checked) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!fareyData.isActive) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '14px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Generate Farey Sequence', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            const L_N = fareyData.L_N;
+            const xScale = (canvas.width - 60) / L_N;
+            const maxDiscrepancy = Math.max(...fareyData.sequence.map((f, i) => Math.abs(f.value - (i + 1) / L_N)));
+            const yScale = (canvas.height - 60) / (maxDiscrepancy * 1.2);
+            
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(40, 10);
+            ctx.lineTo(40, canvas.height - 40);
+            ctx.lineTo(canvas.width - 10, canvas.height - 40);
+            ctx.stroke();
+            
+            // Draw Farey points vs uniform
+            ctx.fillStyle = '#4ECDC4';
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 1;
+            
+            fareyData.sequence.forEach((f, i) => {
+                const x = 40 + (i + 1) * xScale;
+                const fareyY = canvas.height - 40 - f.value * (canvas.height - 60);
+                const uniformY = canvas.height - 40 - ((i + 1) / L_N) * (canvas.height - 60);
+                
+                // Farey point
+                ctx.fillStyle = '#4ECDC4';
+                ctx.beginPath();
+                ctx.arc(x, fareyY, 2, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Uniform point
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(x, uniformY, 2, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Connection line showing discrepancy
+                ctx.strokeStyle = 'rgba(255, 107, 107, 0.3)';
+                ctx.beginPath();
+                ctx.moveTo(x, fareyY);
+                ctx.lineTo(x, uniformY);
+                ctx.stroke();
+            });
+            
+            // Legend
+            ctx.fillStyle = '#4ECDC4';
+            ctx.font = '11px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillText('Farey F_N', 50, 25);
+            
+            ctx.fillStyle = '#FFD700';
+            ctx.fillText('Uniform U_N', 120, 25);
+            
+            // Title
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText(`D(${fareyData.N}) = ${fareyData.discrepancy.toFixed(4)}`, canvas.width / 2, canvas.height - 10);
+        }
+        
+        function updateFranelLandauVisualization() {
+            const canvas = document.getElementById('franelLandauCanvas');
+            if (!canvas || !document.getElementById('showFranelLandau')?.checked) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!fareyData.isActive) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '14px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Generate Farey Sequence', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            // Plot D(N) for various N values to test RH bound
+            const testValues = [5, 10, 15, 20, 30, 50, 75, 100, 150, 200, 300, 500];
+            const results = [];
+            
+            testValues.forEach(N => {
+                if (N <= 500) { // Limit computation for performance
+                    // Quick Farey generation for this N
+                    const farey = [];
+                    for (let q = 1; q <= N; q++) {
+                        for (let a = 0; a <= q; a++) {
+                            if (gcd(a, q) === 1) {
+                                farey.push(a / q);
+                            }
+                        }
+                    }
+                    
+                    const uniqueFarey = Array.from(new Set(farey)).sort((a, b) => a - b);
+                    const L = uniqueFarey.length;
+                    
+                    let D = 0;
+                    for (let j = 0; j < L; j++) {
+                        D += Math.abs(uniqueFarey[j] - (j + 1) / L);
+                    }
+                    
+                    results.push({ N, D, rhBound: Math.pow(N, 0.5 + 0.1) });
+                }
+            });
+            
+            // Plot
+            const maxN = Math.max(...results.map(r => r.N));
+            const maxY = Math.max(...results.map(r => r.D), ...results.map(r => r.rhBound));
+            const xScale = (canvas.width - 60) / maxN;
+            const yScale = (canvas.height - 60) / maxY;
+            
+            // Axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(40, 10);
+            ctx.lineTo(40, canvas.height - 40);
+            ctx.lineTo(canvas.width - 10, canvas.height - 40);
+            ctx.stroke();
+            
+            // RH bound curve
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]);
+            ctx.beginPath();
+            results.forEach((r, i) => {
+                const x = 40 + r.N * xScale;
+                const y = canvas.height - 40 - r.rhBound * yScale;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Actual D(N) points
+            ctx.fillStyle = '#4ECDC4';
+            ctx.strokeStyle = '#4ECDC4';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            results.forEach((r, i) => {
+                const x = 40 + r.N * xScale;
+                const y = canvas.height - 40 - r.D * yScale;
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+                
+                ctx.fillRect(x - 2, y - 2, 4, 4);
+            });
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '11px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillText('O(N^(1/2+ε)) bound', 50, 20);
+            
+            ctx.fillStyle = '#4ECDC4';
+            ctx.fillText('Actual D(N)', 50, 35);
+            
+            // Title
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('Franel-Landau: D(N) vs RH Bound', canvas.width / 2, canvas.height - 10);
+            
+            // Check if all points satisfy RH
+            const allSatisfy = results.every(r => r.D < r.rhBound);
+            ctx.fillStyle = allSatisfy ? '#4ECDC4' : '#FF6B6B';
+            ctx.font = '10px Segoe UI';
+            ctx.fillText(allSatisfy ? '✓ All points satisfy RH bound' : '⚠ Some points exceed bound', canvas.width - 100, 20);
         }
         
         // Format label based on selected mode
@@ -5424,11 +5879,11 @@
                 const padding = 30 * scaleFactor;
                 const contentPadding = 20 * scaleFactor;
                 
-                // Create screenshot canvas with MORE HEIGHT for detailed legend
+                // Create screenshot canvas - height matches main content, no extra space
                 const tempCanvas = document.createElement('canvas');
                 const tempCtx = tempCanvas.getContext('2d');
                 tempCanvas.width = baseWidth + legendWidth + (includeLegend ? padding * 3 : contentPadding * 2);
-                tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 2400 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
+                tempCanvas.height = baseHeight + titleHeight + contentPadding * 2;
                 
                 // Set background
                 tempCtx.fillStyle = backgroundChoice === 'white' ? '#ffffff' : '#000000';
@@ -5482,12 +5937,12 @@
                 tempCtx.drawImage(canvas, 0, 0);
                 tempCtx.restore();
                 
-                // Draw COMPREHENSIVE LEGEND with all parameter details
+                // Draw COMPREHENSIVE LEGEND - compact, no wasted space
                 if (includeLegend) {
                     const legendX = baseWidth + contentPadding + padding;
                     const legendY = titleHeight + contentPadding;
                     const legendContentWidth = legendWidth - padding * 2;
-                    const legendContentHeight = tempCanvas.height - titleHeight - contentPadding * 2;
+                    const legendContentHeight = baseHeight; // Match main canvas height
                     
                     tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(248, 249, 250, 0.95)' : 'rgba(20, 20, 20, 0.95)';
                     tempCtx.fillRect(legendX, legendY, legendContentWidth, legendContentHeight);
@@ -5500,20 +5955,20 @@
                     tempCtx.font = `bold ${18 * scaleFactor}px Segoe UI`;
                     tempCtx.textAlign = 'left';
                     let currentY = legendY + 30 * scaleFactor;
-                    tempCtx.fillText('COMPLETE PARAMETER LEGEND', legendX + 15 * scaleFactor, currentY);
+                    tempCtx.fillText('Configuration Details', legendX + 15 * scaleFactor, currentY);
                     
                     currentY += 35 * scaleFactor;
                     
                     const fontSize = 11 * scaleFactor;
-                    const lineHeight = 16 * scaleFactor;
-                    const sectionGap = 25 * scaleFactor;
+                    const lineHeight = 15 * scaleFactor;
+                    const sectionGap = 20 * scaleFactor;
                     const leftMargin = legendX + 15 * scaleFactor;
                     
-                    // SECTION 2: RING SYSTEM DETAILS
+                    // Active Parameters Header
                     tempCtx.fillStyle = accentColor;
-                    tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
-                    tempCtx.fillText('═══ RING SYSTEM ═══', leftMargin, currentY);
-                    currentY += lineHeight * 1.5;
+                    tempCtx.font = `bold ${12 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText('Active Parameters:', leftMargin, currentY);
+                    currentY += lineHeight * 1.3;
                     
                     tempCtx.fillStyle = textColor;
                     tempCtx.font = `${fontSize}px Segoe UI`;
@@ -6528,7 +6983,12 @@
         canvas.addEventListener('click', (e) => {
             if (!isDragging) {
                 const pos = getMousePos(e);
-                handleResidueClick(pos.x, pos.y);
+                
+                if (distanceMeasurementActive) {
+                    handleDistanceMeasurementClick(pos.x, pos.y);
+                } else {
+                    handleResidueClick(pos.x, pos.y);
+                }
             }
         });
         
@@ -8228,4 +8688,4 @@
         }, 500);
     </script>
 </body>
-                                          </html>
+                                </html>
