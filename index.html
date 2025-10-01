@@ -3593,32 +3593,38 @@
         }
         // L-Function parameter management
         function updateLFunctionParams() {
-            const lFunctionType = document.getElementById('lFunctionType').value;
+            const lFunctionType = document.getElementById('lFunctionType');
             const dirichletParams = document.getElementById('dirichletParams');
             const hasseWeilParams = document.getElementById('hasseWeilParams');
             const currentDesc = document.getElementById('lFunctionCurrentDesc');
             
+            if (!lFunctionType || !currentDesc) return;
+            
             // Show/hide relevant parameter sections
-            if (lFunctionType === 'dirichlet') {
-                dirichletParams.style.display = 'block';
-                hasseWeilParams.style.display = 'none';
+            if (lFunctionType.value === 'dirichlet') {
+                if (dirichletParams) dirichletParams.style.display = 'block';
+                if (hasseWeilParams) hasseWeilParams.style.display = 'none';
                 
-                const mod = document.getElementById('lFunctionModulus').value;
-                const charIndex = document.getElementById('lFunctionCharIndex').value;
+                const modInput = document.getElementById('lFunctionModulus');
+                const charInput = document.getElementById('lFunctionCharIndex');
+                const mod = modInput ? modInput.value : '30';
+                const charIndex = charInput ? charInput.value : '0';
+                
                 if (charIndex == 0) {
                     currentDesc.textContent = `L(s,χ₀) with χ₀ mod ${mod} (principal character)`;
                 } else {
                     currentDesc.textContent = `L(s,χ) with χ mod ${mod}, index ${charIndex}`;
                 }
-            } else if (lFunctionType === 'riemann') {
-                dirichletParams.style.display = 'none';
-                hasseWeilParams.style.display = 'none';
+            } else if (lFunctionType.value === 'riemann') {
+                if (dirichletParams) dirichletParams.style.display = 'none';
+                if (hasseWeilParams) hasseWeilParams.style.display = 'none';
                 currentDesc.textContent = 'ζ(s) = Σ(n=1 to ∞) 1/nˢ (Riemann zeta function)';
-            } else if (lFunctionType === 'hasse-weil') {
-                dirichletParams.style.display = 'none';
-                hasseWeilParams.style.display = 'block';
+            } else if (lFunctionType.value === 'hasse-weil') {
+                if (dirichletParams) dirichletParams.style.display = 'none';
+                if (hasseWeilParams) hasseWeilParams.style.display = 'block';
                 
-                const curve = document.getElementById('ellipticCurveChoice').value;
+                const curveInput = document.getElementById('ellipticCurveChoice');
+                const curve = curveInput ? curveInput.value : '11a';
                 currentDesc.textContent = `L(E,s) for elliptic curve ${curve}`;
             }
         }
@@ -7934,4 +7940,4 @@
         }, 500);
     </script>
 </body>
-                                    </html>
+                                           </html>
