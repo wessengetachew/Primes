@@ -1658,10 +1658,10 @@
                 <div class="custom-gap">
                     <label><strong>Image Capture Options:</strong></label>
                     <div class="checkbox-item">
-                        <input type="radio" name="screenshotResolution" value="standard"> Standard
+                        <input type="radio" name="screenshotResolution" value="standard" checked> Standard
                     </div>
                     <div class="checkbox-item">
-                        <input type="radio" name="screenshotResolution" value="4k" checked> 4K (Default)
+                        <input type="radio" name="screenshotResolution" value="4k"> 4K
                     </div>
                     <div class="checkbox-item">
                         <input type="radio" name="screenshotBg" value="black" checked> Black Background
@@ -6568,7 +6568,31 @@
                         currentY += 14 * scaleFactor;
                     }
                 } else {
-                    tempCtx.fillText(`├─ Gap Analysis: None`, legendX + 20 * scaleFactor, currentY);
+                    tempCtx.fillText(`├─ Gap Analysis:         function handleResidueClick(screenX, screenY) {
+            // Re-use hover detection logic
+            checkResidueHover(screenX, screenY);
+            
+            // Future: Add click-specific behavior like isolating a ring or showing detailed analysis
+            updateAnimationStatus('Click features coming in next phase!');
+        }
+        
+        function handleDistanceMeasurementClick(screenX, screenY) {
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) return;
+            
+            const centerX = canvas.width / 2 + panX;
+            const centerY = canvas.height / 2 + panY;
+            const rotation = parseFloat(document.getElementById('rotationSlider').value);
+            
+            const dx = (screenX - centerX) / currentZoom;
+            const dy = (screenY - centerY) / currentZoom;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            // Get current rings
+            const ringConfigs = selectedRings.map((ringId, originalIndex) => ({
+                ringId,
+                originalIndex,
+                modulus: configs[`, legendX + 20 * scaleFactor, currentY);
                     currentY += 15 * scaleFactor;
                 }
                 
@@ -8688,4 +8712,4 @@
         }, 500);
     </script>
 </body>
-                                </html>
+    </html>
