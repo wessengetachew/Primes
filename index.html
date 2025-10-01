@@ -777,54 +777,16 @@
                         </div>
                         <div id="distanceControls" style="display: none; margin-top: 10px;">
                             <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">
-                                <strong>Formula:</strong> For two points at (r₁, θ₁) and (r₂, θ₂):<br>
-                                <em style="font-family: 'Times New Roman', serif;">d = √[r₁² + r₂² - 2r₁r₂cos(θ₂ - θ₁)]</em>
+                                Click two residue points to measure Euclidean distance using:<br>
+                                <em style="font-family: 'Times New Roman', serif;">d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]</em>
                             </div>
-                            
-                            <div class="gap-input" style="margin-bottom: 10px;">
-                                <strong>Filter by Modulus:</strong><br>
-                                Mod: <input type="number" id="distModFilter" min="1" placeholder="Any" style="width: 60px;">
-                                <button onclick="applyDistanceFilters()">Apply</button>
-                                <button onclick="clearDistanceFilters()">Clear Filters</button>
-                            </div>
-                            
-                            <div class="gap-input" style="margin-bottom: 10px;">
-                                <strong>Filter by GCD:</strong><br>
-                                <label style="font-size: 11px;"><input type="checkbox" id="distFilterGcd1" checked> GCD=1 only</label>
-                                <label style="font-size: 11px;"><input type="checkbox" id="distFilterNonGcd1"> GCD≠1 only</label>
-                            </div>
-                            
-                            <div style="margin-bottom: 10px;">
-                                <strong>Label Format:</strong>
-                                <select id="distLabelFormat" style="width: 100%; font-size: 11px;">
-                                    <option value="number">Number (r)</option>
-                                    <option value="fraction">Fraction (r/M)</option>
-                                    <option value="angle">Angle (degrees)</option>
-                                    <option value="combined">Combined (r, M, θ)</option>
-                                </select>
-                            </div>
-                            
-                            <div style="margin-bottom: 10px;">
-                                <strong>Distance Unit:</strong>
-                                <select id="distanceUnit" style="width: 100%; font-size: 11px;">
-                                    <option value="natural">Natural (pixel units)</option>
-                                    <option value="normalized">Normalized (0-1)</option>
-                                    <option value="angular">Angular (radians)</option>
-                                </select>
-                            </div>
-                            
-                            <div id="distanceDisplay" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; min-height: 80px; max-height: 200px; overflow-y: auto;">
+                            <div id="distanceDisplay" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; min-height: 60px;">
                                 <strong>Distance Calculator Ready</strong><br>
                                 <em>Click any two residue points on the rings</em>
                             </div>
-                            
                             <div class="gap-input" style="margin-top: 10px;">
                                 <button onclick="clearDistanceMeasurement()">Clear Selection</button>
-                                <button onclick="exportDistanceData()">Export All Measurements</button>
-                            </div>
-                            
-                            <div style="font-size: 10px; opacity: 0.8; margin-top: 8px;">
-                                <strong>Batch Mode:</strong> Keep selecting points to measure multiple distances
+                                <button onclick="exportDistanceData()">Export Measurements</button>
                             </div>
                         </div>
                     </div>
@@ -2007,6 +1969,189 @@
             applyVisualizationRanges();
         }
         
+        function updateFareyDiscrepancyVisualization() {
+            const canvas = document.getElementById('fareyDiscrepancyCanvas');
+            if (!canvas || !document.getElementById('showFareyVisualization')?.checked) {
+                if (canvas) canvas.parentElement.style.display = 'none';
+                return;
+            }
+            
+            canvas.parentElement.style.display = 'block';
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!fareyData.isActive) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '14px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Generate Farey Sequence', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            const L_N = fareyData.L_N;
+            const xScale = (canvas.width - 60) / L_N;
+            const maxDiscrepancy = Math.max.apply(Math, fareyData.sequence.map(function(f, i) {
+                return Math.abs(f.value - (i + 1) / L_N);
+            }));
+            const yScale = (canvas.height - 60) / (maxDiscrepancy * 1.2);
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(40, 10);
+            ctx.lineTo(40, canvas.height - 40);
+            ctx.lineTo(canvas.width - 10, canvas.height - 40);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#4ECDC4';
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 1;
+            
+            fareyData.sequence.forEach(function(f, i) {
+                const x = 40 + (i + 1) * xScale;
+                const fareyY = canvas.height - 40 - f.value * (canvas.height - 60);
+                const uniformY = canvas.height - 40 - ((i + 1) / L_N) * (canvas.height - 60);
+                
+                ctx.fillStyle = '#4ECDC4';
+                ctx.beginPath();
+                ctx.arc(x, fareyY, 2, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(x, uniformY, 2, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.strokeStyle = 'rgba(255, 107, 107, 0.3)';
+                ctx.beginPath();
+                ctx.moveTo(x, fareyY);
+                ctx.lineTo(x, uniformY);
+                ctx.stroke();
+            });
+            
+            ctx.fillStyle = '#4ECDC4';
+            ctx.font = '11px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillText('Farey F_N', 50, 25);
+            
+            ctx.fillStyle = '#FFD700';
+            ctx.fillText('Uniform U_N', 120, 25);
+            
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('D(' + fareyData.N + ') = ' + fareyData.discrepancy.toFixed(4), canvas.width / 2, canvas.height - 10);
+        }
+        
+        function updateFranelLandauVisualization() {
+            const canvas = document.getElementById('franelLandauCanvas');
+            if (!canvas || !document.getElementById('showFranelLandau')?.checked) {
+                if (canvas) canvas.parentElement.style.display = 'none';
+                return;
+            }
+            
+            canvas.parentElement.style.display = 'block';
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!fareyData.isActive) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '14px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('Generate Farey Sequence', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            const testValues = [5, 10, 15, 20, 30, 50, 75, 100, 150, 200, 300, 500];
+            const results = [];
+            
+            testValues.forEach(function(N) {
+                if (N <= 500) {
+                    const farey = [];
+                    for (var q = 1; q <= N; q++) {
+                        for (var a = 0; a <= q; a++) {
+                            if (gcd(a, q) === 1) {
+                                farey.push(a / q);
+                            }
+                        }
+                    }
+                    
+                    const uniqueFarey = Array.from(new Set(farey)).sort(function(a, b) { return a - b; });
+                    const L = uniqueFarey.length;
+                    
+                    var D = 0;
+                    for (var j = 0; j < L; j++) {
+                        D += Math.abs(uniqueFarey[j] - (j + 1) / L);
+                    }
+                    
+                    results.push({ N: N, D: D, rhBound: Math.pow(N, 0.5 + 0.1) });
+                }
+            });
+            
+            const maxN = Math.max.apply(Math, results.map(function(r) { return r.N; }));
+            const maxY = Math.max.apply(Math, results.map(function(r) { return Math.max(r.D, r.rhBound); }));
+            const xScale = (canvas.width - 60) / maxN;
+            const yScale = (canvas.height - 60) / maxY;
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(40, 10);
+            ctx.lineTo(40, canvas.height - 40);
+            ctx.lineTo(canvas.width - 10, canvas.height - 40);
+            ctx.stroke();
+            
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]);
+            ctx.beginPath();
+            results.forEach(function(r, i) {
+                const x = 40 + r.N * xScale;
+                const y = canvas.height - 40 - r.rhBound * yScale;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.fillStyle = '#4ECDC4';
+            ctx.strokeStyle = '#4ECDC4';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            results.forEach(function(r, i) {
+                const x = 40 + r.N * xScale;
+                const y = canvas.height - 40 - r.D * yScale;
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+                
+                ctx.fillRect(x - 2, y - 2, 4, 4);
+            });
+            ctx.stroke();
+            
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '11px Segoe UI';
+            ctx.textAlign = 'left';
+            ctx.fillText('O(N^(1/2+ε)) bound', 50, 20);
+            
+            ctx.fillStyle = '#4ECDC4';
+            ctx.fillText('Actual D(N)', 50, 35);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('Franel-Landau: D(N) vs RH Bound', canvas.width / 2, canvas.height - 10);
+            
+            const allSatisfy = results.every(function(r) { return r.D < r.rhBound; });
+            ctx.fillStyle = allSatisfy ? '#4ECDC4' : '#FF6B6B';
+            ctx.font = '10px Segoe UI';
+            ctx.fillText(allSatisfy ? '✓ All points satisfy RH bound' : '⚠ Some points exceed bound', canvas.width - 100, 20);
+        }
+        
+        // ========================================
+        // END FAREY & FRANEL-LANDAU FUNCTIONS
+        // ========================================
+        
         // Enhanced global state management
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
@@ -2024,12 +2169,8 @@
         
         // Distance measurement state
         let distanceMeasurementActive = false;
-        let measuredDistances = []; // Store all measurements
-        let distanceFilters = {
-            modulus: null,
-            gcdOne: true,
-            nonGcdOne: false
-        };
+        let selectedPoint1 = null;
+        let selectedPoint2 = null;
         
         // Farey sequence state
         let fareyData = {
@@ -2325,6 +2466,8 @@
             updateChiSquaredVisualization();
             updateModulusComparison();
             updateLFunctionVisualization();
+            updateFareyDiscrepancyVisualization();
+            updateFranelLandauVisualization();
             updateAnimationStatus('RH visualizations updated');
         }
         
@@ -3776,6 +3919,204 @@
             }
         }
         
+        // ========================================
+        // DISTANCE MEASUREMENT FUNCTIONS
+        // ========================================
+        
+        function handleDistanceMeasurementClick(screenX, screenY) {
+            if (!distanceMeasurementActive) return;
+            
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) return;
+            
+            const centerX = canvas.width / 2 + panX;
+            const centerY = canvas.height / 2 + panY;
+            const rotation = parseFloat(document.getElementById('rotationSlider').value);
+            const enableRotation = document.getElementById('enableRotation').checked;
+            
+            const dx = (screenX - centerX) / currentZoom;
+            const dy = (screenY - centerY) / currentZoom;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            const ringConfigs = selectedRings.map(function(ringId, originalIndex) {
+                return {
+                    ringId: ringId,
+                    originalIndex: originalIndex,
+                    modulus: configs[ringId] ? configs[ringId].mod : 1
+                };
+            });
+            
+            ringConfigs.sort(function(a, b) {
+                if (a.ringId === 'unit') return -1;
+                if (b.ringId === 'unit') return 1;
+                return a.modulus - b.modulus;
+            });
+            
+            const sortedRings = ringConfigs.map(function(config, sortedIndex) {
+                const normalPos = sortedIndex;
+                const invertedPos = ringConfigs.length - 1 - sortedIndex;
+                const finalPos = normalPos * (1 - nestingInversionAmount) + invertedPos * nestingInversionAmount;
+                config.finalIndex = finalPos;
+                return config;
+            });
+            
+            sortedRings.sort(function(a, b) {
+                return a.finalIndex - b.finalIndex;
+            });
+            
+            let foundResidue = null;
+            let minDistance = Infinity;
+            
+            sortedRings.forEach(function(config, visualIndex) {
+                const modulus = config.modulus;
+                const radius = calculateRadius(modulus, visualIndex, sortedRings.length);
+                
+                if (Math.abs(dist - radius) < 20) {
+                    const allResidues = getAllResidues(modulus);
+                    
+                    let ringRotation = 0;
+                    if (enableRotation) {
+                        ringRotation = animationFrame * ringRotationSpeeds[config.ringId] * Math.PI / 180;
+                    }
+                    
+                    allResidues.forEach(function(r) {
+                        let baseAngle;
+                        if (config.ringId === 'unit') {
+                            baseAngle = 0;
+                        } else {
+                            baseAngle = 2 * Math.PI * (modulus - r) / modulus;
+                        }
+                        
+                        const angle = baseAngle + ringRotation;
+                        const rx = radius * Math.cos(angle);
+                        const ry = radius * Math.sin(angle);
+                        
+                        const rdist = Math.sqrt((dx - rx) * (dx - rx) + (dy - ry) * (dy - ry));
+                        
+                        if (rdist < 15 && rdist < minDistance) {
+                            minDistance = rdist;
+                            foundResidue = {
+                                residue: r,
+                                modulus: modulus,
+                                radius: radius,
+                                angle: angle,
+                                ringId: config.ringId,
+                                isGcdOne: gcd(r, Math.round(modulus)) === 1
+                            };
+                        }
+                    });
+                }
+            });
+            
+            if (foundResidue) {
+                if (!selectedPoint1) {
+                    selectedPoint1 = foundResidue;
+                    updateDistanceDisplay('Point 1 selected', foundResidue);
+                    updateAnimationStatus('Point 1: r=' + foundResidue.residue + ' on M=' + Math.round(foundResidue.modulus));
+                    draw();
+                } else if (!selectedPoint2) {
+                    selectedPoint2 = foundResidue;
+                    
+                    const distResult = calculateEuclideanDistance(selectedPoint1, selectedPoint2);
+                    displayDistanceResults(distResult);
+                    updateAnimationStatus('Distance: ' + distResult.euclidean.toFixed(6) + ' units');
+                    draw();
+                }
+            }
+        }
+        
+        function updateDistanceDisplay(status, point) {
+            const display = document.getElementById('distanceDisplay');
+            
+            if (!point) {
+                display.innerHTML = '<strong>' + status + '</strong>';
+                return;
+            }
+            
+            const gcdVal = gcd(point.residue, Math.round(point.modulus));
+            const supportText = point.isGcdOne ? '<span style="color: #4ECDC4;">✓ Character Support (χ≠0)</span>' : '<span style="color: #666;">χ=0</span>';
+            
+            display.innerHTML = '<strong>' + status + '</strong><br>' +
+                'Ring: M = ' + Math.round(point.modulus) + '<br>' +
+                'Residue: r = ' + point.residue + '<br>' +
+                'GCD(r,M) = ' + gcdVal + '<br>' +
+                supportText;
+        }
+        
+        function displayDistanceResults(dist) {
+            const display = document.getElementById('distanceDisplay');
+            
+            const diff = Math.abs(dist.euclidean - dist.lawOfCosines).toExponential(3);
+            
+            display.innerHTML = '<strong>Distance Measurement Complete!</strong><br><br>' +
+                '<strong>Point 1:</strong> r=' + selectedPoint1.residue + ', M=' + Math.round(selectedPoint1.modulus) + '<br>' +
+                '<strong>Point 2:</strong> r=' + selectedPoint2.residue + ', M=' + Math.round(selectedPoint2.modulus) + '<br><br>' +
+                '<strong style="color: #FFD700;">Euclidean Distance:</strong><br>' +
+                'd = ' + dist.euclidean.toFixed(6) + ' units<br><br>' +
+                '<strong>Verification (Law of Cosines):</strong><br>' +
+                'd = ' + dist.lawOfCosines.toFixed(6) + ' units<br><br>' +
+                '<em style="font-size: 11px;">Difference: ' + diff + '</em><br>' +
+                '<em style="font-size: 11px;">(Should be near machine precision)</em>';
+        }
+        
+        function drawSelectedPoints() {
+            if (!distanceMeasurementActive) return;
+            
+            ctx.save();
+            
+            if (selectedPoint1) {
+                const x1 = selectedPoint1.radius * Math.cos(selectedPoint1.angle);
+                const y1 = selectedPoint1.radius * Math.sin(selectedPoint1.angle);
+                
+                ctx.beginPath();
+                ctx.arc(x1, y1, 12, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(x1, y1, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+                ctx.fill();
+            }
+            
+            if (selectedPoint2) {
+                const x2 = selectedPoint2.radius * Math.cos(selectedPoint2.angle);
+                const y2 = selectedPoint2.radius * Math.sin(selectedPoint2.angle);
+                
+                ctx.beginPath();
+                ctx.arc(x2, y2, 12, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#4ECDC4';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(x2, y2, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(78, 205, 196, 0.3)';
+                ctx.fill();
+                
+                if (selectedPoint1) {
+                    const x1 = selectedPoint1.radius * Math.cos(selectedPoint1.angle);
+                    const y1 = selectedPoint1.radius * Math.sin(selectedPoint1.angle);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+            
+            ctx.restore();
+        }
+        
+        // ========================================
+        // END DISTANCE MEASUREMENT FUNCTIONS
+        // ========================================
+        
         function gcd(a, b) {
             while (b !== 0) {
                 let temp = b;
@@ -3797,169 +4138,102 @@
             if (!distanceMeasurementActive) {
                 clearDistanceMeasurement();
             } else {
-                updateAnimationStatus('Distance tool active - click points to measure (batch mode)');
+                canvas.style.cursor = 'crosshair';
+                updateAnimationStatus('Distance tool active - click two residue points');
             }
         }
         
-        function applyDistanceFilters() {
-            const modInput = document.getElementById('distModFilter').value;
-            distanceFilters.modulus = modInput ? parseInt(modInput) : null;
-            distanceFilters.gcdOne = document.getElementById('distFilterGcd1').checked;
-            distanceFilters.nonGcdOne = document.getElementById('distFilterNonGcd1').checked;
-            updateAnimationStatus('Distance filters applied');
-        }
-        
-        function clearDistanceFilters() {
-            document.getElementById('distModFilter').value = '';
-            document.getElementById('distFilterGcd1').checked = true;
-            document.getElementById('distFilterNonGcd1').checked = false;
-            distanceFilters = { modulus: null, gcdOne: true, nonGcdOne: false };
-            updateAnimationStatus('Distance filters cleared');
-        }
-        
         function calculateEuclideanDistance(point1, point2) {
+            // General distance formula: d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]
+            // But for any two points, use standard Euclidean distance
+            
             const r1 = point1.radius;
             const r2 = point2.radius;
             const theta1 = point1.angle;
             const theta2 = point2.angle;
             
-            // Law of cosines: d = √[r₁² + r₂² - 2r₁r₂cos(θ₂ - θ₁)]
-            const angleDiff = theta2 - theta1;
-            const distance = Math.sqrt(r1*r1 + r2*r2 - 2*r1*r2*Math.cos(angleDiff));
-            
-            // Cartesian verification
+            // Convert to Cartesian coordinates
             const x1 = r1 * Math.cos(theta1);
             const y1 = r1 * Math.sin(theta1);
             const x2 = r2 * Math.cos(theta2);
             const y2 = r2 * Math.sin(theta2);
-            const cartesianDist = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+            
+            const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+            
+            // Also calculate using the law of cosines for verification
+            const angleDiff = Math.abs(theta2 - theta1);
+            const distanceLawOfCosines = Math.sqrt(r1**2 + r2**2 - 2*r1*r2*Math.cos(angleDiff));
             
             return {
-                distance: distance,
-                cartesianVerify: cartesianDist,
-                point1: point1,
-                point2: point2,
-                angleDiff: angleDiff,
-                angleDiffDeg: angleDiff * 180 / Math.PI
-            };
-        }
-        
-        function formatDistanceOutput(measurement) {
-            const labelFormat = document.getElementById('distLabelFormat').value;
-            const unit = document.getElementById('distanceUnit').value;
-            
-            let p1Label = '', p2Label = '';
-            const p1 = measurement.point1;
-            const p2 = measurement.point2;
-            
-            // Format point labels
-            switch(labelFormat) {
-                case 'number':
-                    p1Label = `r=${p1.residue}`;
-                    p2Label = `r=${p2.residue}`;
-                    break;
-                case 'fraction':
-                    p1Label = `${p1.residue}/${Math.round(p1.modulus)}`;
-                    p2Label = `${p2.residue}/${Math.round(p2.modulus)}`;
-                    break;
-                case 'angle':
-                    const deg1 = (p1.angle * 180 / Math.PI).toFixed(1);
-                    const deg2 = (p2.angle * 180 / Math.PI).toFixed(1);
-                    p1Label = `${deg1}°`;
-                    p2Label = `${deg2}°`;
-                    break;
-                case 'combined':
-                    const deg1c = (p1.angle * 180 / Math.PI).toFixed(1);
-                    const deg2c = (p2.angle * 180 / Math.PI).toFixed(1);
-                    p1Label = `r=${p1.residue}, M=${Math.round(p1.modulus)}, θ=${deg1c}°`;
-                    p2Label = `r=${p2.residue}, M=${Math.round(p2.modulus)}, θ=${deg2c}°`;
-                    break;
-            }
-            
-            // Format distance based on unit
-            let distStr = '';
-            switch(unit) {
-                case 'natural':
-                    distStr = `${measurement.distance.toFixed(3)} px`;
-                    break;
-                case 'normalized':
-                    const maxDist = 560; // Approximate max distance in visualization
-                    const normalized = (measurement.distance / maxDist).toFixed(4);
-                    distStr = `${normalized} (normalized)`;
-                    break;
-                case 'angular':
-                    distStr = `${Math.abs(measurement.angleDiff).toFixed(4)} rad`;
-                    break;
-            }
-            
-            return {
-                p1Label,
-                p2Label,
-                distStr,
-                gcd1: gcd(p1.residue, Math.round(p1.modulus)),
-                gcd2: gcd(p2.residue, Math.round(p2.modulus))
+                euclidean: distance,
+                lawOfCosines: distanceLawOfCosines,
+                cartesian: { x1, y1, x2, y2 },
+                polar: { r1, theta1: theta1 * 180/Math.PI, r2, theta2: theta2 * 180/Math.PI }
             };
         }
         
         function clearDistanceMeasurement() {
-            measuredDistances = [];
+            selectedPoint1 = null;
+            selectedPoint2 = null;
             
             const display = document.getElementById('distanceDisplay');
-            display.innerHTML = `<strong>Distance Calculator Ready</strong><br><em>Click any two residue points on the rings (batch mode enabled)</em>`;
+            display.innerHTML = `<strong>Distance Calculator Ready</strong><br><em>Click any two residue points on the rings</em>`;
             
             draw();
         }
         
         function exportDistanceData() {
-            if (measuredDistances.length === 0) {
-                alert('No distance measurements to export');
+            if (!selectedPoint1 || !selectedPoint2) {
+                alert('Please select two points first');
                 return;
             }
             
+            const dist = calculateEuclideanDistance(selectedPoint1, selectedPoint2);
+            
             let exportText = `DISTANCE MEASUREMENT REPORT\n`;
             exportText += `Generated: ${new Date().toISOString()}\n`;
-            exportText += `Riemann Hypothesis Explorer - Distance Analysis\n`;
-            exportText += `Total Measurements: ${measuredDistances.length}\n\n`;
-            exportText += `${'='.repeat(80)}\n\n`;
+            exportText += `Riemann Hypothesis Explorer - Distance Analysis\n\n`;
+            exportText += `${'='.repeat(60)}\n\n`;
             
-            measuredDistances.forEach((measurement, idx) => {
-                const formatted = formatDistanceOutput(measurement);
-                
-                exportText += `MEASUREMENT ${idx + 1}:\n`;
-                exportText += `${'─'.repeat(40)}\n`;
-                exportText += `Point 1: ${formatted.p1Label}\n`;
-                exportText += `  Modulus: M=${Math.round(measurement.point1.modulus)}\n`;
-                exportText += `  Radius: r₁=${measurement.point1.radius.toFixed(3)} px\n`;
-                exportText += `  Angle: θ₁=${(measurement.point1.angle * 180/Math.PI).toFixed(2)}°\n`;
-                exportText += `  GCD(r,M): ${formatted.gcd1}\n\n`;
-                
-                exportText += `Point 2: ${formatted.p2Label}\n`;
-                exportText += `  Modulus: M=${Math.round(measurement.point2.modulus)}\n`;
-                exportText += `  Radius: r₂=${measurement.point2.radius.toFixed(3)} px\n`;
-                exportText += `  Angle: θ₂=${(measurement.point2.angle * 180/Math.PI).toFixed(2)}°\n`;
-                exportText += `  GCD(r,M): ${formatted.gcd2}\n\n`;
-                
-                exportText += `DISTANCE CALCULATIONS:\n`;
-                exportText += `  Law of Cosines: d = ${measurement.distance.toFixed(6)} px\n`;
-                exportText += `  Cartesian Verify: d = ${measurement.cartesianVerify.toFixed(6)} px\n`;
-                exportText += `  Angular Difference: Δθ = ${measurement.angleDiffDeg.toFixed(2)}°\n`;
-                exportText += `  Error: ${Math.abs(measurement.distance - measurement.cartesianVerify).toExponential(3)} px\n\n`;
-                exportText += `${'='.repeat(80)}\n\n`;
-            });
+            exportText += `POINT 1:\n`;
+            exportText += `  Ring: M = ${selectedPoint1.modulus}\n`;
+            exportText += `  Residue: r = ${selectedPoint1.residue}\n`;
+            exportText += `  Radius: r₁ = ${selectedPoint1.radius.toFixed(3)} units\n`;
+            exportText += `  Angle: θ₁ = ${dist.polar.theta1.toFixed(2)}°\n`;
+            exportText += `  Cartesian: (${dist.cartesian.x1.toFixed(3)}, ${dist.cartesian.y1.toFixed(3)})\n`;
+            exportText += `  GCD(r,M): ${gcd(selectedPoint1.residue, Math.round(selectedPoint1.modulus))}\n\n`;
             
-            exportText += `FORMULA USED:\n`;
-            exportText += `  d = √[r₁² + r₂² - 2r₁r₂cos(θ₂ - θ₁)]\n\n`;
-            exportText += `All measurements verified via Cartesian distance formula.\n`;
+            exportText += `POINT 2:\n`;
+            exportText += `  Ring: M = ${selectedPoint2.modulus}\n`;
+            exportText += `  Residue: r = ${selectedPoint2.residue}\n`;
+            exportText += `  Radius: r₂ = ${selectedPoint2.radius.toFixed(3)} units\n`;
+            exportText += `  Angle: θ₂ = ${dist.polar.theta2.toFixed(2)}°\n`;
+            exportText += `  Cartesian: (${dist.cartesian.x2.toFixed(3)}, ${dist.cartesian.y2.toFixed(3)})\n`;
+            exportText += `  GCD(r,M): ${gcd(selectedPoint2.residue, Math.round(selectedPoint2.modulus))}\n\n`;
+            
+            exportText += `${'='.repeat(60)}\n`;
+            exportText += `DISTANCE CALCULATIONS:\n`;
+            exportText += `${'='.repeat(60)}\n\n`;
+            exportText += `Euclidean Distance:\n`;
+            exportText += `  d = ${dist.euclidean.toFixed(6)} units\n\n`;
+            exportText += `Law of Cosines Verification:\n`;
+            exportText += `  d = √[r₁² + r₂² - 2r₁r₂cos(θ₂-θ₁)]\n`;
+            exportText += `  d = ${dist.lawOfCosines.toFixed(6)} units\n\n`;
+            exportText += `Difference: ${Math.abs(dist.euclidean - dist.lawOfCosines).toExponential(3)} units\n`;
+            exportText += `(Should be near machine precision)\n\n`;
+            
+            exportText += `General Formula (for point on ring M to unit circle):\n`;
+            exportText += `  d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]\n\n`;
             
             const blob = new Blob([exportText], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `distance_measurements_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+            link.download = `distance_measurement_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
             link.click();
             URL.revokeObjectURL(url);
             
-            updateAnimationStatus(`Exported ${measuredDistances.length} distance measurements`);
+            updateAnimationStatus('Distance measurement exported');
         }
         
         // ========================================
@@ -6687,22 +6961,195 @@
         }
         
         function handleDistanceMeasurementClick(screenX, screenY) {
+            if (!distanceMeasurementActive) return;
+            
             const selectedRings = getSelectedRings();
             if (selectedRings.length === 0) return;
             
             const centerX = canvas.width / 2 + panX;
             const centerY = canvas.height / 2 + panY;
             const rotation = parseFloat(document.getElementById('rotationSlider').value);
+            const enableRotation = document.getElementById('enableRotation').checked;
             
             const dx = (screenX - centerX) / currentZoom;
             const dy = (screenY - centerY) / currentZoom;
             const dist = Math.sqrt(dx * dx + dy * dy);
             
-            // Get current rings
-            const ringConfigs = selectedRings.map((ringId, originalIndex) => ({
-                ringId,
-                originalIndex,
-                modulus: configs[`, legendX + 20 * scaleFactor, currentY);
+            const ringConfigs = selectedRings.map(function(ringId, originalIndex) {
+                return {
+                    ringId: ringId,
+                    originalIndex: originalIndex,
+                    modulus: configs[ringId] ? configs[ringId].mod : 1
+                };
+            });
+            
+            ringConfigs.sort(function(a, b) {
+                if (a.ringId === 'unit') return -1;
+                if (b.ringId === 'unit') return 1;
+                return a.modulus - b.modulus;
+            });
+            
+            const sortedRings = ringConfigs.map(function(config, sortedIndex) {
+                const normalPos = sortedIndex;
+                const invertedPos = ringConfigs.length - 1 - sortedIndex;
+                const finalPos = normalPos * (1 - nestingInversionAmount) + invertedPos * nestingInversionAmount;
+                config.finalIndex = finalPos;
+                return config;
+            });
+            
+            sortedRings.sort(function(a, b) {
+                return a.finalIndex - b.finalIndex;
+            });
+            
+            let foundResidue = null;
+            let minDistance = Infinity;
+            
+            sortedRings.forEach(function(config, visualIndex) {
+                const modulus = config.modulus;
+                const radius = calculateRadius(modulus, visualIndex, sortedRings.length);
+                
+                if (Math.abs(dist - radius) < 20) {
+                    const coprimes = getCoprimes(modulus);
+                    const allResidues = getAllResidues(modulus);
+                    
+                    let ringRotation = 0;
+                    if (enableRotation) {
+                        ringRotation = animationFrame * ringRotationSpeeds[config.ringId] * Math.PI / 180;
+                    }
+                    
+                    allResidues.forEach(function(r) {
+                        let baseAngle;
+                        if (config.ringId === 'unit') {
+                            baseAngle = 0;
+                        } else {
+                            baseAngle = 2 * Math.PI * (modulus - r) / modulus;
+                        }
+                        
+                        const angle = baseAngle + ringRotation;
+                        const rx = radius * Math.cos(angle);
+                        const ry = radius * Math.sin(angle);
+                        
+                        const rdist = Math.sqrt((dx - rx) * (dx - rx) + (dy - ry) * (dy - ry));
+                        
+                        if (rdist < 15 && rdist < minDistance) {
+                            minDistance = rdist;
+                            foundResidue = {
+                                residue: r,
+                                modulus: modulus,
+                                radius: radius,
+                                angle: angle,
+                                ringId: config.ringId,
+                                isGcdOne: gcd(r, Math.round(modulus)) === 1
+                            };
+                        }
+                    });
+                }
+            });
+            
+            if (foundResidue) {
+                if (!selectedPoint1) {
+                    selectedPoint1 = foundResidue;
+                    updateDistanceDisplay('Point 1 selected', foundResidue);
+                    updateAnimationStatus('Point 1: r=' + foundResidue.residue + ' on M=' + Math.round(foundResidue.modulus));
+                    draw();
+                } else if (!selectedPoint2) {
+                    selectedPoint2 = foundResidue;
+                    
+                    const distResult = calculateEuclideanDistance(selectedPoint1, selectedPoint2);
+                    displayDistanceResults(distResult);
+                    updateAnimationStatus('Distance: ' + distResult.euclidean.toFixed(6) + ' units');
+                    draw();
+                }
+            }
+        }
+        
+        function updateDistanceDisplay(status, point) {
+            const display = document.getElementById('distanceDisplay');
+            
+            if (!point) {
+                display.innerHTML = '<strong>' + status + '</strong>';
+                return;
+            }
+            
+            const gcdVal = gcd(point.residue, Math.round(point.modulus));
+            const supportText = point.isGcdOne ? '<span style="color: #4ECDC4;">✓ Character Support (χ≠0)</span>' : '<span style="color: #666;">χ=0</span>';
+            
+            display.innerHTML = '<strong>' + status + '</strong><br>' +
+                'Ring: M = ' + Math.round(point.modulus) + '<br>' +
+                'Residue: r = ' + point.residue + '<br>' +
+                'GCD(r,M) = ' + gcdVal + '<br>' +
+                supportText;
+        }
+        
+        function displayDistanceResults(dist) {
+            const display = document.getElementById('distanceDisplay');
+            
+            const diff = Math.abs(dist.euclidean - dist.lawOfCosines).toExponential(3);
+            
+            display.innerHTML = '<strong>Distance Measurement Complete!</strong><br><br>' +
+                '<strong>Point 1:</strong> r=' + selectedPoint1.residue + ', M=' + Math.round(selectedPoint1.modulus) + '<br>' +
+                '<strong>Point 2:</strong> r=' + selectedPoint2.residue + ', M=' + Math.round(selectedPoint2.modulus) + '<br><br>' +
+                '<strong style="color: #FFD700;">Euclidean Distance:</strong><br>' +
+                'd = ' + dist.euclidean.toFixed(6) + ' units<br><br>' +
+                '<strong>Verification (Law of Cosines):</strong><br>' +
+                'd = ' + dist.lawOfCosines.toFixed(6) + ' units<br><br>' +
+                '<em style="font-size: 11px;">Difference: ' + diff + '</em><br>' +
+                '<em style="font-size: 11px;">(Should be near machine precision)</em>';
+        }
+        
+        function drawSelectedPoints() {
+            if (!distanceMeasurementActive) return;
+            
+            ctx.save();
+            
+            if (selectedPoint1) {
+                const x1 = selectedPoint1.radius * Math.cos(selectedPoint1.angle);
+                const y1 = selectedPoint1.radius * Math.sin(selectedPoint1.angle);
+                
+                ctx.beginPath();
+                ctx.arc(x1, y1, 12, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(x1, y1, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+                ctx.fill();
+            }
+            
+            if (selectedPoint2) {
+                const x2 = selectedPoint2.radius * Math.cos(selectedPoint2.angle);
+                const y2 = selectedPoint2.radius * Math.sin(selectedPoint2.angle);
+                
+                ctx.beginPath();
+                ctx.arc(x2, y2, 12, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#4ECDC4';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(x2, y2, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(78, 205, 196, 0.3)';
+                ctx.fill();
+                
+                if (selectedPoint1) {
+                    const x1 = selectedPoint1.radius * Math.cos(selectedPoint1.angle);
+                    const y1 = selectedPoint1.radius * Math.sin(selectedPoint1.angle);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+            
+            ctx.restore();
+        }`, legendX + 20 * scaleFactor, currentY);
                     currentY += 15 * scaleFactor;
                 }
                 
@@ -7090,12 +7537,12 @@
 
         // Mouse events
         canvas.addEventListener('mousedown', (e) => {
-            isDragging = true;
             const pos = getMousePos(e);
             dragStartX = pos.x;
             dragStartY = pos.y;
             dragStartPanX = panX;
             dragStartPanY = panY;
+            isDragging = false; // Start as false, will become true if moved
             canvas.style.cursor = 'grabbing';
         });
 
@@ -7104,26 +7551,36 @@
             mouseCanvasX = pos.x;
             mouseCanvasY = pos.y;
             
-            if (!isDragging) {
-                // Check for hover over residues
-                checkResidueHover(pos.x, pos.y);
-            } else {
+            // Check if mouse moved more than 5 pixels - then it's a drag
+            const dragDistance = Math.sqrt(
+                Math.pow(pos.x - dragStartX, 2) + 
+                Math.pow(pos.y - dragStartY, 2)
+            );
+            
+            if (dragDistance > 5 && (dragStartX !== undefined)) {
+                isDragging = true;
                 panX = dragStartPanX + (pos.x - dragStartX);
                 panY = dragStartPanY + (pos.y - dragStartY);
                 draw();
+            } else if (!isDragging) {
+                // Check for hover over residues
+                checkResidueHover(pos.x, pos.y);
             }
         });
         
         canvas.addEventListener('click', (e) => {
+            const pos = getMousePos(e);
+            
+            // Only process click if we didn't drag
             if (!isDragging) {
-                const pos = getMousePos(e);
-                
                 if (distanceMeasurementActive) {
                     handleDistanceMeasurementClick(pos.x, pos.y);
                 } else {
                     handleResidueClick(pos.x, pos.y);
                 }
             }
+            
+            isDragging = false;
         });
         
         function checkResidueHover(screenX, screenY) {
@@ -8501,6 +8958,12 @@
             }
 
             ctx.restore();
+            
+            // Draw distance measurement highlights if active
+            if (distanceMeasurementActive) {
+                drawSelectedPoints();
+            }
+            
             updateInfo(rings);
         }
 
@@ -8822,4 +9285,4 @@
         }, 500);
     </script>
 </body>
-</html>
+                            </html>
