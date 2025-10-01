@@ -5418,17 +5418,17 @@
                     scaleFactor = 1.2;
                 }
                 
-                // Calculate layout dimensions
+                // Calculate layout dimensions - LARGER LEGEND for comprehensive details
                 const titleHeight = includeTitle ? 120 * scaleFactor : 0;
-                const legendWidth = includeLegend ? 400 * scaleFactor : 0;
+                const legendWidth = includeLegend ? 650 * scaleFactor : 0; // INCREASED from 400
                 const padding = 30 * scaleFactor;
                 const contentPadding = 20 * scaleFactor;
                 
-                // Create screenshot canvas
+                // Create screenshot canvas with MORE HEIGHT for detailed legend
                 const tempCanvas = document.createElement('canvas');
                 const tempCtx = tempCanvas.getContext('2d');
                 tempCanvas.width = baseWidth + legendWidth + (includeLegend ? padding * 3 : contentPadding * 2);
-                tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 1200 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
+                tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 2400 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
                 
                 // Set background
                 tempCtx.fillStyle = backgroundChoice === 'white' ? '#ffffff' : '#000000';
@@ -5482,7 +5482,7 @@
                 tempCtx.drawImage(canvas, 0, 0);
                 tempCtx.restore();
                 
-                // Draw legend
+                // Draw COMPREHENSIVE LEGEND with all parameter details
                 if (includeLegend) {
                     const legendX = baseWidth + contentPadding + padding;
                     const legendY = titleHeight + contentPadding;
@@ -5495,31 +5495,319 @@
                     tempCtx.lineWidth = 2 * scaleFactor;
                     tempCtx.strokeRect(legendX, legendY, legendContentWidth, legendContentHeight);
                     
+                    // SECTION 1: HEADER
                     tempCtx.fillStyle = accentColor;
-                    tempCtx.font = `bold ${16 * scaleFactor}px Segoe UI`;
+                    tempCtx.font = `bold ${18 * scaleFactor}px Segoe UI`;
                     tempCtx.textAlign = 'left';
                     let currentY = legendY + 30 * scaleFactor;
-                    tempCtx.fillText('Legend', legendX + 15 * scaleFactor, currentY);
+                    tempCtx.fillText('COMPLETE PARAMETER LEGEND', legendX + 15 * scaleFactor, currentY);
                     
-                    currentY += 30 * scaleFactor;
+                    currentY += 35 * scaleFactor;
                     
-                    const legendItems = [
-                        { color: '#FFD700', text: 'Unit Circle' },
-                        { color: '#FF6B6B', text: 'GCD=1 Residues' },
-                        { color: '#4ECDC4', text: 'Gap Connections' },
-                        { color: liftLineColor, text: 'Direct Lifts' },
-                        { color: modularLiftColor, text: 'Modular Lifts' }
-                    ];
+                    const fontSize = 11 * scaleFactor;
+                    const lineHeight = 16 * scaleFactor;
+                    const sectionGap = 25 * scaleFactor;
+                    const leftMargin = legendX + 15 * scaleFactor;
                     
-                    tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
-                    legendItems.forEach(item => {
-                        tempCtx.fillStyle = item.color;
-                        tempCtx.fillRect(legendX + 15 * scaleFactor, currentY - 10 * scaleFactor, 15 * scaleFactor, 15 * scaleFactor);
+                    // SECTION 2: RING SYSTEM DETAILS
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText('═══ RING SYSTEM ═══', leftMargin, currentY);
+                    currentY += lineHeight * 1.5;
+                    
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.font = `${fontSize}px Segoe UI`;
+                    
+                    // Count ring types
+                    const ringCounts = {
+                        unit: selectedRings.filter(r => r === 'unit').length,
+                        defaults: selectedRings.filter(r => r.startsWith('default_')).length,
+                        custom: selectedRings.filter(r => r.startsWith('custom_')).length,
+                        series: selectedRings.filter(r => !r.startsWith('default_') && !r.startsWith('custom_') && r !== 'unit').length
+                    };
+                    
+                    tempCtx.fillText(`Total Rings Selected: ${selectedRings.length}`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    
+                    if (ringCounts.unit > 0) {
+                        tempCtx.fillText(`• Unit Circle (M=1): ${ringCounts.unit}`, leftMargin, currentY);
+                        currentY += lineHeight;
+                    }
+                    if (ringCounts.defaults > 0) {
+                        const minMod = Math.min(...selectedRings.filter(r => r.startsWith('default_')).map(r => configs[r].mod));
+                        const maxMod = Math.max(...selectedRings.filter(r => r.startsWith('default_')).map(r => configs[r].mod));
+                        tempCtx.fillText(`• Default Range: M${minMod}-M${maxMod} (${ringCounts.defaults} rings)`, leftMargin, currentY);
+                        currentY += lineHeight;
+                    }
+                    if (ringCounts.series > 0) {
+                        tempCtx.fillText(`• Series Rings: ${ringCounts.series}`, leftMargin, currentY);
+                        currentY += lineHeight;
+                    }
+                    if (ringCounts.custom > 0) {
+                        tempCtx.fillText(`• Custom Moduli: ${ringCounts.custom}`, leftMargin, currentY);
+                        currentY += lineHeight;
+                    }
+                    
+                    // Total Euler totient
+                    const totalEuler = selectedRings.reduce((sum, id) => sum + (configs[id] ? getCoprimes(configs[id].mod).length : 0), 0);
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.fillText(`Σφ(M) = ${totalEuler} total character support`, leftMargin, currentY);
+                    currentY += sectionGap;
+                    
+                    // SECTION 3: COLOR SCHEME DETAILS
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText('═══ COLOR SCHEME ═══', leftMargin, currentY);
+                    currentY += lineHeight * 1.5;
+                    
+                    const colorMode = document.getElementById('residueColorMode').value;
+                    const colorModeNames = {
+                        'hue': 'Rainbow (Angular θ=2πr/M)',
+                        'value': 'By Residue Value',
+                        'modulo': 'By Ring/Modulus',
+                        'prime': 'Prime vs Composite',
+                        'gcd_unified': 'GCD=1 Unified Color',
+                        'gcd_per_mod': 'GCD=1 Per Modulus',
+                        'gcd_per_residue': 'GCD=1 Per Residue',
+                        'gcd_mathematical': 'GCD=1 Mathematical',
+                        'gcd_spectrum': 'GCD=1 Spectral',
+                        'custom': 'Custom Single Color'
+                    };
+                    
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.font = `${fontSize}px Segoe UI`;
+                    tempCtx.fillText(`Mode: ${colorModeNames[colorMode]}`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    
+                    // Show actual colors being used
+                    if (colorMode.startsWith('gcd_') || colorMode === 'custom') {
+                        const gcdColor = document.getElementById('gcdBaseColor')?.value || document.getElementById('customResidueColor')?.value || '#FF6B6B';
+                        const nonGcdColor = document.getElementById('nonGcdColor')?.value || '#666666';
+                        
+                        // Draw color swatches
+                        tempCtx.fillStyle = gcdColor;
+                        tempCtx.fillRect(leftMargin, currentY - 8 * scaleFactor, 12 * scaleFactor, 12 * scaleFactor);
+                        tempCtx.fillStyle = textColor;
+                        tempCtx.fillText(`GCD=1: ${gcdColor}`, leftMargin + 16 * scaleFactor, currentY);
+                        currentY += lineHeight;
+                        
+                        tempCtx.fillStyle = nonGcdColor;
+                        tempCtx.fillRect(leftMargin, currentY - 8 * scaleFactor, 12 * scaleFactor, 12 * scaleFactor);
+                        tempCtx.fillStyle = textColor;
+                        tempCtx.fillText(`GCD≠1: ${nonGcdColor}`, leftMargin + 16 * scaleFactor, currentY);
+                        currentY += lineHeight;
+                    }
+                    
+                    const liftLineColor = document.getElementById('liftLineColor').value;
+                    const modularLiftColor = document.getElementById('modularLiftColor').value;
+                    
+                    tempCtx.fillStyle = liftLineColor;
+                    tempCtx.fillRect(leftMargin, currentY - 8 * scaleFactor, 12 * scaleFactor, 12 * scaleFactor);
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.fillText(`Direct Lifts: ${liftLineColor}`, leftMargin + 16 * scaleFactor, currentY);
+                    currentY += lineHeight;
+                    
+                    tempCtx.fillStyle = modularLiftColor;
+                    tempCtx.fillRect(leftMargin, currentY - 8 * scaleFactor, 12 * scaleFactor, 12 * scaleFactor);
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.fillText(`Modular Lifts: ${modularLiftColor}`, leftMargin + 16 * scaleFactor, currentY);
+                    currentY += sectionGap;
+                    
+                    // SECTION 4: GAP ANALYSIS
+                    if (selectedGaps.length > 0) {
+                        tempCtx.fillStyle = accentColor;
+                        tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
+                        tempCtx.fillText('═══ GAP ANALYSIS ═══', leftMargin, currentY);
+                        currentY += lineHeight * 1.5;
                         
                         tempCtx.fillStyle = textColor;
-                        tempCtx.fillText(item.text, legendX + 40 * scaleFactor, currentY);
-                        currentY += 25 * scaleFactor;
-                    });
+                        tempCtx.font = `${fontSize}px Segoe UI`;
+                        tempCtx.fillText(`Active Gaps: [${selectedGaps.join(', ')}]`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        
+                        selectedGaps.forEach(gap => {
+                            let gapName = '';
+                            if (gap === 2) gapName = ' (Twin Primes)';
+                            else if (gap === 4) gapName = ' (Cousin Primes)';
+                            else if (gap === 6) gapName = ' (Sexy Primes)';
+                            tempCtx.fillText(`  Gap ${gap}${gapName}`, leftMargin, currentY);
+                            currentY += lineHeight;
+                        });
+                        currentY += sectionGap - lineHeight;
+                    }
+                    
+                    // SECTION 5: PRIME SIEVE (if active) - COMPREHENSIVE DETAILS
+                    if (primeData.isActive) {
+                        tempCtx.fillStyle = accentColor;
+                        tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
+                        tempCtx.fillText('═══ PRIME SIEVE DETAILS ═══', leftMargin, currentY);
+                        currentY += lineHeight * 1.5;
+                        
+                        tempCtx.fillStyle = textColor;
+                        tempCtx.font = `${fontSize}px Segoe UI`;
+                        
+                        // Basic sieve parameters
+                        tempCtx.fillText(`Modulus: ${primeData.modulus}`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        tempCtx.fillText(`Search Limit: ${primeData.limit.toLocaleString()}`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        tempCtx.fillText(`Total Primes Found: ${primeData.totalPrimes.toLocaleString()}`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        
+                        const eulerPhi = getCoprimes(primeData.modulus).length;
+                        tempCtx.fillText(`φ(${primeData.modulus}) = ${eulerPhi} residue classes`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        
+                        const avgPerClass = (primeData.totalPrimes / eulerPhi).toFixed(2);
+                        tempCtx.fillText(`Avg primes per class: ${avgPerClass}`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        
+                        const primeDensity = (primeData.totalPrimes / primeData.limit * 100).toFixed(3);
+                        tempCtx.fillText(`Prime density: ${primeDensity}%`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        
+                        // Uniformity analysis
+                        const uniformity = calculateEquidistributionScore();
+                        tempCtx.fillStyle = uniformity.uniformityScore > 0.85 ? '#4ECDC4' : '#FFA500';
+                        tempCtx.fillText(`Uniformity: ${(uniformity.uniformityScore * 100).toFixed(1)}%`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        
+                        tempCtx.fillStyle = textColor;
+                        tempCtx.fillText(`Chi-squared: χ² = ${uniformity.chiSquared.toFixed(2)}`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        tempCtx.fillText(`GRH Support: ${uniformity.grhSupport}`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        
+                        // Top 3 residue classes by prime count
+                        const sortedResidues = Object.entries(primeData.residueDistribution)
+                            .sort((a, b) => b[1].count - a[1].count)
+                            .slice(0, 3);
+                        
+                        tempCtx.fillStyle = accentColor;
+                        tempCtx.font = `${fontSize}px Segoe UI`;
+                        tempCtx.fillText(`Top residue classes:`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        
+                        tempCtx.fillStyle = textColor;
+                        sortedResidues.forEach(([residue, data], idx) => {
+                            tempCtx.fillText(`  ${idx+1}. r≡${residue}: ${data.count} (${data.percentage}%)`, leftMargin, currentY);
+                            currentY += lineHeight;
+                        });
+                        
+                        currentY += sectionGap - lineHeight;
+                    }
+                    
+                    // SECTION 6: VISUAL PARAMETERS
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText('═══ VISUAL PARAMETERS ═══', leftMargin, currentY);
+                    currentY += lineHeight * 1.5;
+                    
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.font = `${fontSize}px Segoe UI`;
+                    
+                    // Thickness parameters
+                    const lineThickness = parseFloat(document.getElementById('lineThickness').value);
+                    const gapThickness = parseFloat(document.getElementById('gapLineThickness').value);
+                    const ringThickness = parseFloat(document.getElementById('ringThickness').value);
+                    const pointSize = parseFloat(document.getElementById('pointSize').value);
+                    
+                    tempCtx.fillText(`Lift Lines: ${(lineThickness * 100).toFixed(0)}%`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    tempCtx.fillText(`Gap Lines: ${(gapThickness * 100).toFixed(0)}%`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    tempCtx.fillText(`Ring Circles: ${(ringThickness * 100).toFixed(0)}%`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    tempCtx.fillText(`Point Size: ${(pointSize * 100).toFixed(0)}%`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    
+                    // Zoom and rotation
+                    const zoom = parseFloat(document.getElementById('zoomSlider').value);
+                    const rotation = parseFloat(document.getElementById('rotationSlider').value);
+                    tempCtx.fillText(`Zoom: ${zoom.toFixed(2)}x`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    tempCtx.fillText(`Rotation: ${rotation.toFixed(0)}°`, leftMargin, currentY);
+                    currentY += sectionGap;
+                    
+                    // SECTION 7: RADIUS SCALING
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText('═══ RADIUS SCALING ═══', leftMargin, currentY);
+                    currentY += lineHeight * 1.5;
+                    
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.font = `${fontSize}px Segoe UI`;
+                    
+                    const scalingModes = {
+                        'uniform': 'Uniform (equal spacing)',
+                        'linear': 'Linear: r(m) = c·m',
+                        'sqrt': 'Square-root: r(m) = c·√m',
+                        'log': 'Logarithmic: r(m) = c·log(m)',
+                        'totient': 'Totient: r(m) = c·φ(m)',
+                        'density': 'Density: r(m) = c·φ(m)/m',
+                        'inverse': 'Inverse: r(m) = c/m',
+                        'exponential': 'Exponential: r(m) = c·aᵐ'
+                    };
+                    
+                    tempCtx.fillText(`Mode: ${scalingModes[radiusScalingMode]}`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    
+                    if (radiusScalingMode !== 'uniform') {
+                        tempCtx.fillText(`Constant c = ${scalingConstant.toFixed(2)}`, leftMargin, currentY);
+                        currentY += lineHeight;
+                        
+                        if (radiusScalingMode === 'exponential') {
+                            tempCtx.fillText(`Base a = ${exponentialBase.toFixed(2)}`, leftMargin, currentY);
+                            currentY += lineHeight;
+                        }
+                    }
+                    currentY += sectionGap;
+                    
+                    // SECTION 8: LIFT CONFIGURATION
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText('═══ LIFT CONFIGURATION ═══', leftMargin, currentY);
+                    currentY += lineHeight * 1.5;
+                    
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.font = `${fontSize}px Segoe UI`;
+                    
+                    const showDirect = document.getElementById('showDirectLifts').checked;
+                    const showModular = document.getElementById('showModularLifts').checked;
+                    const showSkipDirect = document.getElementById('showSkipDirectLifts').checked;
+                    const showSkipModular = document.getElementById('showSkipModularLifts').checked;
+                    
+                    tempCtx.fillText(`Direct Lifts (r→r): ${showDirect ? 'ON' : 'OFF'}`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    tempCtx.fillText(`Modular Lifts (r→r+M×2ⁿ): ${showModular ? 'ON' : 'OFF'}`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    tempCtx.fillText(`Skip Direct: ${showSkipDirect ? 'ON' : 'OFF'}`, leftMargin, currentY);
+                    currentY += lineHeight;
+                    tempCtx.fillText(`Skip Modular: ${showSkipModular ? 'ON' : 'OFF'}`, leftMargin, currentY);
+                    currentY += sectionGap;
+                    
+                    // SECTION 9: MATHEMATICAL FORMULAS
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText('═══ KEY FORMULAS ═══', leftMargin, currentY);
+                    currentY += lineHeight * 1.5;
+                    
+                    tempCtx.fillStyle = subtleColor;
+                    tempCtx.font = `italic ${10 * scaleFactor}px Times New Roman`;
+                    
+                    tempCtx.fillText('φ(n) = n∏(1 - 1/p) [Euler totient]', leftMargin, currentY);
+                    currentY += lineHeight;
+                    tempCtx.fillText('θ = 2π(M-r)/M [residue angle]', leftMargin, currentY);
+                    currentY += lineHeight;
+                    tempCtx.fillText('gcd(r,M)=1 ⟺ χ(r)≠0 [character]', leftMargin, currentY);
+                    currentY += lineHeight;
+                    tempCtx.fillText('L(s,χ) = Σχ(n)/nˢ [L-function]', leftMargin, currentY);
+                    currentY += lineHeight;
+                    
+                    if (primeData.isActive) {
+                        tempCtx.fillText(`π(x) ~ x/ln(x) [prime counting]`, leftMargin, currentY);
+                        currentY += lineHeight;
+                    }
                 }
                 
                 // ALWAYS add watermark (bottom right)
@@ -7940,4 +8228,4 @@
         }, 500);
     </script>
 </body>
-    </html>
+                                          </html>
