@@ -777,16 +777,54 @@
                         </div>
                         <div id="distanceControls" style="display: none; margin-top: 10px;">
                             <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">
-                                Click two residue points to measure Euclidean distance using:<br>
-                                <em style="font-family: 'Times New Roman', serif;">d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]</em>
+                                <strong>Formula:</strong> For two points at (r₁, θ₁) and (r₂, θ₂):<br>
+                                <em style="font-family: 'Times New Roman', serif;">d = √[r₁² + r₂² - 2r₁r₂cos(θ₂ - θ₁)]</em>
                             </div>
-                            <div id="distanceDisplay" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; min-height: 60px;">
+                            
+                            <div class="gap-input" style="margin-bottom: 10px;">
+                                <strong>Filter by Modulus:</strong><br>
+                                Mod: <input type="number" id="distModFilter" min="1" placeholder="Any" style="width: 60px;">
+                                <button onclick="applyDistanceFilters()">Apply</button>
+                                <button onclick="clearDistanceFilters()">Clear Filters</button>
+                            </div>
+                            
+                            <div class="gap-input" style="margin-bottom: 10px;">
+                                <strong>Filter by GCD:</strong><br>
+                                <label style="font-size: 11px;"><input type="checkbox" id="distFilterGcd1" checked> GCD=1 only</label>
+                                <label style="font-size: 11px;"><input type="checkbox" id="distFilterNonGcd1"> GCD≠1 only</label>
+                            </div>
+                            
+                            <div style="margin-bottom: 10px;">
+                                <strong>Label Format:</strong>
+                                <select id="distLabelFormat" style="width: 100%; font-size: 11px;">
+                                    <option value="number">Number (r)</option>
+                                    <option value="fraction">Fraction (r/M)</option>
+                                    <option value="angle">Angle (degrees)</option>
+                                    <option value="combined">Combined (r, M, θ)</option>
+                                </select>
+                            </div>
+                            
+                            <div style="margin-bottom: 10px;">
+                                <strong>Distance Unit:</strong>
+                                <select id="distanceUnit" style="width: 100%; font-size: 11px;">
+                                    <option value="natural">Natural (pixel units)</option>
+                                    <option value="normalized">Normalized (0-1)</option>
+                                    <option value="angular">Angular (radians)</option>
+                                </select>
+                            </div>
+                            
+                            <div id="distanceDisplay" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; min-height: 80px; max-height: 200px; overflow-y: auto;">
                                 <strong>Distance Calculator Ready</strong><br>
                                 <em>Click any two residue points on the rings</em>
                             </div>
+                            
                             <div class="gap-input" style="margin-top: 10px;">
                                 <button onclick="clearDistanceMeasurement()">Clear Selection</button>
-                                <button onclick="exportDistanceData()">Export Measurements</button>
+                                <button onclick="exportDistanceData()">Export All Measurements</button>
+                            </div>
+                            
+                            <div style="font-size: 10px; opacity: 0.8; margin-top: 8px;">
+                                <strong>Batch Mode:</strong> Keep selecting points to measure multiple distances
                             </div>
                         </div>
                     </div>
@@ -1986,8 +2024,12 @@
         
         // Distance measurement state
         let distanceMeasurementActive = false;
-        let selectedPoint1 = null;
-        let selectedPoint2 = null;
+        let measuredDistances = []; // Store all measurements
+        let distanceFilters = {
+            modulus: null,
+            gcdOne: true,
+            nonGcdOne: false
+        };
         
         // Farey sequence state
         let fareyData = {
@@ -3755,101 +3797,169 @@
             if (!distanceMeasurementActive) {
                 clearDistanceMeasurement();
             } else {
-                updateAnimationStatus('Distance tool active - click two points');
+                updateAnimationStatus('Distance tool active - click points to measure (batch mode)');
             }
         }
         
+        function applyDistanceFilters() {
+            const modInput = document.getElementById('distModFilter').value;
+            distanceFilters.modulus = modInput ? parseInt(modInput) : null;
+            distanceFilters.gcdOne = document.getElementById('distFilterGcd1').checked;
+            distanceFilters.nonGcdOne = document.getElementById('distFilterNonGcd1').checked;
+            updateAnimationStatus('Distance filters applied');
+        }
+        
+        function clearDistanceFilters() {
+            document.getElementById('distModFilter').value = '';
+            document.getElementById('distFilterGcd1').checked = true;
+            document.getElementById('distFilterNonGcd1').checked = false;
+            distanceFilters = { modulus: null, gcdOne: true, nonGcdOne: false };
+            updateAnimationStatus('Distance filters cleared');
+        }
+        
         function calculateEuclideanDistance(point1, point2) {
-            // General distance formula: d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]
-            // But for any two points, use standard Euclidean distance
-            
             const r1 = point1.radius;
             const r2 = point2.radius;
             const theta1 = point1.angle;
             const theta2 = point2.angle;
             
-            // Convert to Cartesian coordinates
+            // Law of cosines: d = √[r₁² + r₂² - 2r₁r₂cos(θ₂ - θ₁)]
+            const angleDiff = theta2 - theta1;
+            const distance = Math.sqrt(r1*r1 + r2*r2 - 2*r1*r2*Math.cos(angleDiff));
+            
+            // Cartesian verification
             const x1 = r1 * Math.cos(theta1);
             const y1 = r1 * Math.sin(theta1);
             const x2 = r2 * Math.cos(theta2);
             const y2 = r2 * Math.sin(theta2);
-            
-            const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-            
-            // Also calculate using the law of cosines for verification
-            const angleDiff = Math.abs(theta2 - theta1);
-            const distanceLawOfCosines = Math.sqrt(r1**2 + r2**2 - 2*r1*r2*Math.cos(angleDiff));
+            const cartesianDist = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
             
             return {
-                euclidean: distance,
-                lawOfCosines: distanceLawOfCosines,
-                cartesian: { x1, y1, x2, y2 },
-                polar: { r1, theta1: theta1 * 180/Math.PI, r2, theta2: theta2 * 180/Math.PI }
+                distance: distance,
+                cartesianVerify: cartesianDist,
+                point1: point1,
+                point2: point2,
+                angleDiff: angleDiff,
+                angleDiffDeg: angleDiff * 180 / Math.PI
+            };
+        }
+        
+        function formatDistanceOutput(measurement) {
+            const labelFormat = document.getElementById('distLabelFormat').value;
+            const unit = document.getElementById('distanceUnit').value;
+            
+            let p1Label = '', p2Label = '';
+            const p1 = measurement.point1;
+            const p2 = measurement.point2;
+            
+            // Format point labels
+            switch(labelFormat) {
+                case 'number':
+                    p1Label = `r=${p1.residue}`;
+                    p2Label = `r=${p2.residue}`;
+                    break;
+                case 'fraction':
+                    p1Label = `${p1.residue}/${Math.round(p1.modulus)}`;
+                    p2Label = `${p2.residue}/${Math.round(p2.modulus)}`;
+                    break;
+                case 'angle':
+                    const deg1 = (p1.angle * 180 / Math.PI).toFixed(1);
+                    const deg2 = (p2.angle * 180 / Math.PI).toFixed(1);
+                    p1Label = `${deg1}°`;
+                    p2Label = `${deg2}°`;
+                    break;
+                case 'combined':
+                    const deg1c = (p1.angle * 180 / Math.PI).toFixed(1);
+                    const deg2c = (p2.angle * 180 / Math.PI).toFixed(1);
+                    p1Label = `r=${p1.residue}, M=${Math.round(p1.modulus)}, θ=${deg1c}°`;
+                    p2Label = `r=${p2.residue}, M=${Math.round(p2.modulus)}, θ=${deg2c}°`;
+                    break;
+            }
+            
+            // Format distance based on unit
+            let distStr = '';
+            switch(unit) {
+                case 'natural':
+                    distStr = `${measurement.distance.toFixed(3)} px`;
+                    break;
+                case 'normalized':
+                    const maxDist = 560; // Approximate max distance in visualization
+                    const normalized = (measurement.distance / maxDist).toFixed(4);
+                    distStr = `${normalized} (normalized)`;
+                    break;
+                case 'angular':
+                    distStr = `${Math.abs(measurement.angleDiff).toFixed(4)} rad`;
+                    break;
+            }
+            
+            return {
+                p1Label,
+                p2Label,
+                distStr,
+                gcd1: gcd(p1.residue, Math.round(p1.modulus)),
+                gcd2: gcd(p2.residue, Math.round(p2.modulus))
             };
         }
         
         function clearDistanceMeasurement() {
-            selectedPoint1 = null;
-            selectedPoint2 = null;
+            measuredDistances = [];
             
             const display = document.getElementById('distanceDisplay');
-            display.innerHTML = `<strong>Distance Calculator Ready</strong><br><em>Click any two residue points on the rings</em>`;
+            display.innerHTML = `<strong>Distance Calculator Ready</strong><br><em>Click any two residue points on the rings (batch mode enabled)</em>`;
             
             draw();
         }
         
         function exportDistanceData() {
-            if (!selectedPoint1 || !selectedPoint2) {
-                alert('Please select two points first');
+            if (measuredDistances.length === 0) {
+                alert('No distance measurements to export');
                 return;
             }
             
-            const dist = calculateEuclideanDistance(selectedPoint1, selectedPoint2);
-            
             let exportText = `DISTANCE MEASUREMENT REPORT\n`;
             exportText += `Generated: ${new Date().toISOString()}\n`;
-            exportText += `Riemann Hypothesis Explorer - Distance Analysis\n\n`;
-            exportText += `${'='.repeat(60)}\n\n`;
+            exportText += `Riemann Hypothesis Explorer - Distance Analysis\n`;
+            exportText += `Total Measurements: ${measuredDistances.length}\n\n`;
+            exportText += `${'='.repeat(80)}\n\n`;
             
-            exportText += `POINT 1:\n`;
-            exportText += `  Ring: M = ${selectedPoint1.modulus}\n`;
-            exportText += `  Residue: r = ${selectedPoint1.residue}\n`;
-            exportText += `  Radius: r₁ = ${selectedPoint1.radius.toFixed(3)} units\n`;
-            exportText += `  Angle: θ₁ = ${dist.polar.theta1.toFixed(2)}°\n`;
-            exportText += `  Cartesian: (${dist.cartesian.x1.toFixed(3)}, ${dist.cartesian.y1.toFixed(3)})\n`;
-            exportText += `  GCD(r,M): ${gcd(selectedPoint1.residue, Math.round(selectedPoint1.modulus))}\n\n`;
+            measuredDistances.forEach((measurement, idx) => {
+                const formatted = formatDistanceOutput(measurement);
+                
+                exportText += `MEASUREMENT ${idx + 1}:\n`;
+                exportText += `${'─'.repeat(40)}\n`;
+                exportText += `Point 1: ${formatted.p1Label}\n`;
+                exportText += `  Modulus: M=${Math.round(measurement.point1.modulus)}\n`;
+                exportText += `  Radius: r₁=${measurement.point1.radius.toFixed(3)} px\n`;
+                exportText += `  Angle: θ₁=${(measurement.point1.angle * 180/Math.PI).toFixed(2)}°\n`;
+                exportText += `  GCD(r,M): ${formatted.gcd1}\n\n`;
+                
+                exportText += `Point 2: ${formatted.p2Label}\n`;
+                exportText += `  Modulus: M=${Math.round(measurement.point2.modulus)}\n`;
+                exportText += `  Radius: r₂=${measurement.point2.radius.toFixed(3)} px\n`;
+                exportText += `  Angle: θ₂=${(measurement.point2.angle * 180/Math.PI).toFixed(2)}°\n`;
+                exportText += `  GCD(r,M): ${formatted.gcd2}\n\n`;
+                
+                exportText += `DISTANCE CALCULATIONS:\n`;
+                exportText += `  Law of Cosines: d = ${measurement.distance.toFixed(6)} px\n`;
+                exportText += `  Cartesian Verify: d = ${measurement.cartesianVerify.toFixed(6)} px\n`;
+                exportText += `  Angular Difference: Δθ = ${measurement.angleDiffDeg.toFixed(2)}°\n`;
+                exportText += `  Error: ${Math.abs(measurement.distance - measurement.cartesianVerify).toExponential(3)} px\n\n`;
+                exportText += `${'='.repeat(80)}\n\n`;
+            });
             
-            exportText += `POINT 2:\n`;
-            exportText += `  Ring: M = ${selectedPoint2.modulus}\n`;
-            exportText += `  Residue: r = ${selectedPoint2.residue}\n`;
-            exportText += `  Radius: r₂ = ${selectedPoint2.radius.toFixed(3)} units\n`;
-            exportText += `  Angle: θ₂ = ${dist.polar.theta2.toFixed(2)}°\n`;
-            exportText += `  Cartesian: (${dist.cartesian.x2.toFixed(3)}, ${dist.cartesian.y2.toFixed(3)})\n`;
-            exportText += `  GCD(r,M): ${gcd(selectedPoint2.residue, Math.round(selectedPoint2.modulus))}\n\n`;
-            
-            exportText += `${'='.repeat(60)}\n`;
-            exportText += `DISTANCE CALCULATIONS:\n`;
-            exportText += `${'='.repeat(60)}\n\n`;
-            exportText += `Euclidean Distance:\n`;
-            exportText += `  d = ${dist.euclidean.toFixed(6)} units\n\n`;
-            exportText += `Law of Cosines Verification:\n`;
-            exportText += `  d = √[r₁² + r₂² - 2r₁r₂cos(θ₂-θ₁)]\n`;
-            exportText += `  d = ${dist.lawOfCosines.toFixed(6)} units\n\n`;
-            exportText += `Difference: ${Math.abs(dist.euclidean - dist.lawOfCosines).toExponential(3)} units\n`;
-            exportText += `(Should be near machine precision)\n\n`;
-            
-            exportText += `General Formula (for point on ring M to unit circle):\n`;
-            exportText += `  d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]\n\n`;
+            exportText += `FORMULA USED:\n`;
+            exportText += `  d = √[r₁² + r₂² - 2r₁r₂cos(θ₂ - θ₁)]\n\n`;
+            exportText += `All measurements verified via Cartesian distance formula.\n`;
             
             const blob = new Blob([exportText], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `distance_measurement_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+            link.download = `distance_measurements_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
             link.click();
             URL.revokeObjectURL(url);
             
-            updateAnimationStatus('Distance measurement exported');
+            updateAnimationStatus(`Exported ${measuredDistances.length} distance measurements`);
         }
         
         // ========================================
@@ -8712,4 +8822,4 @@
         }, 500);
     </script>
 </body>
-    </html>
+</html>
