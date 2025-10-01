@@ -5500,20 +5500,20 @@
                     tempCtx.font = `bold ${18 * scaleFactor}px Segoe UI`;
                     tempCtx.textAlign = 'left';
                     let currentY = legendY + 30 * scaleFactor;
-                    tempCtx.fillText('COMPLETE PARAMETER LEGEND', legendX + 15 * scaleFactor, currentY);
+                    tempCtx.fillText('Configuration Details', legendX + 15 * scaleFactor, currentY);
                     
                     currentY += 35 * scaleFactor;
                     
                     const fontSize = 11 * scaleFactor;
-                    const lineHeight = 16 * scaleFactor;
-                    const sectionGap = 25 * scaleFactor;
+                    const lineHeight = 15 * scaleFactor;
+                    const sectionGap = 20 * scaleFactor;
                     const leftMargin = legendX + 15 * scaleFactor;
                     
-                    // SECTION 2: RING SYSTEM DETAILS
+                    // Active Parameters Header
                     tempCtx.fillStyle = accentColor;
-                    tempCtx.font = `bold ${13 * scaleFactor}px Segoe UI`;
-                    tempCtx.fillText('═══ RING SYSTEM ═══', leftMargin, currentY);
-                    currentY += lineHeight * 1.5;
+                    tempCtx.font = `bold ${12 * scaleFactor}px Segoe UI`;
+                    tempCtx.fillText('Active Parameters:', leftMargin, currentY);
+                    currentY += lineHeight * 1.3;
                     
                     tempCtx.fillStyle = textColor;
                     tempCtx.font = `${fontSize}px Segoe UI`;
@@ -8228,4 +8228,4 @@
         }, 500);
     </script>
 </body>
-                        </html>
+    </html>
