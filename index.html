@@ -205,6 +205,40 @@
             overflow: hidden;
         }
 
+        #canvas {
+            border-radius: 8px;
+            background: #000000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 100%;
+            max-height: 875px;
+            width: auto;
+            height: auto;
+            cursor: grab;
+            display: block;
+        }
+
+        #canvas:active {
+            cursor: grabbing;
+        }
+
+        #canvas.distance-mode {
+            cursor: crosshair !important;
+        }
+
+        .distance-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .distance-overlay.active {
+            pointer-events: all;
+        }
+
         .analysis-panel {
             background: rgba(45, 55, 72, 0.95);
             border-radius: 12px;
@@ -898,20 +932,57 @@
                     <div class="custom-gap" style="background: linear-gradient(45deg, rgba(255, 215, 0, 0.12), rgba(72, 187, 120, 0.12)); border: 2px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
                         <label><strong>Distance Measurement Tool:</strong></label>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="enableDistanceTool" onchange="toggleDistanceTool()"> Enable Point-to-Point Distance
+                            <input type="checkbox" id="enableDistanceTool" onchange="toggleDistanceTool()"> Enable Distance Measurement
                         </div>
                         <div id="distanceControls" style="display: none; margin-top: 10px;">
-                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">
-                                Click two residue points to measure Euclidean distance using:<br>
-                                <em style="font-family: 'Times New Roman', serif;">d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]</em>
+                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 12px;">
+                                <strong>Manual Point Selection:</strong><br>
+                                Enter residue (r) and modulus (M) for each point
                             </div>
-                            <div id="distanceDisplay" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; min-height: 60px;">
-                                <strong>Distance Calculator Ready</strong><br>
-                                <em>Click any two residue points on the rings</em>
+                            
+                            <!-- Point 1 Selection -->
+                            <div style="background: rgba(255, 215, 0, 0.15); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                                <strong style="color: #FFD700;">Point 1:</strong>
+                                <div class="gap-input" style="margin-top: 8px;">
+                                    r = <input type="number" id="point1Residue" min="0" placeholder="0" style="width: 60px;">
+                                    mod <input type="number" id="point1Modulus" min="1" placeholder="30" style="width: 60px;">
+                                    <button onclick="selectPoint1Manual()" style="background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; font-weight: bold; padding: 4px 10px;">Set P1</button>
+                                </div>
+                                <div id="point1Status" style="font-size: 11px; margin-top: 5px; min-height: 40px;">
+                                    <em>Not selected</em>
+                                </div>
+                            </div>
+                            
+                            <!-- Point 2 Selection -->
+                            <div style="background: rgba(78, 205, 196, 0.15); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid rgba(78, 205, 196, 0.3);">
+                                <strong style="color: #4ECDC4;">Point 2:</strong>
+                                <div class="gap-input" style="margin-top: 8px;">
+                                    r = <input type="number" id="point2Residue" min="0" placeholder="15" style="width: 60px;">
+                                    mod <input type="number" id="point2Modulus" min="1" placeholder="60" style="width: 60px;">
+                                    <button onclick="selectPoint2Manual()" style="background: linear-gradient(45deg, #4ECDC4, #44A08D); color: #fff; font-weight: bold; padding: 4px 10px;">Set P2</button>
+                                </div>
+                                <div id="point2Status" style="font-size: 11px; margin-top: 5px; min-height: 40px;">
+                                    <em>Not selected</em>
+                                </div>
+                            </div>
+                            
+                            <div id="distanceDisplay" style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; min-height: 80px; margin-bottom: 10px;">
+                                <strong>Distance Calculator</strong><br>
+                                <em>Select two points using inputs above</em>
                             </div>
                             <div class="gap-input" style="margin-top: 10px;">
-                                <button onclick="clearDistanceMeasurement()">Clear Selection</button>
-                                <button onclick="exportDistanceData()">Export Measurements</button>
+                                <button onclick="clearDistanceMeasurement()">Clear Both Points</button>
+                                <button onclick="exportDistanceData()">Export Results</button>
+                            </div>
+                            
+                            <div style="font-size: 11px; opacity: 0.85; margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                                <strong>Quick Examples:</strong><br>
+                                • Unit to M30: r=0,M=1 → r=7,M=30<br>
+                                • Same ring: r=1,M=6 → r=5,M=6<br>
+                                • Cross rings: r=5,M=15 → r=11,M=30<br>
+                                • Any modulus: r=3,M=100 → r=17,M=500<br><br>
+                                <strong style="color: #4ECDC4;">✓ Works with ANY r and M values!</strong><br>
+                                <em>Uses current radius scaling & label format settings</em>
                             </div>
                         </div>
                     </div>
@@ -4255,17 +4326,178 @@
         // DISTANCE MEASUREMENT FUNCTIONS
         // ========================================
         
-        function toggleDistanceTool() {
-            distanceMeasurementActive = document.getElementById('enableDistanceTool').checked;
-            const controls = document.getElementById('distanceControls');
-            controls.style.display = distanceMeasurementActive ? 'block' : 'none';
+        // Manual point selection functions
+        function selectPoint1Manual() {
+            const residue = parseInt(document.getElementById('point1Residue').value);
+            const modulus = parseInt(document.getElementById('point1Modulus').value);
             
-            if (!distanceMeasurementActive) {
-                clearDistanceMeasurement();
-            } else {
-                canvas.style.cursor = 'crosshair';
-                updateAnimationStatus('Distance tool active - click two residue points');
+            if (isNaN(residue) || isNaN(modulus) || modulus < 1) {
+                alert('Please enter valid numbers for residue and modulus');
+                return;
             }
+            
+            if (residue < 0 || residue >= modulus) {
+                alert(`Residue must be between 0 and ${modulus - 1} for modulus ${modulus}`);
+                return;
+            }
+            
+            // Get all rings (selected or not) to calculate position
+            const allRingConfigs = [];
+            
+            // Add unit circle
+            allRingConfigs.push({ ringId: 'unit', modulus: 1 });
+            
+            // Add all possible moduli up to a reasonable range
+            for (let m = 2; m <= 1000; m++) {
+                allRingConfigs.push({ ringId: `virtual_${m}`, modulus: m });
+            }
+            
+            // Sort by modulus
+            allRingConfigs.sort((a, b) => a.modulus - b.modulus);
+            
+            // Find this modulus in the list
+            const ringIndex = allRingConfigs.findIndex(rc => rc.modulus === modulus);
+            
+            if (ringIndex === -1) {
+                alert('Error calculating ring position');
+                return;
+            }
+            
+            // Use current radius scaling settings
+            const radius = calculateRadius(modulus, ringIndex, allRingConfigs.length);
+            
+            // Calculate angle using correct formula
+            let baseAngle;
+            if (modulus === 1) {
+                baseAngle = 0;
+            } else {
+                baseAngle = 2 * Math.PI * (modulus - residue) / modulus;
+            }
+            
+            // Apply current rotation
+            const rotation = parseFloat(document.getElementById('rotationSlider').value) * Math.PI / 180;
+            const angle = baseAngle + rotation;
+            
+            selectedPoint1 = {
+                residue: residue,
+                modulus: modulus,
+                radius: radius,
+                angle: angle,
+                ringId: modulus === 1 ? 'unit' : `virtual_${modulus}`,
+                isGcdOne: gcd(residue, modulus) === 1
+            };
+            
+            updatePointStatus('point1Status', selectedPoint1);
+            
+            if (selectedPoint2) {
+                const distResult = calculateEuclideanDistance(selectedPoint1, selectedPoint2);
+                displayDistanceResults(distResult);
+            }
+            
+            draw();
+            updateAnimationStatus(`Point 1 selected: r=${residue} mod ${modulus}`);
+        }
+        
+        function selectPoint2Manual() {
+            const residue = parseInt(document.getElementById('point2Residue').value);
+            const modulus = parseInt(document.getElementById('point2Modulus').value);
+            
+            if (isNaN(residue) || isNaN(modulus) || modulus < 1) {
+                alert('Please enter valid numbers for residue and modulus');
+                return;
+            }
+            
+            if (residue < 0 || residue >= modulus) {
+                alert(`Residue must be between 0 and ${modulus - 1} for modulus ${modulus}`);
+                return;
+            }
+            
+            // Get all rings (selected or not) to calculate position
+            const allRingConfigs = [];
+            
+            // Add unit circle
+            allRingConfigs.push({ ringId: 'unit', modulus: 1 });
+            
+            // Add all possible moduli up to a reasonable range
+            for (let m = 2; m <= 1000; m++) {
+                allRingConfigs.push({ ringId: `virtual_${m}`, modulus: m });
+            }
+            
+            // Sort by modulus
+            allRingConfigs.sort((a, b) => a.modulus - b.modulus);
+            
+            // Find this modulus in the list
+            const ringIndex = allRingConfigs.findIndex(rc => rc.modulus === modulus);
+            
+            if (ringIndex === -1) {
+                alert('Error calculating ring position');
+                return;
+            }
+            
+            // Use current radius scaling settings
+            const radius = calculateRadius(modulus, ringIndex, allRingConfigs.length);
+            
+            // Calculate angle using correct formula
+            let baseAngle;
+            if (modulus === 1) {
+                baseAngle = 0;
+            } else {
+                baseAngle = 2 * Math.PI * (modulus - residue) / modulus;
+            }
+            
+            // Apply current rotation
+            const rotation = parseFloat(document.getElementById('rotationSlider').value) * Math.PI / 180;
+            const angle = baseAngle + rotation;
+            
+            selectedPoint2 = {
+                residue: residue,
+                modulus: modulus,
+                radius: radius,
+                angle: angle,
+                ringId: modulus === 1 ? 'unit' : `virtual_${modulus}`,
+                isGcdOne: gcd(residue, modulus) === 1
+            };
+            
+            updatePointStatus('point2Status', selectedPoint2);
+            
+            if (selectedPoint1) {
+                const distResult = calculateEuclideanDistance(selectedPoint1, selectedPoint2);
+                displayDistanceResults(distResult);
+            }
+            
+            draw();
+            updateAnimationStatus(`Point 2 selected: r=${residue} mod ${modulus}`);
+        }
+        
+        function updatePointStatus(statusId, point) {
+            const gcdVal = gcd(point.residue, point.modulus);
+            const supportText = point.isGcdOne ? '<span style="color: #4ECDC4;">✓ χ(r)≠0</span>' : '<span style="color: #666;">χ(r)=0</span>';
+            
+            // Get current label format
+            const labelFormat = document.getElementById('labelFormat')?.value || 'number';
+            let labelText = formatLabel(point.residue, point.modulus, { modulus: point.modulus });
+            
+            // Get current radius scaling info
+            const scalingMode = radiusScalingMode;
+            const scalingModes = {
+                'uniform': 'Uniform spacing',
+                'linear': 'Linear r(m) = c·m',
+                'sqrt': 'Square-root r(m) = c·√m',
+                'log': 'Logarithmic r(m) = c·log(m)',
+                'totient': 'Totient r(m) = c·φ(m)',
+                'density': 'Density r(m) = c·φ(m)/m',
+                'inverse': 'Inverse r(m) = c/m',
+                'exponential': 'Exponential r(m) = c·aᵐ'
+            };
+            
+            const status = document.getElementById(statusId);
+            status.innerHTML = `
+                <strong>Selected:</strong> r = ${point.residue}, M = ${point.modulus}<br>
+                <strong>Label:</strong> ${labelText}<br>
+                GCD(${point.residue}, ${point.modulus}) = ${gcdVal} ${supportText}<br>
+                <strong>Radius:</strong> ${point.radius.toFixed(2)} units<br>
+                <em style="font-size: 10px; opacity: 0.8;">${scalingModes[scalingMode]}</em>
+            `;
         }
         
         function calculateEuclideanDistance(point1, point2) {
@@ -4297,12 +4529,41 @@
             };
         }
         
+        function toggleDistanceTool() {
+            distanceMeasurementActive = document.getElementById('enableDistanceTool').checked;
+            const controls = document.getElementById('distanceControls');
+            const canvas = document.getElementById('canvas');
+            
+            controls.style.display = distanceMeasurementActive ? 'block' : 'none';
+            
+            if (distanceMeasurementActive) {
+                canvas.classList.add('distance-mode');
+                clearDistanceMeasurement();
+                updateAnimationStatus('Distance tool active - enter residue values or click points');
+            } else {
+                canvas.classList.remove('distance-mode');
+                clearDistanceMeasurement();
+                updateAnimationStatus('Distance tool deactivated');
+            }
+        }
+        
         function clearDistanceMeasurement() {
             selectedPoint1 = null;
             selectedPoint2 = null;
             
+            document.getElementById('point1Residue').value = '';
+            document.getElementById('point1Modulus').value = '';
+            document.getElementById('point2Residue').value = '';
+            document.getElementById('point2Modulus').value = '';
+            
+            const point1Status = document.getElementById('point1Status');
+            const point2Status = document.getElementById('point2Status');
+            
+            if (point1Status) point1Status.innerHTML = '<em>Not selected</em>';
+            if (point2Status) point2Status.innerHTML = '<em>Not selected</em>';
+            
             const display = document.getElementById('distanceDisplay');
-            display.innerHTML = `<strong>Distance Calculator Ready</strong><br><em>Click any two residue points on the rings</em>`;
+            display.innerHTML = `<strong>Distance Calculator</strong><br><em>Select two points using inputs above</em>`;
             
             draw();
         }
@@ -7675,11 +7936,18 @@
         // Mouse events
         canvas.addEventListener('mousedown', (e) => {
             const pos = getMousePos(e);
+            
+            // Check if distance measurement is active first
+            if (distanceMeasurementActive) {
+                handleDistanceMeasurementClick(pos.x, pos.y);
+                return; // Don't start dragging when in distance mode
+            }
+            
             dragStartX = pos.x;
             dragStartY = pos.y;
             dragStartPanX = panX;
             dragStartPanY = panY;
-            isDragging = false; // Start as false, will become true if moved
+            isDragging = false;
             canvas.style.cursor = 'grabbing';
         });
 
@@ -7687,6 +7955,12 @@
             const pos = getMousePos(e);
             mouseCanvasX = pos.x;
             mouseCanvasY = pos.y;
+            
+            // Don't drag when in distance measurement mode
+            if (distanceMeasurementActive) {
+                checkResidueHover(pos.x, pos.y);
+                return;
+            }
             
             // Check if mouse moved more than 5 pixels - then it's a drag
             const dragDistance = Math.sqrt(
@@ -7753,9 +8027,9 @@
                 const modulus = config.modulus;
                 const radius = calculateRadius(modulus, index, ringConfigs.length);
                 
-                // Check if near this ring
-                if (Math.abs(dist - radius) < 15) {
-                    const coprimes = getCoprimes(modulus);
+                // Check if near this ring (increased tolerance for distance mode)
+                const tolerance = distanceMeasurementActive ? 25 : 15;
+                if (Math.abs(dist - radius) < tolerance) {
                     const allResidues = getAllResidues(modulus);
                     
                     // Check each residue
@@ -7773,7 +8047,9 @@
                         
                         const rdist = Math.sqrt((dx - rx) * (dx - rx) + (dy - ry) * (dy - ry));
                         
-                        if (rdist < 10) {
+                        // Larger hit area for distance measurement
+                        const hitRadius = distanceMeasurementActive ? 15 : 10;
+                        if (rdist < hitRadius) {
                             foundResidue = {
                                 residue: r,
                                 modulus: modulus,
@@ -7789,12 +8065,42 @@
             });
             
             if (foundResidue) {
-                showResidueTooltip(foundResidue);
-                canvas.style.cursor = 'pointer';
+                if (distanceMeasurementActive) {
+                    // Show special tooltip for distance mode
+                    showDistanceTooltip(foundResidue);
+                } else {
+                    showResidueTooltip(foundResidue);
+                }
+                canvas.style.cursor = distanceMeasurementActive ? 'crosshair' : 'pointer';
             } else {
                 hideResidueTooltip();
-                canvas.style.cursor = isDragging ? 'grabbing' : 'grab';
+                canvas.style.cursor = distanceMeasurementActive ? 'crosshair' : (isDragging ? 'grabbing' : 'grab');
             }
+        }
+        
+        function showDistanceTooltip(info) {
+            const tooltip = document.getElementById('hoverTooltip');
+            const title = document.getElementById('tooltipTitle');
+            const content = document.getElementById('tooltipContent');
+            
+            title.textContent = `Click to select: r=${info.residue} (mod ${Math.round(info.modulus)})`;
+            
+            let html = '';
+            html += `<div class="property"><strong>Ring:</strong> M=${Math.round(info.modulus)}</div>`;
+            html += `<div class="property"><strong>GCD:</strong> ${gcd(info.residue, Math.round(info.modulus))}</div>`;
+            html += `<div class="property"><strong>Support:</strong> ${info.isGcdOne ? 'χ(r) ≠ 0 ✓' : 'χ(r) = 0'}</div>`;
+            
+            if (!selectedPoint1) {
+                html += `<div class="property" style="color: #FFD700;"><strong>Select as Point 1</strong></div>`;
+            } else if (!selectedPoint2) {
+                html += `<div class="property" style="color: #4ECDC4;"><strong>Select as Point 2</strong></div>`;
+            }
+            
+            content.innerHTML = html;
+            
+            tooltip.style.left = (info.screenX + 15) + 'px';
+            tooltip.style.top = (info.screenY + 15) + 'px';
+            tooltip.classList.add('visible');
         }
         
         function showResidueTooltip(info) {
@@ -7847,13 +8153,18 @@
         });
 
         canvas.addEventListener('mouseup', () => {
-            isDragging = false;
-            canvas.style.cursor = 'grab';
+            if (!distanceMeasurementActive) {
+                isDragging = false;
+                canvas.style.cursor = 'grab';
+            }
         });
 
         canvas.addEventListener('mouseleave', () => {
-            isDragging = false;
-            canvas.style.cursor = 'grab';
+            if (!distanceMeasurementActive) {
+                isDragging = false;
+                canvas.style.cursor = 'grab';
+            }
+            hideResidueTooltip();
         });
 
         // Touch events for mobile
