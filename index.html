@@ -5390,29 +5390,220 @@
             return { title, subtitle };
         }
 
-        // Simple and clean screenshot function
+        // Enhanced screenshot function with title, subtitle, legend, and watermark
         function captureImage() {
             try {
-                // Get current canvas as JPEG
-                const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+                const selectedRings = getSelectedRings();
+                const selectedGaps = getSelectedGaps();
+                const includeTitle = document.getElementById('includeTitle')?.checked ?? true;
+                const includeLegend = document.getElementById('includeLegend')?.checked ?? true;
+                const backgroundChoice = document.querySelector('input[name="screenshotBg"]:checked')?.value || 'black';
+                const resolutionChoice = document.querySelector('input[name="screenshotResolution"]:checked')?.value || 'standard';
                 
-                // Create filename with timestamp
+                // Determine canvas dimensions
+                let baseWidth, baseHeight, scaleFactor;
+                if (resolutionChoice === '4k') {
+                    baseWidth = 3200;
+                    baseHeight = 2400;
+                    scaleFactor = baseWidth / canvas.width;
+                } else {
+                    baseWidth = canvas.width * 1.2;
+                    baseHeight = canvas.height * 1.2;
+                    scaleFactor = 1.2;
+                }
+                
+                // Calculate layout dimensions
+                const titleHeight = includeTitle ? 120 * scaleFactor : 0;
+                const legendWidth = includeLegend ? 400 * scaleFactor : 0;
+                const padding = 30 * scaleFactor;
+                const contentPadding = 20 * scaleFactor;
+                
+                // Create screenshot canvas
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = baseWidth + legendWidth + (includeLegend ? padding * 3 : contentPadding * 2);
+                tempCanvas.height = Math.max(baseHeight + titleHeight + contentPadding * 2, includeLegend ? 1200 * scaleFactor : baseHeight + titleHeight + contentPadding * 2);
+                
+                // Set background
+                tempCtx.fillStyle = backgroundChoice === 'white' ? '#ffffff' : '#000000';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                
+                const textColor = backgroundChoice === 'white' ? '#2c3e50' : '#ffffff';
+                const accentColor = backgroundChoice === 'white' ? '#e67e22' : '#f39c12';
+                const subtleColor = backgroundChoice === 'white' ? '#7f8c8d' : '#bdc3c7';
+                
+                // Draw title and subtitle
+                if (includeTitle) {
+                    const { title, subtitle } = generateConfigurationDescription(selectedRings, selectedGaps);
+                    
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${28 * scaleFactor}px Segoe UI`;
+                    tempCtx.textAlign = 'center';
+                    const titleCenterX = contentPadding + baseWidth / 2;
+                    tempCtx.fillText(title, titleCenterX, 40 * scaleFactor);
+                    
+                    tempCtx.fillStyle = textColor;
+                    tempCtx.font = `${16 * scaleFactor}px Segoe UI`;
+                    
+                    const maxSubtitleWidth = baseWidth - contentPadding * 2;
+                    const words = subtitle.split(' ');
+                    let line = '';
+                    let y = 70 * scaleFactor;
+                    const lineHeight = 22 * scaleFactor;
+                    
+                    for (let i = 0; i < words.length; i++) {
+                        const testLine = line + words[i] + ' ';
+                        const metrics = tempCtx.measureText(testLine);
+                        
+                        if (metrics.width > maxSubtitleWidth && line !== '') {
+                            tempCtx.fillText(line.trim(), titleCenterX, y);
+                            line = words[i] + ' ';
+                            y += lineHeight;
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    tempCtx.fillText(line.trim(), titleCenterX, y);
+                }
+                
+                // Draw main canvas
+                const mainCanvasX = contentPadding;
+                const mainCanvasY = titleHeight + contentPadding;
+                
+                tempCtx.save();
+                tempCtx.translate(mainCanvasX, mainCanvasY);
+                tempCtx.scale(scaleFactor, scaleFactor);
+                tempCtx.drawImage(canvas, 0, 0);
+                tempCtx.restore();
+                
+                // Draw legend
+                if (includeLegend) {
+                    const legendX = baseWidth + contentPadding + padding;
+                    const legendY = titleHeight + contentPadding;
+                    const legendContentWidth = legendWidth - padding * 2;
+                    const legendContentHeight = tempCanvas.height - titleHeight - contentPadding * 2;
+                    
+                    tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(248, 249, 250, 0.95)' : 'rgba(20, 20, 20, 0.95)';
+                    tempCtx.fillRect(legendX, legendY, legendContentWidth, legendContentHeight);
+                    tempCtx.strokeStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
+                    tempCtx.lineWidth = 2 * scaleFactor;
+                    tempCtx.strokeRect(legendX, legendY, legendContentWidth, legendContentHeight);
+                    
+                    tempCtx.fillStyle = accentColor;
+                    tempCtx.font = `bold ${16 * scaleFactor}px Segoe UI`;
+                    tempCtx.textAlign = 'left';
+                    let currentY = legendY + 30 * scaleFactor;
+                    tempCtx.fillText('Legend', legendX + 15 * scaleFactor, currentY);
+                    
+                    currentY += 30 * scaleFactor;
+                    
+                    const legendItems = [
+                        { color: '#FFD700', text: 'Unit Circle' },
+                        { color: '#FF6B6B', text: 'GCD=1 Residues' },
+                        { color: '#4ECDC4', text: 'Gap Connections' },
+                        { color: liftLineColor, text: 'Direct Lifts' },
+                        { color: modularLiftColor, text: 'Modular Lifts' }
+                    ];
+                    
+                    tempCtx.font = `${12 * scaleFactor}px Segoe UI`;
+                    legendItems.forEach(item => {
+                        tempCtx.fillStyle = item.color;
+                        tempCtx.fillRect(legendX + 15 * scaleFactor, currentY - 10 * scaleFactor, 15 * scaleFactor, 15 * scaleFactor);
+                        
+                        tempCtx.fillStyle = textColor;
+                        tempCtx.fillText(item.text, legendX + 40 * scaleFactor, currentY);
+                        currentY += 25 * scaleFactor;
+                    });
+                }
+                
+                // ALWAYS add watermark (bottom right)
+                tempCtx.fillStyle = backgroundChoice === 'white' ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)';
+                tempCtx.font = `${10 * scaleFactor}px Segoe UI`;
+                tempCtx.textAlign = 'right';
+                const watermarkX = tempCanvas.width - 15 * scaleFactor;
+                const watermarkY = tempCanvas.height - 10 * scaleFactor;
+                tempCtx.fillText('Riemann Hypothesis Explorer | Built by Wessen Getachew', watermarkX, watermarkY);
+                
+                // Convert to JPEG and download
+                const dataURL = tempCanvas.toDataURL('image/jpeg', 0.95);
+                
                 const timestamp = new Date().toISOString().slice(0,19).replace(/:/g,'-');
-                const filename = `modular_rings_${timestamp}.jpg`;
+                const ringText = selectedRings.length > 0 ? `_${selectedRings.length}rings` : '';
+                const gapText = selectedGaps.length > 0 ? `_${selectedGaps.length}gaps` : '';
+                const resText = resolutionChoice === '4k' ? '_4K' : '';
+                const filename = `modular_rings${ringText}${gapText}${resText}_${timestamp}.jpg`;
                 
-                // Create download link
                 const link = document.createElement('a');
                 link.href = dataURL;
                 link.download = filename;
-                
-                // Trigger download
                 link.click();
                 
-                updateAnimationStatus('Image captured successfully! 📸');
+                const statusMsg = resolutionChoice === '4k' 
+                    ? '4K screenshot saved with watermark! 📸' 
+                    : 'Screenshot saved with watermark! 📸';
+                updateAnimationStatus(statusMsg);
             } catch (error) {
                 alert('Error capturing image: ' + error.message);
                 console.error('Capture error:', error);
+                updateAnimationStatus('Screenshot failed');
             }
+        }
+        
+        function generateConfigurationDescription(selectedRings, selectedGaps) {
+            const ringCount = selectedRings.length;
+            const gapCount = selectedGaps.length;
+            const hasUnitCircle = selectedRings.includes('unit');
+            
+            let title = 'Interactive Modular Lifting Rings';
+            let subtitle = '';
+            
+            if (ringCount === 0) {
+                subtitle = 'No rings selected';
+            } else {
+                const defaultRings = selectedRings.filter(r => r.startsWith('default_')).length;
+                const customRings = selectedRings.filter(r => r.startsWith('custom_')).length;
+                const seriesRings = selectedRings.filter(r => !r.startsWith('default_') && !r.startsWith('custom_') && r !== 'unit').length;
+                
+                let ringDescription = '';
+                if (hasUnitCircle) {
+                    ringDescription = 'Unit Circle';
+                    if (ringCount > 1) {
+                        ringDescription += ' + ';
+                        const otherParts = [];
+                        if (defaultRings > 0) otherParts.push(`M1-M${defaultRings + 1}`);
+                        if (seriesRings > 0) otherParts.push(`${seriesRings} Series`);
+                        if (customRings > 0) otherParts.push(`${customRings} Custom`);
+                        ringDescription += otherParts.join(' + ');
+                    }
+                } else {
+                    const parts = [];
+                    if (defaultRings > 0) parts.push(`M1-M${defaultRings + 1}`);
+                    if (seriesRings > 0) parts.push(`${seriesRings} Series`);
+                    if (customRings > 0) parts.push(`${customRings} Custom`);
+                    ringDescription = parts.join(' + ') || `${ringCount} Rings`;
+                }
+                
+                subtitle = ringDescription;
+                
+                if (gapCount > 0) {
+                    if (gapCount === 1) {
+                        const gap = selectedGaps[0];
+                        let gapName = '';
+                        if (gap === 2) gapName = ' (Twin)';
+                        else if (gap === 4) gapName = ' (Cousin)';
+                        else if (gap === 6) gapName = ' (Sexy)';
+                        subtitle += ` • Gap ${gap}${gapName}`;
+                    } else {
+                        subtitle += ` • ${gapCount} Gaps`;
+                    }
+                }
+                
+                if (primeData.isActive) {
+                    subtitle += ` • Sieve (mod ${primeData.modulus})`;
+                }
+            }
+            
+            return { title, subtitle };
         }
         
         // Invert ring order (like nesting animation but instant)
@@ -7743,4 +7934,4 @@
         }, 500);
     </script>
 </body>
-                                                                                              </html>
+                                    </html>
