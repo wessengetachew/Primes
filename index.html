@@ -4287,29 +4287,17 @@
         function displayDistanceResults(dist) {
             const display = document.getElementById('distanceDisplay');
             
-            let verificationText = '';
-            if (dist.lawOfCosines !== null) {
-                const diff = Math.abs(dist.euclidean - dist.lawOfCosines).toExponential(3);
-                verificationText = `
-                    <strong>Verification (Law of Cosines - Polar only):</strong><br>
-                    d = ${dist.lawOfCosines.toFixed(6)} units<br><br>
-                    <em style="font-size: 11px;">Difference: ${diff}</em><br>
-                    <em style="font-size: 11px;">(Should be near machine precision)</em>
-                `;
-            } else {
-                verificationText = `
-                    <em style="font-size: 11px; color: #FFA500;">Law of cosines verification not available in ${dist.coordinateSystem1} coordinate system</em>
-                `;
-            }
+            const diff = Math.abs(dist.euclidean - dist.lawOfCosines).toExponential(3);
             
             display.innerHTML = '<strong>Distance Measurement Complete!</strong><br><br>' +
-                '<strong>Point 1:</strong> r=' + selectedPoint1.residue + ', M=' + Math.round(selectedPoint1.modulus) + 
-                ` <em>[${dist.coordinateSystem1}]</em><br>` +
-                '<strong>Point 2:</strong> r=' + selectedPoint2.residue + ', M=' + Math.round(selectedPoint2.modulus) + 
-                ` <em>[${dist.coordinateSystem2}]</em><br><br>` +
+                '<strong>Point 1:</strong> r=' + selectedPoint1.residue + ', M=' + Math.round(selectedPoint1.modulus) + '<br>' +
+                '<strong>Point 2:</strong> r=' + selectedPoint2.residue + ', M=' + Math.round(selectedPoint2.modulus) + '<br><br>' +
                 '<strong style="color: #FFD700;">Euclidean Distance:</strong><br>' +
                 'd = ' + dist.euclidean.toFixed(6) + ' units<br><br>' +
-                verificationText;
+                '<strong>Verification (Law of Cosines):</strong><br>' +
+                'd = ' + dist.lawOfCosines.toFixed(6) + ' units<br><br>' +
+                '<em style="font-size: 11px;">Difference: ' + diff + '</em><br>' +
+                '<em style="font-size: 11px;">(Should be near machine precision)</em>';
         }
         
         function drawSelectedPoints() {
@@ -4628,18 +4616,28 @@
                 return;
             }
             
-            // Use transformCoordinates to respect current coordinate system
-            const coords = transformCoordinates(modulus, residue, ringIndex, allRingConfigs.length);
+            // Use current radius scaling settings
+            const radius = calculateRadius(modulus, ringIndex, allRingConfigs.length);
+            
+            // Calculate angle using correct formula
+            let baseAngle;
+            if (modulus === 1) {
+                baseAngle = 0;
+            } else {
+                baseAngle = 2 * Math.PI * (modulus - residue) / modulus;
+            }
+            
+            // Apply current rotation
+            const rotation = parseFloat(document.getElementById('rotationSlider').value) * Math.PI / 180;
+            const angle = baseAngle + rotation;
             
             selectedPoint1 = {
                 residue: residue,
                 modulus: modulus,
-                x: coords.x,
-                y: coords.y,
-                displayAngle: coords.displayAngle,
+                radius: radius,
+                angle: angle,
                 ringId: modulus === 1 ? 'unit' : `virtual_${modulus}`,
-                isGcdOne: gcd(residue, modulus) === 1,
-                coordinateSystem: coordinateSystem
+                isGcdOne: gcd(residue, modulus) === 1
             };
             
             updatePointStatus('point1Status', selectedPoint1);
@@ -4650,7 +4648,7 @@
             }
             
             draw();
-            updateAnimationStatus(`Point 1 selected: r=${residue} mod ${modulus} [${coordinateSystem}]`);
+            updateAnimationStatus(`Point 1 selected: r=${residue} mod ${modulus}`);
         }
         
         function selectPoint2Manual() {
@@ -4689,18 +4687,28 @@
                 return;
             }
             
-            // Use transformCoordinates to respect current coordinate system
-            const coords = transformCoordinates(modulus, residue, ringIndex, allRingConfigs.length);
+            // Use current radius scaling settings
+            const radius = calculateRadius(modulus, ringIndex, allRingConfigs.length);
+            
+            // Calculate angle using correct formula
+            let baseAngle;
+            if (modulus === 1) {
+                baseAngle = 0;
+            } else {
+                baseAngle = 2 * Math.PI * (modulus - residue) / modulus;
+            }
+            
+            // Apply current rotation
+            const rotation = parseFloat(document.getElementById('rotationSlider').value) * Math.PI / 180;
+            const angle = baseAngle + rotation;
             
             selectedPoint2 = {
                 residue: residue,
                 modulus: modulus,
-                x: coords.x,
-                y: coords.y,
-                displayAngle: coords.displayAngle,
+                radius: radius,
+                angle: angle,
                 ringId: modulus === 1 ? 'unit' : `virtual_${modulus}`,
-                isGcdOne: gcd(residue, modulus) === 1,
-                coordinateSystem: coordinateSystem
+                isGcdOne: gcd(residue, modulus) === 1
             };
             
             updatePointStatus('point2Status', selectedPoint2);
@@ -4711,7 +4719,7 @@
             }
             
             draw();
-            updateAnimationStatus(`Point 2 selected: r=${residue} mod ${modulus} [${coordinateSystem}]`);
+            updateAnimationStatus(`Point 2 selected: r=${residue} mod ${modulus}`);
         }
         
         function updatePointStatus(statusId, point) {
@@ -4746,32 +4754,31 @@
         }
         
         function calculateEuclideanDistance(point1, point2) {
-            // For coordinate-system-aware distance calculation
-            // Points now store their x, y directly from transformCoordinates
+            // General distance formula: d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]
+            // But for any two points, use standard Euclidean distance
             
-            const x1 = point1.x;
-            const y1 = point1.y;
-            const x2 = point2.x;
-            const y2 = point2.y;
+            const r1 = point1.radius;
+            const r2 = point2.radius;
+            const theta1 = point1.angle;
+            const theta2 = point2.angle;
+            
+            // Convert to Cartesian coordinates
+            const x1 = r1 * Math.cos(theta1);
+            const y1 = r1 * Math.sin(theta1);
+            const x2 = r2 * Math.cos(theta2);
+            const y2 = r2 * Math.sin(theta2);
             
             const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
             
-            // Note: Law of cosines only applies in polar coordinates
-            let distanceLawOfCosines = null;
-            if (point1.coordinateSystem === 'polar' && point2.coordinateSystem === 'polar') {
-                // Only calculate if both points are in polar system
-                const r1 = Math.sqrt(x1**2 + y1**2);
-                const r2 = Math.sqrt(x2**2 + y2**2);
-                const angleDiff = Math.abs(Math.atan2(y2, x2) - Math.atan2(y1, x1));
-                distanceLawOfCosines = Math.sqrt(r1**2 + r2**2 - 2*r1*r2*Math.cos(angleDiff));
-            }
+            // Also calculate using the law of cosines for verification
+            const angleDiff = Math.abs(theta2 - theta1);
+            const distanceLawOfCosines = Math.sqrt(r1**2 + r2**2 - 2*r1*r2*Math.cos(angleDiff));
             
             return {
                 euclidean: distance,
                 lawOfCosines: distanceLawOfCosines,
                 cartesian: { x1, y1, x2, y2 },
-                coordinateSystem1: point1.coordinateSystem || 'polar',
-                coordinateSystem2: point2.coordinateSystem || 'polar'
+                polar: { r1, theta1: theta1 * 180/Math.PI, r2, theta2: theta2 * 180/Math.PI }
             };
         }
         
@@ -9149,40 +9156,87 @@
             // Draw coordinate system guides
             if (coordinateSystem === 'log-cylinder') {
                 // Draw log-cylinder FLAT grid (like a rectangular coordinate plane)
+                // v-axis is scaled by π since θ = 2πr/M
                 ctx.strokeStyle = 'rgba(100, 150, 200, 0.2)';
                 ctx.lineWidth = 0.5;
                 
-                // Horizontal lines (constant v = constant θ)
-                for (let v = -50; v <= 50; v += 10) {
+                // Horizontal lines at multiples of π (constant v = constant θ)
+                const piScale = 50; // 50 pixels per π
+                for (let piMultiple = -2; piMultiple <= 2; piMultiple++) {
+                    const v = piMultiple * piScale;
                     ctx.beginPath();
                     ctx.moveTo(-200, v);
                     ctx.lineTo(300, v);
                     ctx.stroke();
+                    
+                    // Label at multiples of π
+                    if (piMultiple !== 0) {
+                        ctx.fillStyle = 'rgba(100, 150, 200, 0.7)';
+                        ctx.font = '10px serif';
+                        ctx.textAlign = 'right';
+                        const label = piMultiple === 1 ? 'π' : piMultiple === -1 ? '-π' : `${piMultiple}π`;
+                        ctx.fillText(label, -205, v + 4);
+                    }
+                }
+                
+                // Finer horizontal grid lines at π/2
+                ctx.strokeStyle = 'rgba(100, 150, 200, 0.1)';
+                for (let halfPi = -3.5; halfPi <= 3.5; halfPi += 0.5) {
+                    if (halfPi % 1 !== 0) { // Skip full π multiples (already drawn)
+                        const v = halfPi * piScale;
+                        ctx.beginPath();
+                        ctx.moveTo(-200, v);
+                        ctx.lineTo(300, v);
+                        ctx.stroke();
+                    }
                 }
                 
                 // Vertical lines (constant u = constant ln(m))
+                ctx.strokeStyle = 'rgba(100, 150, 200, 0.2)';
                 for (let u = 0; u <= 5; u += 0.5) {
                     const x = u * coordSystemParams.logCylinder.uScale * 80 - 150;
                     ctx.beginPath();
-                    ctx.moveTo(x, -100);
-                    ctx.lineTo(x, 100);
+                    ctx.moveTo(x, -150);
+                    ctx.lineTo(x, 150);
                     ctx.stroke();
+                    
+                    // Label major vertical lines
+                    if (u % 1 === 0 && u > 0) {
+                        ctx.fillStyle = 'rgba(100, 150, 200, 0.7)';
+                        ctx.font = '10px monospace';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(u.toFixed(0), x, -155);
+                    }
                 }
                 
-                // Axis labels (without mod labels on points)
-                ctx.fillStyle = 'rgba(100, 150, 200, 0.6)';
-                ctx.font = '11px monospace';
+                // Axis labels
+                ctx.fillStyle = 'rgba(100, 150, 200, 0.8)';
+                ctx.font = 'bold 12px serif';
                 ctx.textAlign = 'center';
                 
                 // U-axis label
-                ctx.fillText('u = ln m', 0, -80);
+                ctx.fillText('u = ln m', 50, -165);
                 
-                // V-axis label
+                // V-axis label with proper π notation
                 ctx.save();
-                ctx.translate(-180, 0);
+                ctx.translate(-210, 0);
                 ctx.rotate(-Math.PI / 2);
-                ctx.fillText('v = θ (radians)', 0, 0);
+                ctx.fillText('v = θ = 2πr/M', 0, 0);
                 ctx.restore();
+                
+                // Draw axes through origin
+                ctx.strokeStyle = 'rgba(100, 150, 200, 0.5)';
+                ctx.lineWidth = 1.5;
+                // V-axis (vertical, through v=0)
+                ctx.beginPath();
+                ctx.moveTo(-200, 0);
+                ctx.lineTo(300, 0);
+                ctx.stroke();
+                // U-axis indicator
+                ctx.beginPath();
+                ctx.moveTo(-150, -150);
+                ctx.lineTo(-150, 150);
+                ctx.stroke();
                 
             } else if (coordinateSystem === 'spiral') {
                 // Draw spiral guide
@@ -10062,4 +10116,4 @@
         }, 500);
     </script>
 </body>
-                            </html>
+    </html>
