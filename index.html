@@ -922,6 +922,39 @@
 
         <div class="main-grid">
             <div class="controls">
+                
+                <div class="control-section" style="background: linear-gradient(45deg, rgba(78, 205, 196, 0.15), rgba(138, 43, 226, 0.15)); border: 2px solid rgba(78, 205, 196, 0.4);">
+                    <h3 onclick="toggleSection('layoutSection')" style="cursor: pointer; user-select: none; color: #4ECDC4;">
+                        <span class="collapse-icon" id="layoutSectionIcon">▼</span>
+                        Coordinate System Layout
+                    </h3>
+                    <div id="layoutSection" class="collapsible-section">
+                    
+                    <div class="slider-group">
+                        <label><strong>Coordinate System:</strong></label>
+                        <select id="coordinateSystem" onchange="updateCoordinateSystem()" style="width: 100%; padding: 8px; border-radius: 6px; font-size: 13px;">
+                            <option value="polar" selected>Polar/Concentric (default)</option>
+                            <option value="log-cylinder">Log-Cylinder (u=ln m, v=θ)</option>
+                            <option value="spiral">Logarithmic Spiral</option>
+                            <option value="hyperbolic">Hyperbolic (Poincaré disk)</option>
+                            <option value="rectangular">Rectangular Grid</option>
+                            <option value="treemap">Treemap/Packing</option>
+                            <option value="voronoi">Voronoi Tessellation</option>
+                            <option value="fractal">Fractal Self-Similar</option>
+                        </select>
+                    </div>
+                    
+                    <div id="coordinateParams" style="margin-top: 15px;">
+                        <!-- Parameters for each coordinate system -->
+                    </div>
+                    
+                    <div style="font-size: 0.85em; opacity: 0.9; margin-top: 10px; padding: 10px; background: rgba(78, 205, 196, 0.1); border-radius: 6px; border-left: 3px solid #4ECDC4;">
+                        <strong>Current System:</strong><br>
+                        <span id="coordSystemDesc">Traditional polar coordinates with concentric rings</span>
+                    </div>
+                    
+                    </div>
+                </div>
                 <div class="control-section rh-section">
                     <h3 onclick="toggleSection('rhSection')" style="cursor: pointer; user-select: none;">
                         <span class="collapse-icon" id="rhSectionIcon">▼</span>
@@ -2362,6 +2395,18 @@
         let currentLabelFormat = 'number';
         let gcdAnimationPhase = 0;
         let gcdAnimationActive = false;
+        
+        // Coordinate system state
+        let coordinateSystem = 'polar';
+        let coordSystemParams = {
+            logCylinder: { uScale: 1.0, vScale: 1.0 },
+            spiral: { growth: 0.3, tightness: 0.5 },
+            hyperbolic: { curvature: 1.0 },
+            rectangular: { cellSize: 50, arrangement: 'totient' },
+            treemap: { algorithm: 'squarify', padding: 2 },
+            voronoi: { jitter: 0.1 },
+            fractal: { depth: 3, branching: 4 }
+        };
         
         // Distance measurement state
         let distanceMeasurementActive = false;
@@ -4313,6 +4358,213 @@
         // END DISTANCE MEASUREMENT FUNCTIONS
         // ========================================
         
+        function updateCoordinateSystem() {
+            coordinateSystem = document.getElementById('coordinateSystem').value;
+            updateCoordSystemDescription();
+            updateCoordinateParams();
+            updateAnimationStatus(`Coordinate system: ${coordinateSystem}`);
+            draw();
+        }
+        
+        function updateCoordSystemDescription() {
+            const descriptions = {
+                'polar': 'Traditional polar coordinates with concentric rings. Radius r from center, angle θ around circle.',
+                'log-cylinder': 'Log-cylinder: u = ln(m), v = θ = 2πr/m. Transforms multiplicative structure into additive patterns.',
+                'spiral': 'Logarithmic spiral: radius grows exponentially with angle. r = a·e^(bθ), revealing self-similar structure.',
+                'hyperbolic': 'Hyperbolic/Poincaré disk: models non-Euclidean geometry. Preserves angles, distorts distances near boundary.',
+                'rectangular': 'Rectangular grid arrangement: rows and columns based on modulus properties.',
+                'treemap': 'Treemap packing: hierarchical rectangles sized by φ(m). Space-filling visualization.',
+                'voronoi': 'Voronoi tessellation: each point owns nearest region. Natural partition of plane.',
+                'fractal': 'Fractal self-similar: recursive subdivision revealing multiplicative structure at all scales.'
+            };
+            
+            document.getElementById('coordSystemDesc').textContent = descriptions[coordinateSystem] || '';
+        }
+        
+        function updateCoordinateParams() {
+            const paramsDiv = document.getElementById('coordinateParams');
+            let html = '';
+            
+            switch(coordinateSystem) {
+                case 'log-cylinder':
+                    html = `
+                        <div class="slider-group">
+                            <label>U-axis Scale (ln m): <span id="uScaleValue">1.0</span></label>
+                            <input type="range" id="uScale" min="0.1" max="3" step="0.1" value="1.0" oninput="updateLogCylinderParams()">
+                        </div>
+                        <div class="slider-group">
+                            <label>V-axis Scale (θ): <span id="vScaleValue">1.0</span></label>
+                            <input type="range" id="vScale" min="0.1" max="3" step="0.1" value="1.0" oninput="updateLogCylinderParams()">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'spiral':
+                    html = `
+                        <div class="slider-group">
+                            <label>Spiral Growth Rate: <span id="spiralGrowthValue">0.3</span></label>
+                            <input type="range" id="spiralGrowth" min="0.1" max="1.0" step="0.05" value="0.3" oninput="updateSpiralParams()">
+                        </div>
+                        <div class="slider-group">
+                            <label>Spiral Tightness: <span id="spiralTightnessValue">0.5</span></label>
+                            <input type="range" id="spiralTightness" min="0.1" max="2.0" step="0.1" value="0.5" oninput="updateSpiralParams()">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'hyperbolic':
+                    html = `
+                        <div class="slider-group">
+                            <label>Hyperbolic Curvature: <span id="curvatureValue">1.0</span></label>
+                            <input type="range" id="curvature" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateHyperbolicParams()">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'rectangular':
+                    html = `
+                        <div class="slider-group">
+                            <label>Cell Size: <span id="cellSizeValue">50</span>px</label>
+                            <input type="range" id="cellSize" min="20" max="100" step="5" value="50" oninput="updateRectangularParams()">
+                        </div>
+                        <div class="slider-group">
+                            <label>Arrangement:</label>
+                            <select id="rectArrangement" onchange="updateRectangularParams()">
+                                <option value="totient">By φ(m)</option>
+                                <option value="sequential">Sequential</option>
+                                <option value="prime">Prime factorization</option>
+                            </select>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            paramsDiv.innerHTML = html;
+        }
+        
+        function updateLogCylinderParams() {
+            coordSystemParams.logCylinder.uScale = parseFloat(document.getElementById('uScale').value);
+            coordSystemParams.logCylinder.vScale = parseFloat(document.getElementById('vScale').value);
+            document.getElementById('uScaleValue').textContent = coordSystemParams.logCylinder.uScale.toFixed(1);
+            document.getElementById('vScaleValue').textContent = coordSystemParams.logCylinder.vScale.toFixed(1);
+            draw();
+        }
+        
+        function updateSpiralParams() {
+            coordSystemParams.spiral.growth = parseFloat(document.getElementById('spiralGrowth').value);
+            coordSystemParams.spiral.tightness = parseFloat(document.getElementById('spiralTightness').value);
+            document.getElementById('spiralGrowthValue').textContent = coordSystemParams.spiral.growth.toFixed(2);
+            document.getElementById('spiralTightnessValue').textContent = coordSystemParams.spiral.tightness.toFixed(1);
+            draw();
+        }
+        
+        function updateHyperbolicParams() {
+            coordSystemParams.hyperbolic.curvature = parseFloat(document.getElementById('curvature').value);
+            document.getElementById('curvatureValue').textContent = coordSystemParams.hyperbolic.curvature.toFixed(1);
+            draw();
+        }
+        
+        function updateRectangularParams() {
+            if (document.getElementById('cellSize')) {
+                coordSystemParams.rectangular.cellSize = parseFloat(document.getElementById('cellSize').value);
+                document.getElementById('cellSizeValue').textContent = coordSystemParams.rectangular.cellSize.toFixed(0);
+            }
+            if (document.getElementById('rectArrangement')) {
+                coordSystemParams.rectangular.arrangement = document.getElementById('rectArrangement').value;
+            }
+            draw();
+        }
+        
+        // Coordinate transformation functions
+        function transformCoordinates(modulus, residue, ringIndex, totalRings) {
+            const baseRadius = calculateRadius(modulus, ringIndex, totalRings);
+            let baseAngle;
+            
+            if (modulus === 1) {
+                baseAngle = 0;
+            } else {
+                baseAngle = 2 * Math.PI * (modulus - residue) / modulus;
+            }
+            
+            // Apply rotation
+            const rotation = parseFloat(document.getElementById('rotationSlider').value) * Math.PI / 180;
+            const enableRotation = document.getElementById('enableRotation').checked;
+            let angle = baseAngle;
+            
+            if (enableRotation) {
+                const ringId = 'ring_' + ringIndex;
+                if (!ringRotationSpeeds[ringId]) {
+                    ringRotationSpeeds[ringId] = Math.max(0.3, 2.5 - Math.log10(modulus + 1));
+                }
+                angle += animationFrame * ringRotationSpeeds[ringId] * Math.PI / 180;
+            } else {
+                angle += rotation;
+            }
+            
+            // Transform based on coordinate system
+            switch(coordinateSystem) {
+                case 'polar':
+                    return {
+                        x: baseRadius * Math.cos(angle),
+                        y: baseRadius * Math.sin(angle),
+                        displayAngle: angle
+                    };
+                    
+                case 'log-cylinder':
+                    // u = ln(m), v = θ = 2πr/m
+                    const u = Math.log(modulus) * coordSystemParams.logCylinder.uScale * 80;
+                    const v = (residue / modulus) * 2 * Math.PI * coordSystemParams.logCylinder.vScale;
+                    return {
+                        x: u * Math.cos(v) * 0.8,
+                        y: u * Math.sin(v) * 0.8,
+                        displayAngle: v
+                    };
+                    
+                case 'spiral':
+                    // Logarithmic spiral: r = a·e^(bθ)
+                    const a = 10;
+                    const b = coordSystemParams.spiral.growth;
+                    const spiralAngle = angle + ringIndex * coordSystemParams.spiral.tightness;
+                    const spiralRadius = a * Math.exp(b * spiralAngle);
+                    return {
+                        x: spiralRadius * Math.cos(spiralAngle),
+                        y: spiralRadius * Math.sin(spiralAngle),
+                        displayAngle: spiralAngle
+                    };
+                    
+                case 'hyperbolic':
+                    // Poincaré disk model
+                    const k = coordSystemParams.hyperbolic.curvature;
+                    const r_normalized = baseRadius / 300; // Normalize to [0,1]
+                    const hyperbolic_r = Math.tanh(r_normalized * k) * 250;
+                    return {
+                        x: hyperbolic_r * Math.cos(angle),
+                        y: hyperbolic_r * Math.sin(angle),
+                        displayAngle: angle
+                    };
+                    
+                case 'rectangular':
+                    const cellSize = coordSystemParams.rectangular.cellSize;
+                    const cols = Math.ceil(Math.sqrt(totalRings));
+                    const row = Math.floor(ringIndex / cols);
+                    const col = ringIndex % cols;
+                    const cellAngle = (residue / modulus) * 2 * Math.PI;
+                    const cellRadius = cellSize * 0.4;
+                    return {
+                        x: (col - cols/2) * cellSize + cellRadius * Math.cos(cellAngle),
+                        y: (row - cols/2) * cellSize + cellRadius * Math.sin(cellAngle),
+                        displayAngle: cellAngle
+                    };
+                    
+                default:
+                    return {
+                        x: baseRadius * Math.cos(angle),
+                        y: baseRadius * Math.sin(angle),
+                        displayAngle: angle
+                    };
+            }
+        }
+
         function gcd(a, b) {
             while (b !== 0) {
                 let temp = b;
@@ -8899,6 +9151,90 @@
             ctx.translate(canvas.width / 2 + panX, canvas.height / 2 + panY);
             ctx.scale(currentZoom, currentZoom);
             ctx.rotate((rotation + (animating ? animationFrame * 0.3 : 0)) * Math.PI / 180);
+            
+            // Draw coordinate system guides
+            if (coordinateSystem === 'log-cylinder') {
+                // Draw log-cylinder grid
+                ctx.strokeStyle = 'rgba(100, 150, 200, 0.2)';
+                ctx.lineWidth = 0.5;
+                
+                // Radial lines (constant u, varying v)
+                for (let u = 0; u <= 5; u += 0.5) {
+                    ctx.beginPath();
+                    const radius = u * coordSystemParams.logCylinder.uScale * 80 * 0.8;
+                    for (let v = 0; v <= 2 * Math.PI; v += 0.1) {
+                        const x = radius * Math.cos(v);
+                        const y = radius * Math.sin(v);
+                        if (v === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+                
+                // Angular lines (constant v, varying u)
+                for (let v = 0; v < 2 * Math.PI; v += Math.PI / 6) {
+                    ctx.beginPath();
+                    for (let u = 0; u <= 5; u += 0.1) {
+                        const radius = u * coordSystemParams.logCylinder.uScale * 80 * 0.8;
+                        const x = radius * Math.cos(v);
+                        const y = radius * Math.sin(v);
+                        if (u === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                }
+                
+                // Labels
+                ctx.fillStyle = 'rgba(100, 150, 200, 0.6)';
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'center';
+                for (let m = 1; m <= 20; m++) {
+                    const u = Math.log(m);
+                    const radius = u * coordSystemParams.logCylinder.uScale * 80 * 0.8;
+                    if (radius < 300) {
+                        ctx.fillText(`m=${m}`, radius + 15, 0);
+                    }
+                }
+            } else if (coordinateSystem === 'spiral') {
+                // Draw spiral guide
+                ctx.strokeStyle = 'rgba(150, 100, 200, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                
+                const a = 10;
+                const b = coordSystemParams.spiral.growth;
+                
+                for (let theta = 0; theta <= 8 * Math.PI; theta += 0.1) {
+                    const r = a * Math.exp(b * theta);
+                    const x = r * Math.cos(theta);
+                    const y = r * Math.sin(theta);
+                    
+                    if (theta === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                    
+                    if (r > 350) break;
+                }
+                ctx.stroke();
+            } else if (coordinateSystem === 'hyperbolic') {
+                // Draw hyperbolic grid circles
+                ctx.strokeStyle = 'rgba(200, 100, 150, 0.15)';
+                ctx.lineWidth = 0.5;
+                
+                for (let r = 50; r <= 250; r += 50) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, r, 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+                
+                // Hyperbolic rays
+                for (let angle = 0; angle < 2 * Math.PI; angle += Math.PI / 8) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(250 * Math.cos(angle), 250 * Math.sin(angle));
+                    ctx.stroke();
+                }
+            }
 
             const rings = [];
             
@@ -9085,20 +9421,11 @@
                 }
                 
                 residuesToDraw.forEach(({r, isGcdOne}) => {
-                    // FIXED: Correct angle calculation to match mathematical convention
-                    // For mod M, residue r should be at angle: 2π * (M - r) / M (clockwise from top)
-                    // This puts gcd(r,M)=1 residues in their proper mathematical positions
-                    let baseAngle;
-                    if (ring.n === 'unit') {
-                        baseAngle = 0; // Unit circle residue 0 at 0° (3 o'clock position)
-                    } else {
-                        // Reverse the angle calculation so gcd=1 residues align correctly
-                        baseAngle = 2 * Math.PI * (ring.modulus - r) / ring.modulus;
-                    }
-                    
-                    const angle = baseAngle + ringRotation;
-                    const x = ring.radius * Math.cos(angle);
-                    const y = ring.radius * Math.sin(angle);
+                    // Transform coordinates based on selected system
+                    const coords = transformCoordinates(ring.modulus, r, ring.index, rings.length);
+                    const x = coords.x;
+                    const y = coords.y;
+                    const angle = coords.displayAngle;
 
                     // Enhanced point drawing with normalized thickness controls
                     ctx.beginPath();
@@ -9291,15 +9618,14 @@
                             const r2 = r + gap;
                             const mod = Math.round(ring.modulus);
                             if (ring.coprimes.includes(r2 % mod)) {
-                                // FIXED: Apply same angle correction for gap connections
-                                const baseAngle1 = 2 * Math.PI * (ring.modulus - r) / ring.modulus;
-                                const baseAngle2 = 2 * Math.PI * (ring.modulus - (r2 % mod)) / ring.modulus;
-                                const angle1 = baseAngle1 + ringRotation;
-                                const angle2 = baseAngle2 + ringRotation;
-                                const x1 = ring.radius * Math.cos(angle1);
-                                const y1 = ring.radius * Math.sin(angle1);
-                                const x2 = ring.radius * Math.cos(angle2);
-                                const y2 = ring.radius * Math.sin(angle2);
+                                // Use coordinate transformation for gap connections
+                                const coords1 = transformCoordinates(ring.modulus, r, ring.index, rings.length);
+                                const coords2 = transformCoordinates(ring.modulus, r2 % mod, ring.index, rings.length);
+                                
+                                const x1 = coords1.x;
+                                const y1 = coords1.y;
+                                const x2 = coords2.x;
+                                const y2 = coords2.y;
 
                                 ctx.beginPath();
                                 ctx.moveTo(x1, y1);
@@ -9366,12 +9692,12 @@
                         ring1.coprimes.forEach(r => {
                             // 1. Direct lifts (consecutive only, r → r)
                             if (showDirectLifts && isConsecutive && ring2.coprimes.includes(r)) {
-                                drawLiftLine(ring1, ring2, r, r, ringRotation1, ringRotation2, liftLineColor, baseLiftThickness, false);
+                                drawLiftLine(ring1, ring2, r, r, ringRotation1, ringRotation2, liftLineColor, baseLiftThickness, false, rings.length);
                             }
                             
                             // 2. Skip-level direct lifts (all combinations, r → r)
                             if (showSkipDirectLifts && !isConsecutive && ring2.coprimes.includes(r)) {
-                                drawLiftLine(ring1, ring2, r, r, ringRotation1, ringRotation2, liftLineColor, baseLiftThickness * 0.6, false);
+                                drawLiftLine(ring1, ring2, r, r, ringRotation1, ringRotation2, liftLineColor, baseLiftThickness * 0.6, false, rings.length);
                             }
                             
                             // 3. Modular lifts (consecutive only, r → r + M×2ⁿ)
@@ -9380,7 +9706,7 @@
                                 const liftedR = (r + shift) % Math.round(ring2.modulus);
                                 
                                 if (ring2.coprimes.includes(liftedR)) {
-                                    drawLiftLine(ring1, ring2, r, liftedR, ringRotation1, ringRotation2, modularLiftColor, baseLiftThickness * 0.9, false);
+                                    drawLiftLine(ring1, ring2, r, liftedR, ringRotation1, ringRotation2, modularLiftColor, baseLiftThickness * 0.9, false, rings.length);
                                 }
                             }
                             
@@ -9396,7 +9722,7 @@
                                     const liftedR = (r + shift) % Math.round(ring2.modulus);
                                     
                                     if (ring2.coprimes.includes(liftedR)) {
-                                        drawLiftLine(ring1, ring2, r, liftedR, ringRotation1, ringRotation2, modularLiftColor, baseLiftThickness * 0.5, false);
+                                        drawLiftLine(ring1, ring2, r, liftedR, ringRotation1, ringRotation2, modularLiftColor, baseLiftThickness * 0.5, false, rings.length);
                                     }
                                 }
                             }
@@ -9407,6 +9733,33 @@
 
             ctx.restore();
             
+            // Draw coordinate system indicator
+            if (coordinateSystem !== 'polar') {
+                ctx.save();
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(10, 10, 200, 40);
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(10, 10, 200, 40);
+                
+                ctx.fillStyle = '#FFD700';
+                ctx.font = 'bold 14px Segoe UI';
+                ctx.textAlign = 'left';
+                
+                const systemNames = {
+                    'log-cylinder': 'Log-Cylinder (u,v)',
+                    'spiral': 'Logarithmic Spiral',
+                    'hyperbolic': 'Hyperbolic Space',
+                    'rectangular': 'Rectangular Grid',
+                    'treemap': 'Treemap',
+                    'voronoi': 'Voronoi',
+                    'fractal': 'Fractal'
+                };
+                
+                ctx.fillText(systemNames[coordinateSystem] || coordinateSystem, 20, 35);
+                ctx.restore();
+            }
+            
             // Draw distance measurement highlights if active
             if (distanceMeasurementActive) {
                 drawSelectedPoints();
@@ -9415,28 +9768,16 @@
             updateInfo(rings);
         }
 
-        // Helper function to draw lift lines
-        function drawLiftLine(ring1, ring2, r1, r2, rotation1, rotation2, color, thickness, isDashed) {
-            let baseAngle1, baseAngle2;
+        // Helper function to draw lift lines (needs rings context)
+        function drawLiftLine(ring1, ring2, r1, r2, rotation1, rotation2, color, thickness, isDashed, totalRings) {
+            // Get coordinates for both points using current coordinate system
+            const coords1 = transformCoordinates(ring1.modulus, r1, ring1.index, totalRings);
+            const coords2 = transformCoordinates(ring2.modulus, r2, ring2.index, totalRings);
             
-            if (ring1.n === 'unit') {
-                baseAngle1 = 0; // Unit circle at 0°
-            } else {
-                baseAngle1 = 2 * Math.PI * (ring1.modulus - r1) / ring1.modulus;
-            }
-            
-            if (ring2.n === 'unit') {
-                baseAngle2 = 0; // Unit circle at 0°
-            } else {
-                baseAngle2 = 2 * Math.PI * (ring2.modulus - r2) / ring2.modulus;
-            }
-            
-            const angle1 = baseAngle1 + rotation1;
-            const angle2 = baseAngle2 + rotation2;
-            const x1 = ring1.radius * Math.cos(angle1);
-            const y1 = ring1.radius * Math.sin(angle1);
-            const x2 = ring2.radius * Math.cos(angle2);
-            const y2 = ring2.radius * Math.sin(angle2);
+            const x1 = coords1.x;
+            const y1 = coords1.y;
+            const x2 = coords2.x;
+            const y2 = coords2.y;
 
             ctx.beginPath();
             ctx.moveTo(x1, y1);
@@ -9733,4 +10074,4 @@
         }, 500);
     </script>
 </body>
-</html>
+                                </html>
