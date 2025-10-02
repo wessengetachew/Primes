@@ -85,12 +85,12 @@
         }
 
         .app-container {
-            max-width: 1800px;
+            max-width: 100%;
             margin: 0 auto;
             padding: 20px;
             display: grid;
-            grid-template-columns: 320px 1fr 380px;
-            gap: 20px;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 15px;
             min-height: calc(100vh - 100px);
         }
 
@@ -8196,11 +8196,11 @@
                 return; // Don't start dragging when in distance mode
             }
             
+            isDragging = true;
             dragStartX = pos.x;
             dragStartY = pos.y;
             dragStartPanX = panX;
             dragStartPanY = panY;
-            isDragging = false;
             canvas.style.cursor = 'grabbing';
         });
 
@@ -8215,19 +8215,13 @@
                 return;
             }
             
-            // Check if mouse moved more than 5 pixels - then it's a drag
-            const dragDistance = Math.sqrt(
-                Math.pow(pos.x - dragStartX, 2) + 
-                Math.pow(pos.y - dragStartY, 2)
-            );
-            
-            if (dragDistance > 5 && (dragStartX !== undefined)) {
-                isDragging = true;
+            // Only pan if mouse button is pressed (isDragging is true)
+            if (isDragging) {
                 panX = dragStartPanX + (pos.x - dragStartX);
                 panY = dragStartPanY + (pos.y - dragStartY);
                 draw();
-            } else if (!isDragging) {
-                // Check for hover over residues
+            } else {
+                // Check for hover over residues only when not dragging
                 checkResidueHover(pos.x, pos.y);
             }
         });
@@ -8235,16 +8229,13 @@
         canvas.addEventListener('click', (e) => {
             const pos = getMousePos(e);
             
-            // Only process click if we didn't drag
-            if (!isDragging) {
-                if (distanceMeasurementActive) {
-                    handleDistanceMeasurementClick(pos.x, pos.y);
-                } else {
-                    handleResidueClick(pos.x, pos.y);
-                }
+            // Only process click for distance measurement or residue selection
+            // Don't treat a drag as a click
+            if (distanceMeasurementActive) {
+                handleDistanceMeasurementClick(pos.x, pos.y);
+            } else {
+                handleResidueClick(pos.x, pos.y);
             }
-            
-            isDragging = false;
         });
         
         function checkResidueHover(screenX, screenY) {
@@ -8402,19 +8393,15 @@
         }
 
         canvas.addEventListener('mouseup', () => {
-            draw();
-        });
-
-        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
             if (!distanceMeasurementActive) {
-                isDragging = false;
                 canvas.style.cursor = 'grab';
             }
         });
 
         canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
             if (!distanceMeasurementActive) {
-                isDragging = false;
                 canvas.style.cursor = 'grab';
             }
             hideResidueTooltip();
@@ -10116,4 +10103,4 @@
         }, 500);
     </script>
 </body>
-                                </html>
+</html>
