@@ -4512,12 +4512,13 @@
                     
                 case 'log-cylinder':
                     // u = ln(m), v = θ = 2πr/m
+                    // This should create a FLAT rectangular grid, not circular
                     const u = Math.log(modulus) * coordSystemParams.logCylinder.uScale * 80;
-                    const v = (residue / modulus) * 2 * Math.PI * coordSystemParams.logCylinder.vScale;
+                    const v = (residue / modulus) * coordSystemParams.logCylinder.vScale * 100 - 50; // Center vertically
                     return {
-                        x: u * Math.cos(v) * 0.8,
-                        y: u * Math.sin(v) * 0.8,
-                        displayAngle: v
+                        x: u - 150, // Shift left to center
+                        y: v,
+                        displayAngle: (residue / modulus) * 2 * Math.PI
                     };
                     
                 case 'spiral':
@@ -9154,48 +9155,42 @@
             
             // Draw coordinate system guides
             if (coordinateSystem === 'log-cylinder') {
-                // Draw log-cylinder grid
+                // Draw log-cylinder FLAT grid (like a rectangular coordinate plane)
                 ctx.strokeStyle = 'rgba(100, 150, 200, 0.2)';
                 ctx.lineWidth = 0.5;
                 
-                // Radial lines (constant u, varying v)
+                // Horizontal lines (constant v = constant θ)
+                for (let v = -50; v <= 50; v += 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(-200, v);
+                    ctx.lineTo(300, v);
+                    ctx.stroke();
+                }
+                
+                // Vertical lines (constant u = constant ln(m))
                 for (let u = 0; u <= 5; u += 0.5) {
+                    const x = u * coordSystemParams.logCylinder.uScale * 80 - 150;
                     ctx.beginPath();
-                    const radius = u * coordSystemParams.logCylinder.uScale * 80 * 0.8;
-                    for (let v = 0; v <= 2 * Math.PI; v += 0.1) {
-                        const x = radius * Math.cos(v);
-                        const y = radius * Math.sin(v);
-                        if (v === 0) ctx.moveTo(x, y);
-                        else ctx.lineTo(x, y);
-                    }
-                    ctx.closePath();
+                    ctx.moveTo(x, -100);
+                    ctx.lineTo(x, 100);
                     ctx.stroke();
                 }
                 
-                // Angular lines (constant v, varying u)
-                for (let v = 0; v < 2 * Math.PI; v += Math.PI / 6) {
-                    ctx.beginPath();
-                    for (let u = 0; u <= 5; u += 0.1) {
-                        const radius = u * coordSystemParams.logCylinder.uScale * 80 * 0.8;
-                        const x = radius * Math.cos(v);
-                        const y = radius * Math.sin(v);
-                        if (u === 0) ctx.moveTo(x, y);
-                        else ctx.lineTo(x, y);
-                    }
-                    ctx.stroke();
-                }
-                
-                // Labels
+                // Axis labels (without mod labels on points)
                 ctx.fillStyle = 'rgba(100, 150, 200, 0.6)';
-                ctx.font = '10px monospace';
+                ctx.font = '11px monospace';
                 ctx.textAlign = 'center';
-                for (let m = 1; m <= 20; m++) {
-                    const u = Math.log(m);
-                    const radius = u * coordSystemParams.logCylinder.uScale * 80 * 0.8;
-                    if (radius < 300) {
-                        ctx.fillText(`m=${m}`, radius + 15, 0);
-                    }
-                }
+                
+                // U-axis label
+                ctx.fillText('u = ln m', 0, -80);
+                
+                // V-axis label
+                ctx.save();
+                ctx.translate(-180, 0);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('v = θ (radians)', 0, 0);
+                ctx.restore();
+                
             } else if (coordinateSystem === 'spiral') {
                 // Draw spiral guide
                 ctx.strokeStyle = 'rgba(150, 100, 200, 0.2)';
@@ -10074,4 +10069,4 @@
         }, 500);
     </script>
 </body>
-                                </html>
+                                      </html>
