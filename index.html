@@ -967,9 +967,6 @@
                         <div class="checkbox-item">
                             <input type="checkbox" id="enableDistanceTool" onchange="toggleDistanceTool()"> Enable Distance Measurement
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="cumulativeDistanceMode" onchange="toggleCumulativeMode()"> Cumulative Mode (multi-point path)
-                        </div>
                         <div id="distanceControls" style="display: none; margin-top: 10px;">
                             <div style="font-size: 12px; opacity: 0.9; margin-bottom: 12px;">
                                 <strong>Manual Point Selection:</strong><br>
@@ -1006,22 +1003,8 @@
                                 <strong>Distance Calculator</strong><br>
                                 <em>Select two points using inputs above</em>
                             </div>
-                            
-                            <!-- Cumulative Mode Controls -->
-                            <div id="cumulativeControls" style="display: none; margin: 10px 0; padding: 10px; background: rgba(72, 187, 120, 0.15); border-radius: 6px; border: 1px solid rgba(72, 187, 120, 0.3);">
-                                <strong style="color: #4ECDC4;">Add Points to Path:</strong>
-                                <div class="gap-input" style="margin-top: 8px;">
-                                    r = <input type="number" id="cumulativeResidue" min="0" placeholder="0" style="width: 60px;">
-                                    mod <input type="number" id="cumulativeModulus" min="1" placeholder="30" style="width: 60px;">
-                                    <button onclick="addPointToCumulativePath()" style="background: linear-gradient(45deg, #4ECDC4, #44A08D); color: #fff; font-weight: bold; padding: 4px 10px;">Add Point</button>
-                                </div>
-                                <div id="cumulativePointsList" style="max-height: 150px; overflow-y: auto; margin-top: 10px; font-size: 11px;">
-                                    <em>No points added yet</em>
-                                </div>
-                            </div>
-                            
                             <div class="gap-input" style="margin-top: 10px;">
-                                <button onclick="clearDistanceMeasurement()">Clear All Points</button>
+                                <button onclick="clearDistanceMeasurement()">Clear Both Points</button>
                                 <button onclick="exportDistanceData()">Export Results</button>
                             </div>
                             
@@ -1032,10 +1015,7 @@
                                 • Cross rings: r=5,M=15 → r=11,M=30<br>
                                 • Any modulus: r=3,M=100 → r=17,M=500<br><br>
                                 <strong style="color: #4ECDC4;">✓ Works with ANY r and M values!</strong><br>
-                                <strong style="color: #FFD700;">✓ Respects current coordinate system!</strong><br>
-                                <em>Uses current radius scaling, coordinate system & label format</em><br><br>
-                                <strong>Cumulative Mode:</strong> Enable to measure total path distance through multiple points.<br>
-                                Click points in sequence to build a path. Total distance updates automatically.
+                                <em>Uses current radius scaling & label format settings</em>
                             </div>
                         </div>
                     </div>
@@ -2432,8 +2412,6 @@
         let distanceMeasurementActive = false;
         let selectedPoint1 = null;
         let selectedPoint2 = null;
-        let distancePoints = []; // Array to store all selected points for cumulative distance
-        let cumulativeMode = false; // Toggle between 2-point and cumulative mode
         
         // Farey sequence state
         let fareyData = {
@@ -4234,20 +4212,15 @@
                 const modulus = config.modulus;
                 const radius = calculateRadius(modulus, visualIndex, sortedRings.length);
                 
-                // Use transformed coordinates for hit detection
-                const allResidues = getAllResidues(modulus);
-                
-                allResidues.forEach(function(r) {
-                    const coords = transformCoordinates(modulus, r, visualIndex, sortedRings.length);
-                    const rx = coords.x;
-                    const ry = coords.y;
+                if (Math.abs(dist - radius) < 20) {
+                    const allResidues = getAllResidues(modulus);
                     
-                    const rdist = Math.sqrt((dx - rx) * (dx - rx) + (dy - ry) * (dy - ry));
+                    let ringRotation = 0;
+                    if (enableRotation) {
+                        ringRotation = animationFrame * ringRotationSpeeds[config.ringId] * Math.PI / 180;
+                    }
                     
-                    if (rdist < 15 && rdist < minDistance) {
-                        minDistance = rdist;
-                        
-                        // Calculate angle for storage (even in non-polar systems)
+                    allResidues.forEach(function(r) {
                         let baseAngle;
                         if (config.ringId === 'unit') {
                             baseAngle = 0;
@@ -4255,49 +4228,40 @@
                             baseAngle = 2 * Math.PI * (modulus - r) / modulus;
                         }
                         
-                        const finalRotation = rotation * Math.PI / 180;
-                        let ringRotation = 0;
-                        if (enableRotation) {
-                            ringRotation = animationFrame * ringRotationSpeeds[config.ringId] * Math.PI / 180;
-                        }
-                        const angle = baseAngle + finalRotation + ringRotation;
+                        const angle = baseAngle + ringRotation;
+                        const rx = radius * Math.cos(angle);
+                        const ry = radius * Math.sin(angle);
                         
-                        foundResidue = {
-                            residue: r,
-                            modulus: modulus,
-                            radius: radius,
-                            angle: angle,
-                            ringId: config.ringId,
-                            isGcdOne: gcd(r, Math.round(modulus)) === 1,
-                            visualX: rx,
-                            visualY: ry
-                        };
-                    }
-                });
+                        const rdist = Math.sqrt((dx - rx) * (dx - rx) + (dy - ry) * (dy - ry));
+                        
+                        if (rdist < 15 && rdist < minDistance) {
+                            minDistance = rdist;
+                            foundResidue = {
+                                residue: r,
+                                modulus: modulus,
+                                radius: radius,
+                                angle: angle,
+                                ringId: config.ringId,
+                                isGcdOne: gcd(r, Math.round(modulus)) === 1
+                            };
+                        }
+                    });
+                }
             });
             
             if (foundResidue) {
-                if (cumulativeMode) {
-                    // Add point to cumulative path
-                    distancePoints.push(foundResidue);
-                    displayCumulativeDistance();
-                    updateAnimationStatus(`Point ${distancePoints.length} added: r=${foundResidue.residue} mod ${Math.round(foundResidue.modulus)}`);
+                if (!selectedPoint1) {
+                    selectedPoint1 = foundResidue;
+                    updateDistanceDisplay('Point 1 selected', foundResidue);
+                    updateAnimationStatus('Point 1: r=' + foundResidue.residue + ' on M=' + Math.round(foundResidue.modulus));
                     draw();
-                } else {
-                    // 2-point mode
-                    if (!selectedPoint1) {
-                        selectedPoint1 = foundResidue;
-                        updateDistanceDisplay('Point 1 selected', foundResidue);
-                        updateAnimationStatus('Point 1: r=' + foundResidue.residue + ' on M=' + Math.round(foundResidue.modulus));
-                        draw();
-                    } else if (!selectedPoint2) {
-                        selectedPoint2 = foundResidue;
-                        
-                        const distResult = calculateEuclideanDistance(selectedPoint1, selectedPoint2);
-                        displayDistanceResults(distResult);
-                        updateAnimationStatus('Distance: ' + distResult.euclidean.toFixed(6) + ' units');
-                        draw();
-                    }
+                } else if (!selectedPoint2) {
+                    selectedPoint2 = foundResidue;
+                    
+                    const distResult = calculateEuclideanDistance(selectedPoint1, selectedPoint2);
+                    displayDistanceResults(distResult);
+                    updateAnimationStatus('Distance: ' + distResult.euclidean.toFixed(6) + ' units');
+                    draw();
                 }
             }
         }
@@ -4790,262 +4754,32 @@
         }
         
         function calculateEuclideanDistance(point1, point2) {
-            // CRITICAL: Use the coordinate system's transformed positions, not raw polar coordinates
-            // This ensures distance measurements respect the current visualization mode
+            // General distance formula: d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]
+            // But for any two points, use standard Euclidean distance
             
-            const allRingConfigs = [];
-            allRingConfigs.push({ ringId: 'unit', modulus: 1 });
-            for (let m = 2; m <= 1000; m++) {
-                allRingConfigs.push({ ringId: `virtual_${m}`, modulus: m });
-            }
-            allRingConfigs.sort((a, b) => a.modulus - b.modulus);
+            const r1 = point1.radius;
+            const r2 = point2.radius;
+            const theta1 = point1.angle;
+            const theta2 = point2.angle;
             
-            // Get ring indices for both points
-            const ringIndex1 = allRingConfigs.findIndex(rc => rc.modulus === point1.modulus);
-            const ringIndex2 = allRingConfigs.findIndex(rc => rc.modulus === point2.modulus);
+            // Convert to Cartesian coordinates
+            const x1 = r1 * Math.cos(theta1);
+            const y1 = r1 * Math.sin(theta1);
+            const x2 = r2 * Math.cos(theta2);
+            const y2 = r2 * Math.sin(theta2);
             
-            // Use coordinate transformation to get actual visual positions
-            const coords1 = transformCoordinates(point1.modulus, point1.residue, ringIndex1, allRingConfigs.length);
-            const coords2 = transformCoordinates(point2.modulus, point2.residue, ringIndex2, allRingConfigs.length);
-            
-            const x1 = coords1.x;
-            const y1 = coords1.y;
-            const x2 = coords2.x;
-            const y2 = coords2.y;
-            
-            // Calculate Euclidean distance in the transformed coordinate system
             const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
             
-            // For polar coordinates, also calculate using law of cosines for verification
-            let distanceLawOfCosines = 0;
-            if (coordinateSystem === 'polar') {
-                const r1 = point1.radius;
-                const r2 = point2.radius;
-                const theta1 = point1.angle;
-                const theta2 = point2.angle;
-                const angleDiff = Math.abs(theta2 - theta1);
-                distanceLawOfCosines = Math.sqrt(r1**2 + r2**2 - 2*r1*r2*Math.cos(angleDiff));
-            }
+            // Also calculate using the law of cosines for verification
+            const angleDiff = Math.abs(theta2 - theta1);
+            const distanceLawOfCosines = Math.sqrt(r1**2 + r2**2 - 2*r1*r2*Math.cos(angleDiff));
             
             return {
                 euclidean: distance,
                 lawOfCosines: distanceLawOfCosines,
                 cartesian: { x1, y1, x2, y2 },
-                polar: { 
-                    r1: point1.radius, 
-                    theta1: point1.angle * 180/Math.PI, 
-                    r2: point2.radius, 
-                    theta2: point2.angle * 180/Math.PI 
-                },
-                coordinateSystem: coordinateSystem
+                polar: { r1, theta1: theta1 * 180/Math.PI, r2, theta2: theta2 * 180/Math.PI }
             };
-        }
-        
-        function toggleCumulativeMode() {
-            cumulativeMode = document.getElementById('cumulativeDistanceMode').checked;
-            
-            // Show/hide appropriate controls
-            const point1Section = document.querySelector('#distanceControls > div:nth-child(2)');
-            const point2Section = document.querySelector('#distanceControls > div:nth-child(3)');
-            const cumulativeControls = document.getElementById('cumulativeControls');
-            
-            if (cumulativeMode) {
-                // Hide 2-point inputs, show cumulative controls
-                if (point1Section) point1Section.style.display = 'none';
-                if (point2Section) point2Section.style.display = 'none';
-                if (cumulativeControls) cumulativeControls.style.display = 'block';
-                
-                // Clear 2-point mode and switch to cumulative
-                selectedPoint1 = null;
-                selectedPoint2 = null;
-                distancePoints = [];
-                
-                const display = document.getElementById('distanceDisplay');
-                display.innerHTML = `<strong>Cumulative Distance Mode</strong><br>
-                    <em>Click points on canvas OR enter manually below</em><br>
-                    Current path: 0 points`;
-                
-                updateAnimationStatus('Cumulative distance mode enabled - click points or enter manually');
-            } else {
-                // Show 2-point inputs, hide cumulative controls
-                if (point1Section) point1Section.style.display = 'block';
-                if (point2Section) point2Section.style.display = 'block';
-                if (cumulativeControls) cumulativeControls.style.display = 'none';
-                
-                // Clear cumulative and switch to 2-point mode
-                distancePoints = [];
-                clearDistanceMeasurement();
-                updateAnimationStatus('2-point distance mode enabled');
-            }
-            
-            draw();
-        }
-        
-        function addPointToCumulativePath() {
-            const residue = parseInt(document.getElementById('cumulativeResidue').value);
-            const modulus = parseInt(document.getElementById('cumulativeModulus').value);
-            
-            if (isNaN(residue) || isNaN(modulus) || modulus < 1) {
-                alert('Please enter valid numbers for residue and modulus');
-                return;
-            }
-            
-            if (residue < 0 || residue >= modulus) {
-                alert(`Residue must be between 0 and ${modulus - 1} for modulus ${modulus}`);
-                return;
-            }
-            
-            // Get all rings to calculate position
-            const allRingConfigs = [];
-            allRingConfigs.push({ ringId: 'unit', modulus: 1 });
-            for (let m = 2; m <= 1000; m++) {
-                allRingConfigs.push({ ringId: `virtual_${m}`, modulus: m });
-            }
-            allRingConfigs.sort((a, b) => a.modulus - b.modulus);
-            
-            const ringIndex = allRingConfigs.findIndex(rc => rc.modulus === modulus);
-            if (ringIndex === -1) {
-                alert('Error calculating ring position');
-                return;
-            }
-            
-            const radius = calculateRadius(modulus, ringIndex, allRingConfigs.length);
-            
-            let baseAngle;
-            if (modulus === 1) {
-                baseAngle = 0;
-            } else {
-                baseAngle = 2 * Math.PI * (modulus - residue) / modulus;
-            }
-            
-            const rotation = parseFloat(document.getElementById('rotationSlider').value) * Math.PI / 180;
-            const angle = baseAngle + rotation;
-            
-            const newPoint = {
-                residue: residue,
-                modulus: modulus,
-                radius: radius,
-                angle: angle,
-                ringId: modulus === 1 ? 'unit' : `virtual_${modulus}`,
-                isGcdOne: gcd(residue, modulus) === 1
-            };
-            
-            distancePoints.push(newPoint);
-            
-            // Update the points list
-            updateCumulativePointsList();
-            
-            // Clear inputs for next point
-            document.getElementById('cumulativeResidue').value = '';
-            document.getElementById('cumulativeModulus').value = '';
-            
-            // Update display
-            displayCumulativeDistance();
-            draw();
-            
-            updateAnimationStatus(`Point ${distancePoints.length} added: r=${residue} mod ${modulus}`);
-        }
-        
-        function updateCumulativePointsList() {
-            const list = document.getElementById('cumulativePointsList');
-            
-            if (distancePoints.length === 0) {
-                list.innerHTML = '<em>No points added yet</em>';
-                return;
-            }
-            
-            let html = '<strong>Points in path:</strong><br>';
-            distancePoints.forEach((pt, idx) => {
-                const gcdVal = gcd(pt.residue, Math.round(pt.modulus));
-                const supportText = pt.isGcdOne ? '✓' : '✗';
-                html += `<div style="margin: 3px 0; padding: 3px; background: rgba(0,0,0,0.2); border-radius: 3px;">`;
-                html += `${idx + 1}. r=${pt.residue}, M=${Math.round(pt.modulus)} (gcd=${gcdVal}) ${supportText}`;
-                html += ` <button onclick="removeCumulativePoint(${idx})" style="font-size: 10px; padding: 2px 5px; background: #e74c3c;">✕</button>`;
-                html += `</div>`;
-            });
-            
-            list.innerHTML = html;
-        }
-        
-        function removeCumulativePoint(index) {
-            distancePoints.splice(index, 1);
-            updateCumulativePointsList();
-            displayCumulativeDistance();
-            draw();
-            updateAnimationStatus(`Point ${index + 1} removed`);
-        }
-        
-        function getRingIndexForModulus(modulus) {
-            const allRingConfigs = [];
-            allRingConfigs.push({ ringId: 'unit', modulus: 1 });
-            for (let m = 2; m <= 1000; m++) {
-                allRingConfigs.push({ ringId: `virtual_${m}`, modulus: m });
-            }
-            allRingConfigs.sort((a, b) => a.modulus - b.modulus);
-            return allRingConfigs.findIndex(rc => rc.modulus === modulus);
-        }
-        
-        function getTotalRingCount() {
-            return 1000; // Matches the virtual ring system
-        }
-        
-        function calculateCumulativeDistance() {
-            if (distancePoints.length < 2) {
-                return { total: 0, segments: [] };
-            }
-            
-            let totalDistance = 0;
-            const segments = [];
-            
-            for (let i = 0; i < distancePoints.length - 1; i++) {
-                const dist = calculateEuclideanDistance(distancePoints[i], distancePoints[i + 1]);
-                totalDistance += dist.euclidean;
-                segments.push({
-                    from: i,
-                    to: i + 1,
-                    distance: dist.euclidean,
-                    fromPoint: distancePoints[i],
-                    toPoint: distancePoints[i + 1]
-                });
-            }
-            
-            return { total: totalDistance, segments };
-        }
-        
-        function displayCumulativeDistance() {
-            const display = document.getElementById('distanceDisplay');
-            const result = calculateCumulativeDistance();
-            
-            if (distancePoints.length === 0) {
-                display.innerHTML = `<strong>Cumulative Distance Mode</strong><br>
-                    <em>Click points to build a path</em>`;
-                return;
-            }
-            
-            let html = `<strong>Cumulative Path Distance</strong><br>`;
-            html += `<strong>Points in path: ${distancePoints.length}</strong><br><br>`;
-            
-            if (distancePoints.length >= 2) {
-                html += `<div style="background: rgba(255,215,0,0.15); padding: 10px; border-radius: 6px; margin: 10px 0;">`;
-                html += `<strong style="color: #FFD700; font-size: 16px;">Total Distance: ${result.total.toFixed(6)} units</strong><br>`;
-                html += `<em>Coordinate system: ${coordinateSystem}</em>`;
-                html += `</div>`;
-                
-                html += `<strong>Segment Breakdown:</strong><br>`;
-                result.segments.forEach((seg, idx) => {
-                    html += `<div style="margin: 5px 0; padding: 5px; background: rgba(0,0,0,0.2); border-radius: 4px;">`;
-                    html += `${idx + 1}. P${seg.from + 1} → P${seg.to + 1}: ${seg.distance.toFixed(6)} units<br>`;
-                    html += `<em style="font-size: 10px;">r=${seg.fromPoint.residue},M=${Math.round(seg.fromPoint.modulus)} → r=${seg.toPoint.residue},M=${Math.round(seg.toPoint.modulus)}</em>`;
-                    html += `</div>`;
-                });
-            } else {
-                html += `<em>Select at least 2 points to calculate distance</em><br><br>`;
-                distancePoints.forEach((pt, idx) => {
-                    html += `<strong>Point ${idx + 1}:</strong> r=${pt.residue}, M=${Math.round(pt.modulus)}<br>`;
-                });
-            }
-            
-            display.innerHTML = html;
         }
         
         function toggleDistanceTool() {
@@ -5069,7 +4803,6 @@
         function clearDistanceMeasurement() {
             selectedPoint1 = null;
             selectedPoint2 = null;
-            distancePoints = [];
             
             document.getElementById('point1Residue').value = '';
             document.getElementById('point1Modulus').value = '';
@@ -5083,86 +4816,12 @@
             if (point2Status) point2Status.innerHTML = '<em>Not selected</em>';
             
             const display = document.getElementById('distanceDisplay');
-            
-            if (cumulativeMode) {
-                display.innerHTML = `<strong>Cumulative Distance Mode</strong><br><em>Click points to build a path</em>`;
-            } else {
-                display.innerHTML = `<strong>Distance Calculator</strong><br><em>Select two points using inputs above</em>`;
-            }
+            display.innerHTML = `<strong>Distance Calculator</strong><br><em>Select two points using inputs above</em>`;
             
             draw();
         }
         
         function exportDistanceData() {
-            if (cumulativeMode) {
-                exportCumulativeDistanceData();
-            } else {
-                exportTwoPointDistanceData();
-            }
-        }
-        
-        function exportCumulativeDistanceData() {
-            if (distancePoints.length < 2) {
-                alert('Please add at least 2 points to export cumulative distance data');
-                return;
-            }
-            
-            const result = calculateCumulativeDistance();
-            
-            let exportText = `CUMULATIVE DISTANCE MEASUREMENT REPORT\n`;
-            exportText += `Generated: ${new Date().toISOString()}\n`;
-            exportText += `Riemann Hypothesis Explorer - Cumulative Path Distance\n`;
-            exportText += `Coordinate System: ${coordinateSystem}\n`;
-            exportText += `Radius Scaling: ${radiusScalingMode}\n\n`;
-            exportText += `${'='.repeat(60)}\n\n`;
-            
-            exportText += `TOTAL PATH DISTANCE: ${result.total.toFixed(6)} units\n`;
-            exportText += `NUMBER OF POINTS: ${distancePoints.length}\n`;
-            exportText += `NUMBER OF SEGMENTS: ${result.segments.length}\n\n`;
-            
-            exportText += `${'='.repeat(60)}\n`;
-            exportText += `PATH POINTS:\n`;
-            exportText += `${'='.repeat(60)}\n\n`;
-            
-            distancePoints.forEach((pt, idx) => {
-                exportText += `POINT ${idx + 1}:\n`;
-                exportText += `  Ring: M = ${Math.round(pt.modulus)}\n`;
-                exportText += `  Residue: r = ${pt.residue}\n`;
-                exportText += `  Radius: r = ${pt.radius.toFixed(3)} units\n`;
-                exportText += `  GCD(r,M): ${gcd(pt.residue, Math.round(pt.modulus))}\n`;
-                exportText += `  Character Support: ${pt.isGcdOne ? 'χ(r) ≠ 0 ✓' : 'χ(r) = 0 ✗'}\n\n`;
-            });
-            
-            exportText += `${'='.repeat(60)}\n`;
-            exportText += `SEGMENT DISTANCES:\n`;
-            exportText += `${'='.repeat(60)}\n\n`;
-            
-            result.segments.forEach((seg, idx) => {
-                exportText += `SEGMENT ${idx + 1}: Point ${seg.from + 1} → Point ${seg.to + 1}\n`;
-                exportText += `  From: r=${seg.fromPoint.residue}, M=${Math.round(seg.fromPoint.modulus)}\n`;
-                exportText += `  To: r=${seg.toPoint.residue}, M=${Math.round(seg.toPoint.modulus)}\n`;
-                exportText += `  Distance: ${seg.distance.toFixed(6)} units\n`;
-                exportText += `  Percentage of total: ${((seg.distance / result.total) * 100).toFixed(2)}%\n\n`;
-            });
-            
-            exportText += `${'='.repeat(60)}\n`;
-            exportText += `SUMMARY:\n`;
-            exportText += `  Average segment length: ${(result.total / result.segments.length).toFixed(6)} units\n`;
-            exportText += `  Longest segment: ${Math.max(...result.segments.map(s => s.distance)).toFixed(6)} units\n`;
-            exportText += `  Shortest segment: ${Math.min(...result.segments.map(s => s.distance)).toFixed(6)} units\n`;
-            
-            const blob = new Blob([exportText], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `cumulative_distance_${distancePoints.length}points_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
-            link.click();
-            URL.revokeObjectURL(url);
-            
-            updateAnimationStatus('Cumulative distance data exported');
-        }
-        
-        function exportTwoPointDistanceData() {
             if (!selectedPoint1 || !selectedPoint2) {
                 alert('Please select two points first');
                 return;
@@ -5172,9 +4831,7 @@
             
             let exportText = `DISTANCE MEASUREMENT REPORT\n`;
             exportText += `Generated: ${new Date().toISOString()}\n`;
-            exportText += `Riemann Hypothesis Explorer - Distance Analysis\n`;
-            exportText += `Coordinate System: ${dist.coordinateSystem}\n`;
-            exportText += `Radius Scaling: ${radiusScalingMode}\n\n`;
+            exportText += `Riemann Hypothesis Explorer - Distance Analysis\n\n`;
             exportText += `${'='.repeat(60)}\n\n`;
             
             exportText += `POINT 1:\n`;
@@ -5198,14 +4855,14 @@
             exportText += `${'='.repeat(60)}\n\n`;
             exportText += `Euclidean Distance:\n`;
             exportText += `  d = ${dist.euclidean.toFixed(6)} units\n\n`;
+            exportText += `Law of Cosines Verification:\n`;
+            exportText += `  d = √[r₁² + r₂² - 2r₁r₂cos(θ₂-θ₁)]\n`;
+            exportText += `  d = ${dist.lawOfCosines.toFixed(6)} units\n\n`;
+            exportText += `Difference: ${Math.abs(dist.euclidean - dist.lawOfCosines).toExponential(3)} units\n`;
+            exportText += `(Should be near machine precision)\n\n`;
             
-            if (dist.coordinateSystem === 'polar' && dist.lawOfCosines > 0) {
-                exportText += `Law of Cosines Verification:\n`;
-                exportText += `  d = √[r₁² + r₂² - 2r₁r₂cos(θ₂-θ₁)]\n`;
-                exportText += `  d = ${dist.lawOfCosines.toFixed(6)} units\n\n`;
-                exportText += `Difference: ${Math.abs(dist.euclidean - dist.lawOfCosines).toExponential(3)} units\n`;
-                exportText += `(Should be near machine precision)\n\n`;
-            }
+            exportText += `General Formula (for point on ring M to unit circle):\n`;
+            exportText += `  d = √[r₁² - 2r₁r_m cos(2πk/m) + r_m²]\n\n`;
             
             const blob = new Blob([exportText], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -10459,4 +10116,4 @@
         }, 500);
     </script>
 </body>
-</html>
+                                </html>
