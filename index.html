@@ -1560,6 +1560,72 @@
                 </div>
 
                 <div class="control-section" style="background: linear-gradient(45deg, rgba(78, 205, 196, 0.15), rgba(138, 43, 226, 0.15)); border: 2px solid rgba(78, 205, 196, 0.4);">
+                    <h3 onclick="toggleSection('smithChartSection')" style="cursor: pointer; user-select: none; color: #4ECDC4;">
+                        <span class="collapse-icon collapsed" id="smithChartSectionIcon">▼</span>
+                        Smith Chart Transform (Cayley Map)
+                    </h3>
+                    <div id="smithChartSection" class="collapsible-section collapsed">
+                    <div class="custom-gap">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="enableSmithChart" onchange="toggleSmithChart()"> Enable Smith Chart Transform
+                        </div>
+                        
+                        <div id="smithChartControls" style="display: none; margin-top: 15px;">
+                            <div class="slider-group">
+                                <label>Global Phase Shift α: <span id="smithAlphaValue">90</span>°</label>
+                                <input type="range" id="smithAlpha" min="0" max="360" step="1" value="90" oninput="updateSmithChart()">
+                            </div>
+                            
+                            <div class="slider-group">
+                                <label>Radius Scaling Mode:</label>
+                                <select id="smithRadiusMode" onchange="updateSmithChart()">
+                                    <option value="unit">Unit Radius (R=1)</option>
+                                    <option value="scaled" selected>Scaled by Index</option>
+                                    <option value="modulus">By Modulus Value</option>
+                                    <option value="custom">Custom Scaling</option>
+                                </select>
+                            </div>
+                            
+                            <div class="slider-group" id="smithCustomScaleGroup" style="display: none;">
+                                <label>Custom Radius Scale: <span id="smithScaleValue">1.0</span></label>
+                                <input type="range" id="smithScale" min="0.1" max="5" step="0.1" value="1.0" oninput="updateSmithScale()">
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="smithShowGrid" checked onchange="draw()"> Show Smith Grid
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="smithShowCircles" checked onchange="draw()"> Show Constant-R Circles
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="smithShowArcs" checked onchange="draw()"> Show Constant-X Arcs
+                            </div>
+                            
+                            <div style="font-size: 0.85em; opacity: 0.9; margin-top: 10px; padding: 10px; background: rgba(78, 205, 196, 0.1); border-radius: 6px; border-left: 3px solid #4ECDC4;">
+                                <strong>Cayley/Smith Transform:</strong><br>
+                                Γ = (z - 1)/(z + 1)<br><br>
+                                • Maps z = R·e^(iθ) → unit disk<br>
+                                • θ = 2πr/M + α (residue angle)<br>
+                                • R=1: pure imaginary axis<br>
+                                • R>1: Smith chart arcs<br>
+                                • Conformal mapping preserves angles<br><br>
+                                <strong>Real part:</strong><br>
+                                Re(Γ) = (AC + B²)/(C² + B²)<br>
+                                A = R·cos(θ) - 1, B = R·sin(θ)<br>
+                                C = R·cos(θ) + 1<br><br>
+                                <strong>Imaginary part:</strong><br>
+                                Im(Γ) = B(C - A)/(C² + B²)<br><br>
+                                Special case (R=1):<br>
+                                Γ(θ) = i·tan(θ/2)
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                
+                <div class="control-section" style="background: linear-gradient(45deg, rgba(78, 205, 196, 0.15), rgba(138, 43, 226, 0.15)); border: 2px solid rgba(78, 205, 196, 0.4);">
                     <h3 onclick="toggleSection('rotation3dSection')" style="cursor: pointer; user-select: none; color: #4ECDC4;">
                         <span class="collapse-icon collapsed" id="rotation3dSectionIcon">▼</span>
                         3D Rotation Panel
@@ -2927,6 +2993,173 @@
             
             updateAnimationStatus('Certificate exported');
         }
+        // Smith Chart transform state
+        let smithChartEnabled = false;
+        let smithAlpha = Math.PI / 2; // 90 degrees by default (north pole)
+        let smithRadiusMode = 'scaled';
+        let smithCustomScale = 1.0;
+        
+        function toggleSmithChart() {
+            smithChartEnabled = document.getElementById('enableSmithChart').checked;
+            const controls = document.getElementById('smithChartControls');
+            controls.style.display = smithChartEnabled ? 'block' : 'none';
+            
+            if (smithChartEnabled) {
+                updateAnimationStatus('Smith Chart transform enabled');
+            } else {
+                updateAnimationStatus('Smith Chart transform disabled');
+            }
+            
+            draw();
+        }
+        
+        function updateSmithChart() {
+            const alpha = parseFloat(document.getElementById('smithAlpha').value);
+            smithAlpha = alpha * Math.PI / 180;
+            document.getElementById('smithAlphaValue').textContent = alpha;
+            
+            smithRadiusMode = document.getElementById('smithRadiusMode').value;
+            
+            const customScaleGroup = document.getElementById('smithCustomScaleGroup');
+            customScaleGroup.style.display = smithRadiusMode === 'custom' ? 'block' : 'none';
+            
+            draw();
+        }
+        
+        function updateSmithScale() {
+            smithCustomScale = parseFloat(document.getElementById('smithScale').value);
+            document.getElementById('smithScaleValue').textContent = smithCustomScale.toFixed(1);
+            draw();
+        }
+        
+        // Cayley/Möbius transform: Γ = (z - 1)/(z + 1)
+        function cayleyTransform(z) {
+            // z = {re, im}
+            const numeratorRe = z.re - 1;
+            const numeratorIm = z.im;
+            const denominatorRe = z.re + 1;
+            const denominatorIm = z.im;
+            
+            // Complex division: (a + bi)/(c + di) = [(ac + bd) + i(bc - ad)]/(c² + d²)
+            const denomMagSq = denominatorRe * denominatorRe + denominatorIm * denominatorIm;
+            
+            if (denomMagSq < 1e-10) {
+                // Avoid division by zero
+                return {re: 0, im: 0};
+            }
+            
+            const gammaRe = (numeratorRe * denominatorRe + numeratorIm * denominatorIm) / denomMagSq;
+            const gammaIm = (numeratorIm * denominatorRe - numeratorRe * denominatorIm) / denomMagSq;
+            
+            return {re: gammaRe, im: gammaIm};
+        }
+        
+        // Alternative direct formula using trig
+        function cayleyTransformDirect(R, theta) {
+            const A = R * Math.cos(theta) - 1;
+            const B = R * Math.sin(theta);
+            const C = R * Math.cos(theta) + 1;
+            
+            const denominator = C * C + B * B;
+            
+            if (denominator < 1e-10) {
+                return {re: 0, im: 0};
+            }
+            
+            const gammaRe = (A * C + B * B) / denominator;
+            const gammaIm = (B * (C - A)) / denominator;
+            
+            return {re: gammaRe, im: gammaIm};
+        }
+        
+        // Special case for unit radius R=1
+        function cayleyTransformUnit(theta) {
+            // Γ(θ) = i·tan(θ/2)
+            return {re: 0, im: Math.tan(theta / 2)};
+        }
+        
+        // Get Smith chart radius for a ring
+        function getSmithRadius(ringIndex, totalRings, modulus) {
+            switch(smithRadiusMode) {
+                case 'unit':
+                    return 1.0;
+                case 'scaled':
+                    // Scale from 0.5 to 2.0 based on ring index
+                    return 0.5 + (ringIndex / Math.max(1, totalRings - 1)) * 1.5;
+                case 'modulus':
+                    // Use modulus value (normalized)
+                    return Math.min(3.0, Math.log(modulus + 1) / Math.log(10));
+                case 'custom':
+                    return smithCustomScale;
+                default:
+                    return 1.0;
+            }
+        }
+        
+        // Draw Smith chart grid
+        function drawSmithChartGrid(maxRadius = 250) {
+            if (!document.getElementById('smithShowGrid')?.checked) return;
+            
+            ctx.save();
+            ctx.strokeStyle = 'rgba(100, 150, 200, 0.3)';
+            ctx.lineWidth = 0.5;
+            
+            // Unit circle boundary
+            ctx.beginPath();
+            ctx.arc(0, 0, maxRadius, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Constant-R circles (right half)
+            if (document.getElementById('smithShowCircles')?.checked) {
+                const rValues = [0.2, 0.5, 1.0, 2.0, 5.0];
+                rValues.forEach(r => {
+                    // For constant resistance r, circles centered at (r/(1+r), 0) with radius 1/(1+r)
+                    const center = r / (1 + r);
+                    const radius = 1 / (1 + r);
+                    
+                    ctx.beginPath();
+                    ctx.arc(center * maxRadius, 0, radius * maxRadius, 0, 2 * Math.PI);
+                    ctx.strokeStyle = 'rgba(100, 150, 200, 0.25)';
+                    ctx.stroke();
+                });
+            }
+            
+            // Constant-X arcs (reactance)
+            if (document.getElementById('smithShowArcs')?.checked) {
+                const xValues = [-2, -1, -0.5, 0.5, 1, 2];
+                xValues.forEach(x => {
+                    // For constant reactance x, arcs centered at (1, 1/x) with radius 1/|x|
+                    if (Math.abs(x) < 0.01) return;
+                    
+                    const centerY = 1 / x;
+                    const radius = 1 / Math.abs(x);
+                    
+                    ctx.beginPath();
+                    ctx.arc(maxRadius, centerY * maxRadius, radius * maxRadius, 
+                            x > 0 ? Math.PI : 0, 
+                            x > 0 ? 0 : Math.PI, 
+                            x > 0);
+                    ctx.strokeStyle = 'rgba(150, 100, 200, 0.25)';
+                    ctx.stroke();
+                });
+            }
+            
+            // Real and imaginary axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-maxRadius, 0);
+            ctx.lineTo(maxRadius, 0);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, -maxRadius);
+            ctx.lineTo(0, maxRadius);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+        
         // 3D Rotation state
         let ring3DRotations = {}; // Store rotation for each ring: {ringId: {x, y, z}}
         let current3DRing = 'all'; // Currently selected ring for rotation
@@ -5532,7 +5765,40 @@
             // Base 2D coordinates
             let x, y, displayAngle;
             
-            // Transform based on coordinate system
+            // Check if Smith Chart transform is enabled
+            if (smithChartEnabled) {
+                // Compute θ_k,r = 2πr/M_k + α
+                const theta = (2 * Math.PI * residue / modulus) + smithAlpha;
+                
+                // Get radius R_k based on mode
+                const R = getSmithRadius(ringIndex, totalRings, modulus);
+                
+                // z_k,r = R_k * e^(iθ_k,r)
+                const z = {
+                    re: R * Math.cos(theta),
+                    im: R * Math.sin(theta)
+                };
+                
+                // Apply Cayley transform: Γ = (z - 1)/(z + 1)
+                let gamma;
+                if (smithRadiusMode === 'unit') {
+                    // Use special case formula for R=1
+                    gamma = cayleyTransformUnit(theta);
+                } else {
+                    // Use general formula
+                    gamma = cayleyTransformDirect(R, theta);
+                }
+                
+                // Scale to fit canvas (map unit disk to display radius)
+                const smithScale = 250; // Display radius for Smith chart
+                x = gamma.re * smithScale;
+                y = gamma.im * smithScale;
+                displayAngle = Math.atan2(gamma.im, gamma.re);
+                
+                return {x, y, z: 0, displayAngle};
+            }
+            
+            // Original coordinate systems (non-Smith)
             switch(coordinateSystem) {
                 case 'polar':
                     x = baseRadius * Math.cos(angle);
@@ -10546,6 +10812,11 @@
             ctx.translate(canvas.width / 2 + panX, canvas.height / 2 + panY);
             ctx.scale(currentZoom, currentZoom);
             ctx.rotate((rotation + (animating ? animationFrame * 0.3 : 0)) * Math.PI / 180);
+            
+            // Draw Smith chart grid if enabled
+            if (smithChartEnabled) {
+                drawSmithChartGrid();
+            }
             
             // Draw coordinate system guides
             if (coordinateSystem === 'log-cylinder') {
