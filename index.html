@@ -955,12 +955,92 @@
                     
                     </div>
                 </div>
+                <div class="control-section">
+                    <h3 onclick="toggleSection('globalScaleSection')" style="cursor: pointer; user-select: none;">
+                        <span class="collapse-icon collapsed" id="globalScaleSectionIcon">▼</span>
+                        Global Scale Control
+                    </h3>
+                    <div id="globalScaleSection" class="collapsible-section collapsed">
+                        <div class="slider-group">
+                            <label>Global Visual Scale: <span id="globalScaleValue">1.0</span>x</label>
+                            <input type="range" id="globalScale" min="0.3" max="3.0" step="0.1" value="1.0" oninput="updateGlobalScale()">
+                        </div>
+                        <div style="font-size: 0.85em; opacity: 0.9; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                            <strong>Scales entire system:</strong><br>
+                            • Ring radii and spacing<br>
+                            • Point sizes and line thickness<br>
+                            • Labels and annotations<br>
+                            • Prime-phase field vectors<br>
+                            Use for better visibility or to fit more rings on screen
+                        </div>
+                    </div>
+                </div>
+
                 <div class="control-section rh-section">
                     <h3 onclick="toggleSection('rhSection')" style="cursor: pointer; user-select: none;">
                         <span class="collapse-icon collapsed" id="rhSectionIcon">▼</span>
                         Riemann Hypothesis Research Hub
                     </h3>
                     <div id="rhSection" class="collapsible-section collapsed">
+                    
+                    
+                    <div class="custom-gap" style="background: linear-gradient(45deg, rgba(255, 215, 0, 0.15), rgba(72, 187, 120, 0.15)); border: 2px solid rgba(255, 215, 0, 0.3); margin-top: 15px;">
+                        <label><strong>Zero-Residue Alignment Diagnostics:</strong></label>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="enableZeroAlignment" onchange="toggleZeroAlignment()"> Enable Alignment Analysis
+                        </div>
+                        
+                        <div id="zeroAlignmentControls" style="display: none; margin-top: 10px;">
+                            <div class="slider-group">
+                                <label>Height t (imaginary part): <span id="alignmentTValue">14.134</span></label>
+                                <input type="range" id="alignmentT" min="0" max="100" step="0.5" value="14.134" oninput="updateAlignmentT()">
+                            </div>
+                            
+                            <div class="slider-group">
+                                <label>Prime Cutoff X: <span id="alignmentXValue">1000</span></label>
+                                <input type="range" id="alignmentX" min="100" max="10000" step="100" value="1000" oninput="updateAlignmentX()">
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showPrimePhaseVectors" checked onchange="updateZeroAlignment()"> Show Prime-Phase Vectors P_t(M,r)
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showCoherenceScore" checked onchange="updateZeroAlignment()"> Show Coherence Score C_t
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="enableTSweep" onchange="toggleTSweep()"> Enable t-Sweep Animation
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showRandomBaseline" onchange="updateZeroAlignment()"> Compare with Random Phase Baseline
+                            </div>
+                            
+                            <div class="slider-group" id="tSweepControls" style="display: none;">
+                                <label>Sweep Speed: <span id="tSweepSpeedValue">1.0</span>x</label>
+                                <input type="range" id="tSweepSpeed" min="0.1" max="5.0" step="0.1" value="1.0" oninput="updateTSweepSpeed()">
+                            </div>
+                            
+                            <div class="gap-input" style="margin-top: 15px;">
+                                <button class="rh-btn" onclick="computeAlignmentForAllZeros()">Test All Known Zeros</button>
+                                <button class="rh-btn" onclick="findCoherencePeaks()">Find Coherence Peaks</button>
+                            </div>
+                            
+                            <div id="alignmentResults" style="display: none; margin-top: 15px; padding: 15px; background: rgba(72, 187, 120, 0.1); border-radius: 8px; border: 2px solid rgba(72, 187, 120, 0.3);">
+                                <strong>Alignment Analysis Results:</strong>
+                                <div id="alignmentResultsContent" style="font-size: 12px; margin-top: 10px;"></div>
+                            </div>
+                            
+                            <div style="font-size: 11px; opacity: 0.85; margin-top: 10px; padding: 8px; background: rgba(255, 215, 0, 0.1); border-radius: 4px;">
+                                <strong>Mathematical Framework:</strong><br>
+                                • P_t(M,r) = Σ p^(-1/2) e^(it·ln p) for p≡r (mod M)<br>
+                                • C_t = Σ Re(P_t(M,r)) measures global coherence<br>
+                                • Peaks in C_t correlate with zero heights<br>
+                                • Random baseline tests genuine alignment vs noise
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="custom-gap" style="background: linear-gradient(45deg, rgba(255, 215, 0, 0.12), rgba(72, 187, 120, 0.12)); border: 2px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
                         <label><strong>Advanced Distance Measurement:</strong></label>
@@ -2068,6 +2148,24 @@
             <!-- Dedicated RH Visualization Section -->
             <div class="rh-visualization-section">
                 <h3>Riemann Hypothesis Visual Analysis</h3>
+                
+                <!-- Zero-Residue Alignment Panel (if active) -->
+                <div id="zeroAlignmentPanel" style="display: none; background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(72, 187, 120, 0.15)); border: 2px solid rgba(255, 215, 0, 0.4); border-radius: 15px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="color: #FFD700; text-align: center; margin-bottom: 15px;">Zero-Residue Alignment Diagnostics</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <canvas id="primePhaseCanvas" width="400" height="300" style="background: #000; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3);"></canvas>
+                            <div class="rh-visual-title">Prime-Phase Field P_t(M,r)</div>
+                            <div class="rh-visual-desc">Complex vectors at each residue</div>
+                        </div>
+                        <div>
+                            <canvas id="coherenceGraphCanvas" width="400" height="300" style="background: #000; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3);"></canvas>
+                            <div class="rh-visual-title">Coherence Score C_t vs t</div>
+                            <div class="rh-visual-desc">Peaks indicate zero heights</div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="rh-visual-grid">
                     <div class="critical-line-display">
                         <canvas id="criticalLineCanvas" width="400" height="300"></canvas>
@@ -3404,6 +3502,680 @@
             isActive: false
         };
 
+        // Zero-Residue Alignment Diagnostics state
+        let zeroAlignmentActive = false;
+        let alignmentT = 14.134; // First zero
+        let alignmentX = 1000; // Prime cutoff
+        let tSweepActive = false;
+        let tSweepSpeed = 1.0;
+        let primePhaseCache = {}; // Cache computed P_t(M,r) values
+        
+        function toggleZeroAlignment() {
+            zeroAlignmentActive = document.getElementById('enableZeroAlignment').checked;
+            const controls = document.getElementById('zeroAlignmentControls');
+            const panel = document.getElementById('zeroAlignmentPanel');
+            
+            controls.style.display = zeroAlignmentActive ? 'block' : 'none';
+            panel.style.display = zeroAlignmentActive ? 'block' : 'none';
+            
+            if (zeroAlignmentActive) {
+                updateZeroAlignment();
+                updateAnimationStatus('Zero-Residue Alignment Diagnostics enabled');
+            } else {
+                updateAnimationStatus('Alignment diagnostics disabled');
+                draw();
+            }
+        }
+        
+        function updateAlignmentT() {
+            alignmentT = parseFloat(document.getElementById('alignmentT').value);
+            document.getElementById('alignmentTValue').textContent = alignmentT.toFixed(3);
+            primePhaseCache = {}; // Invalidate cache
+            updateZeroAlignment();
+        }
+        
+        function updateAlignmentX() {
+            alignmentX = parseInt(document.getElementById('alignmentX').value);
+            document.getElementById('alignmentXValue').textContent = alignmentX;
+            primePhaseCache = {}; // Invalidate cache
+            updateZeroAlignment();
+        }
+        
+        function updateTSweepSpeed() {
+            tSweepSpeed = parseFloat(document.getElementById('tSweepSpeed').value);
+            document.getElementById('tSweepSpeedValue').textContent = tSweepSpeed.toFixed(1);
+        }
+        
+        function toggleTSweep() {
+            tSweepActive = document.getElementById('enableTSweep').checked;
+            const controls = document.getElementById('tSweepControls');
+            controls.style.display = tSweepActive ? 'block' : 'none';
+            
+            if (tSweepActive) {
+                updateAnimationStatus('t-Sweep animation enabled');
+                if (!animating) {
+                    animating = true;
+                    animate();
+                }
+            } else {
+                updateAnimationStatus('t-Sweep animation disabled');
+            }
+        }
+        
+        // Diagnostic A: Compute Prime-Phase Field P_t(M,r)
+        function computePrimePhaseField(M, r, t, X) {
+            const cacheKey = `${M}_${r}_${t.toFixed(3)}_${X}`;
+            if (primePhaseCache[cacheKey]) {
+                return primePhaseCache[cacheKey];
+            }
+            
+            const primes = sieveOfEratosthenes(X);
+            let sumReal = 0;
+            let sumImag = 0;
+            
+            primes.forEach(p => {
+                if (p % M === r) {
+                    const weight = Math.pow(p, -0.5);
+                    const phase = t * Math.log(p);
+                    sumReal += weight * Math.cos(phase);
+                    sumImag += weight * Math.sin(phase);
+                }
+            });
+            
+            const result = { re: sumReal, im: sumImag };
+            primePhaseCache[cacheKey] = result;
+            return result;
+        }
+        
+        // Diagnostic B: Compute Modular Coherence Score C_t
+        function computeCoherenceScore(M, t, X) {
+            const coprimes = getCoprimes(M);
+            let totalCoherence = 0;
+            
+            coprimes.forEach(r => {
+                const P_t = computePrimePhaseField(M, r, t, X);
+                totalCoherence += P_t.re; // Sum of real parts
+            });
+            
+            return totalCoherence;
+        }
+        
+        // Diagnostic D: Random Phase Baseline
+        function computeRandomPhaseBaseline(M, r, X, numTrials = 50) {
+            const primes = sieveOfEratosthenes(X);
+            const relevantPrimes = primes.filter(p => p % M === r);
+            
+            let avgCoherenceReal = 0;
+            let avgCoherenceImag = 0;
+            
+            for (let trial = 0; trial < numTrials; trial++) {
+                let sumReal = 0;
+                let sumImag = 0;
+                
+                relevantPrimes.forEach(p => {
+                    const weight = Math.pow(p, -0.5);
+                    const randomPhase = Math.random() * 2 * Math.PI;
+                    sumReal += weight * Math.cos(randomPhase);
+                    sumImag += weight * Math.sin(randomPhase);
+                });
+                
+                avgCoherenceReal += sumReal;
+                avgCoherenceImag += sumImag;
+            }
+            
+            return {
+                re: avgCoherenceReal / numTrials,
+                im: avgCoherenceImag / numTrials
+            };
+        }
+        
+        function updateZeroAlignment() {
+            if (!zeroAlignmentActive) return;
+            
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) {
+                updateAnimationStatus('Select rings for alignment analysis');
+                return;
+            }
+            
+            // Update visualization
+            draw();
+            
+            // Compute coherence scores for selected rings
+            const results = [];
+            selectedRings.forEach(ringId => {
+                const config = configs[ringId];
+                if (!config || config.mod === 1) return;
+                
+                const M = Math.round(config.mod);
+                const C_t = computeCoherenceScore(M, alignmentT, alignmentX);
+                
+                results.push({
+                    modulus: M,
+                    coherence: C_t,
+                    eulerPhi: getCoprimes(M).length
+                });
+            });
+            
+            if (results.length > 0) {
+                displayAlignmentResults(results);
+            }
+        }
+        
+        function updateZeroAlignment() {
+            if (!zeroAlignmentActive) return;
+            
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) {
+                updateAnimationStatus('Select rings for alignment analysis');
+                return;
+            }
+            
+            // Show alignment panel
+            document.getElementById('zeroAlignmentPanel').style.display = 'block';
+            
+            // Update main canvas
+            draw();
+            
+            // Update prime-phase field visualization
+            drawPrimePhaseFieldCanvas(selectedRings);
+            
+            // Update coherence graph
+            drawCoherenceGraphCanvas(selectedRings);
+            
+            // Compute coherence scores for selected rings
+            const results = [];
+            selectedRings.forEach(ringId => {
+                const config = configs[ringId];
+                if (!config || config.mod === 1) return;
+                
+                const M = Math.round(config.mod);
+                const C_t = computeCoherenceScore(M, alignmentT, alignmentX);
+                
+                results.push({
+                    modulus: M,
+                    coherence: C_t,
+                    eulerPhi: getCoprimes(M).length
+                });
+            });
+            
+            if (results.length > 0) {
+                displayAlignmentResults(results);
+            }
+        }
+        
+        function drawPrimePhaseFieldCanvas(selectedRings) {
+            const canvas = document.getElementById('primePhaseCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const maxRadius = Math.min(centerX, centerY) - 40;
+            
+            // Draw unit circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, maxRadius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(centerX - maxRadius, centerY);
+            ctx.lineTo(centerX + maxRadius, centerY);
+            ctx.moveTo(centerX, centerY - maxRadius);
+            ctx.lineTo(centerX, centerY + maxRadius);
+            ctx.stroke();
+            
+            // Get first selected ring for analysis
+            const ringId = selectedRings.find(id => configs[id] && configs[id].mod > 1);
+            if (!ringId) return;
+            
+            const M = Math.round(configs[ringId].mod);
+            const coprimes = getCoprimes(M);
+            
+            // Draw vectors for each residue
+            coprimes.forEach(r => {
+                const P_t = computePrimePhaseField(M, r, alignmentT, alignmentX);
+                const magnitude = Math.sqrt(P_t.re * P_t.re + P_t.im * P_t.im);
+                const argument = Math.atan2(P_t.im, P_t.re);
+                
+                // Scale to fit canvas
+                const scaledMag = magnitude * maxRadius * 2;
+                const endX = centerX + scaledMag * Math.cos(argument);
+                const endY = centerY - scaledMag * Math.sin(argument);
+                
+                // Color by alignment
+                const alignmentScore = P_t.re / magnitude;
+                let color;
+                if (alignmentScore > 0.7) color = 'rgba(72, 187, 120, 0.9)';
+                else if (alignmentScore > 0.3) color = 'rgba(255, 215, 0, 0.9)';
+                else if (alignmentScore > 0) color = 'rgba(255, 165, 0, 0.9)';
+                else color = 'rgba(255, 107, 107, 0.8)';
+                
+                // Draw vector
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw arrowhead
+                const arrowSize = 6;
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(
+                    endX - arrowSize * Math.cos(argument - Math.PI/6),
+                    endY + arrowSize * Math.sin(argument - Math.PI/6)
+                );
+                ctx.lineTo(
+                    endX - arrowSize * Math.cos(argument + Math.PI/6),
+                    endY + arrowSize * Math.sin(argument + Math.PI/6)
+                );
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+            });
+            
+            // Labels
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText(`M=${M}, t=${alignmentT.toFixed(2)}, X=${alignmentX}`, centerX, 20);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '10px Segoe UI';
+            ctx.textAlign = 'right';
+            ctx.fillText('Re', centerX + maxRadius + 10, centerY + 5);
+            ctx.textAlign = 'center';
+            ctx.fillText('Im', centerX, centerY - maxRadius - 10);
+        }
+        
+        function drawCoherenceGraphCanvas(selectedRings) {
+            const canvas = document.getElementById('coherenceGraphCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const ringId = selectedRings.find(id => configs[id] && configs[id].mod > 1);
+            if (!ringId) return;
+            
+            const M = Math.round(configs[ringId].mod);
+            const tMin = 0;
+            const tMax = 50;
+            const tStep = 1;
+            
+            // Compute coherence profile
+            const profile = [];
+            for (let t = tMin; t <= tMax; t += tStep) {
+                const C_t = computeCoherenceScore(M, t, alignmentX);
+                profile.push({ t, coherence: C_t });
+            }
+            
+            // Find max for scaling
+            const maxCoherence = Math.max(...profile.map(p => Math.abs(p.coherence)));
+            
+            const padding = 40;
+            const graphWidth = canvas.width - 2 * padding;
+            const graphHeight = canvas.height - 2 * padding;
+            const xScale = graphWidth / tMax;
+            const yScale = graphHeight / (2 * maxCoherence);
+            const baseY = padding + graphHeight / 2;
+            
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + graphHeight);
+            ctx.lineTo(padding + graphWidth, padding + graphHeight);
+            ctx.stroke();
+            
+            // Draw zero line
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(padding, baseY);
+            ctx.lineTo(padding + graphWidth, baseY);
+            ctx.stroke();
+            
+            // Draw coherence curve
+            ctx.strokeStyle = '#4ECDC4';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            profile.forEach((p, i) => {
+                const x = padding + p.t * xScale;
+                const y = baseY - p.coherence * yScale;
+                
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            
+            // Mark known zeros
+            const zeros = getFirstZetaZeros(20);
+            zeros.forEach(zero => {
+                if (zero.t <= tMax) {
+                    const x = padding + zero.t * xScale;
+                    
+                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([3, 3]);
+                    ctx.beginPath();
+                    ctx.moveTo(x, padding);
+                    ctx.lineTo(x, padding + graphHeight);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            });
+            
+            // Mark current t
+            const currentX = padding + alignmentT * xScale;
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(currentX, padding);
+            ctx.lineTo(currentX, padding + graphHeight);
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Coherence Score C_t (M=${M})`, canvas.width / 2, 20);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '10px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('t', canvas.width - 20, padding + graphHeight + 15);
+            ctx.save();
+            ctx.translate(15, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('C_t', 0, 0);
+            ctx.restore();
+        }
+        
+        function displayAlignmentResults(results) {
+            const resultsDiv = document.getElementById('alignmentResults');
+            const contentDiv = document.getElementById('alignmentResultsContent');
+            
+            resultsDiv.style.display = 'block';
+            
+            let html = `<strong>Coherence Analysis at t = ${alignmentT.toFixed(3)}:</strong><br><br>`;
+            
+            results.sort((a, b) => b.coherence - a.coherence);
+            
+            results.slice(0, 5).forEach((result, idx) => {
+                const normalized = result.coherence / result.eulerPhi;
+                const color = normalized > 0.3 ? '#4ECDC4' : normalized > 0.1 ? '#FFD700' : '#FF6B6B';
+                
+                html += `<div style="margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 5px; border-left: 3px solid ${color};">`;
+                html += `<strong>M = ${result.modulus}:</strong><br>`;
+                html += `• Coherence C_t = ${result.coherence.toFixed(4)}<br>`;
+                html += `• Normalized: ${normalized.toFixed(4)} (C_t / φ(M))<br>`;
+                html += `• φ(${result.modulus}) = ${result.eulerPhi} residues<br>`;
+                
+                if (normalized > 0.3) {
+                    html += `<span style="color: #4ECDC4;">✓ Strong alignment detected</span>`;
+                } else if (normalized > 0.1) {
+                    html += `<span style="color: #FFD700;">⚠ Moderate alignment</span>`;
+                } else {
+                    html += `<span style="color: #FF6B6B;">✗ Weak alignment</span>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            if (results.length > 5) {
+                html += `<em>...and ${results.length - 5} more rings analyzed</em><br>`;
+            }
+            
+            contentDiv.innerHTML = html;
+        }
+        
+        function computeAlignmentForAllZeros() {
+            updateAnimationStatus('Testing alignment at all known zero heights...');
+            
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) {
+                alert('Please select rings first');
+                return;
+            }
+            
+            const zeros = getFirstZetaZeros(20);
+            const M = Math.round(configs[selectedRings[0]]?.mod || 30);
+            
+            setTimeout(() => {
+                const results = zeros.map(zero => {
+                    const C_t = computeCoherenceScore(M, zero.t, alignmentX);
+                    return {
+                        t: zero.t,
+                        coherence: C_t,
+                        precision: zero.precision
+                    };
+                });
+                
+                // Find maximum
+                const maxResult = results.reduce((max, r) => r.coherence > max.coherence ? r : max, results[0]);
+                
+                let html = `<strong>All Zeros Test (M=${M}, X=${alignmentX}):</strong><br><br>`;
+                html += `<strong>Maximum Coherence:</strong><br>`;
+                html += `t = ${maxResult.t.toFixed(3)}, C_t = ${maxResult.coherence.toFixed(4)}<br><br>`;
+                html += `<strong>Top 5 Alignment Heights:</strong><br>`;
+                
+                results.sort((a, b) => b.coherence - a.coherence).slice(0, 5).forEach((r, i) => {
+                    html += `${i+1}. t=${r.t.toFixed(3)}: C_t=${r.coherence.toFixed(4)}<br>`;
+                });
+                
+                document.getElementById('alignmentResults').style.display = 'block';
+                document.getElementById('alignmentResultsContent').innerHTML = html;
+                
+                updateAnimationStatus('All zeros tested - results displayed');
+            }, 100);
+        }
+        
+        function findCoherencePeaks() {
+            updateAnimationStatus('Scanning for coherence peaks...');
+            
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) {
+                alert('Please select rings first');
+                return;
+            }
+            
+            const M = Math.round(configs[selectedRings[0]]?.mod || 30);
+            const tMin = 0;
+            const tMax = 50;
+            const tStep = 0.5;
+            
+            setTimeout(() => {
+                const coherenceProfile = [];
+                
+                for (let t = tMin; t <= tMax; t += tStep) {
+                    const C_t = computeCoherenceScore(M, t, alignmentX);
+                    coherenceProfile.push({ t, coherence: C_t });
+                }
+                
+                // Find local maxima
+                const peaks = [];
+                for (let i = 1; i < coherenceProfile.length - 1; i++) {
+                    const prev = coherenceProfile[i-1].coherence;
+                    const curr = coherenceProfile[i].coherence;
+                    const next = coherenceProfile[i+1].coherence;
+                    
+                    if (curr > prev && curr > next && curr > 0.1) {
+                        peaks.push(coherenceProfile[i]);
+                    }
+                }
+                
+                peaks.sort((a, b) => b.coherence - a.coherence);
+                
+                let html = `<strong>Coherence Peak Scan (M=${M}, t∈[${tMin},${tMax}]):</strong><br><br>`;
+                html += `<strong>Top Peaks Found:</strong><br>`;
+                
+                peaks.slice(0, 10).forEach((peak, i) => {
+                    const knownZero = getFirstZetaZeros(20).find(z => Math.abs(z.t - peak.t) < 0.5);
+                    const marker = knownZero ? `✓ Near known zero ${knownZero.t.toFixed(3)}` : '';
+                    
+                    html += `${i+1}. t=${peak.t.toFixed(3)}: C_t=${peak.coherence.toFixed(4)} ${marker}<br>`;
+                });
+                
+                document.getElementById('alignmentResults').style.display = 'block';
+                document.getElementById('alignmentResultsContent').innerHTML = html;
+                
+                updateAnimationStatus(`Found ${peaks.length} coherence peaks`);
+            }, 100);
+        }
+        
+        function drawPrimePhaseVectors(rings) {
+            if (!document.getElementById('showPrimePhaseVectors')?.checked) return;
+            
+            ctx.save();
+            
+            // Update t if sweeping
+            if (tSweepActive) {
+                alignmentT += 0.05 * tSweepSpeed;
+                if (alignmentT > 100) alignmentT = 0;
+                document.getElementById('alignmentT').value = alignmentT;
+                document.getElementById('alignmentTValue').textContent = alignmentT.toFixed(3);
+                primePhaseCache = {}; // Invalidate cache on sweep
+            }
+            
+            const showRandomBaseline = document.getElementById('showRandomBaseline')?.checked;
+            const vectorScale = 50 * globalScale; // Scale factor for vector display
+            
+            rings.forEach(ring => {
+                if (ring.n === 'unit') return;
+                
+                const M = Math.round(ring.modulus);
+                const coprimes = ring.coprimes;
+                
+                coprimes.forEach(r => {
+                    // Compute P_t(M,r)
+                    const P_t = computePrimePhaseField(M, r, alignmentT, alignmentX);
+                    const magnitude = Math.sqrt(P_t.re * P_t.re + P_t.im * P_t.im);
+                    const argument = Math.atan2(P_t.im, P_t.re);
+                    
+                    // Get position of this residue
+                    const coords = transformCoordinates(ring.modulus, r, ring.index, rings.length);
+                    const baseX = coords.x;
+                    const baseY = coords.y;
+                    
+                    // Draw vector from residue point
+                    const endX = baseX + magnitude * vectorScale * Math.cos(argument);
+                    const endY = baseY + magnitude * vectorScale * Math.sin(argument);
+                    
+                    // Color based on alignment to positive real axis
+                    const alignmentScore = P_t.re / magnitude; // cos(argument)
+                    let vectorColor;
+                    if (alignmentScore > 0.7) {
+                        vectorColor = 'rgba(72, 187, 120, 0.8)'; // Green - strong alignment
+                    } else if (alignmentScore > 0.3) {
+                        vectorColor = 'rgba(255, 215, 0, 0.8)'; // Yellow - moderate
+                    } else if (alignmentScore > 0) {
+                        vectorColor = 'rgba(255, 165, 0, 0.8)'; // Orange - weak
+                    } else {
+                        vectorColor = 'rgba(255, 107, 107, 0.6)'; // Red - misaligned
+                    }
+                    
+                    // Draw vector
+                    ctx.beginPath();
+                    ctx.moveTo(baseX, baseY);
+                    ctx.lineTo(endX, endY);
+                    ctx.strokeStyle = vectorColor;
+                    ctx.lineWidth = 1.5 * globalScale;
+                    ctx.stroke();
+                    
+                    // Draw arrowhead
+                    const arrowSize = 4 * globalScale;
+                    const arrowAngle = argument;
+                    ctx.beginPath();
+                    ctx.moveTo(endX, endY);
+                    ctx.lineTo(
+                        endX - arrowSize * Math.cos(arrowAngle - Math.PI/6),
+                        endY - arrowSize * Math.sin(arrowAngle - Math.PI/6)
+                    );
+                    ctx.lineTo(
+                        endX - arrowSize * Math.cos(arrowAngle + Math.PI/6),
+                        endY - arrowSize * Math.sin(arrowAngle + Math.PI/6)
+                    );
+                    ctx.closePath();
+                    ctx.fillStyle = vectorColor;
+                    ctx.fill();
+                    
+                    // Compare with random baseline if enabled
+                    if (showRandomBaseline && Math.random() < 0.1) { // Show 10% for performance
+                        const P_rand = computeRandomPhaseBaseline(M, r, alignmentX, 10);
+                        const randMag = Math.sqrt(P_rand.re * P_rand.re + P_rand.im * P_rand.im);
+                        const randArg = Math.atan2(P_rand.im, P_rand.re);
+                        
+                        const randEndX = baseX + randMag * vectorScale * Math.cos(randArg);
+                        const randEndY = baseY + randMag * vectorScale * Math.sin(randArg);
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(baseX, baseY);
+                        ctx.lineTo(randEndX, randEndY);
+                        ctx.strokeStyle = 'rgba(128, 128, 128, 0.3)';
+                        ctx.lineWidth = 1 * globalScale;
+                        ctx.setLineDash([2, 2]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                });
+            });
+            
+            // Draw coherence score indicator
+            if (document.getElementById('showCoherenceScore')?.checked && rings.length > 0) {
+                const M = Math.round(rings[0].modulus);
+                const C_t = computeCoherenceScore(M, alignmentT, alignmentX);
+                const phi = getCoprimes(M).length;
+                const normalized = C_t / phi;
+                
+                // Draw coherence meter
+                const meterX = 50 * globalScale;
+                const meterY = 50 * globalScale;
+                const meterWidth = 200 * globalScale;
+                const meterHeight = 30 * globalScale;
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(meterX, meterY, meterWidth, meterHeight);
+                
+                const fillWidth = Math.min(1, Math.max(0, normalized)) * meterWidth;
+                const fillColor = normalized > 0.3 ? '#4ECDC4' : normalized > 0.1 ? '#FFD700' : '#FF6B6B';
+                ctx.fillStyle = fillColor;
+                ctx.fillRect(meterX, meterY, fillWidth, meterHeight);
+                
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(meterX, meterY, meterWidth, meterHeight);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `bold ${12 * globalScale}px Segoe UI`;
+                ctx.textAlign = 'left';
+                ctx.fillText(`C_t = ${C_t.toFixed(3)}`, meterX, meterY - 8 * globalScale);
+                ctx.font = `${10 * globalScale}px Segoe UI`;
+                ctx.fillText(`t = ${alignmentT.toFixed(3)}, M = ${M}, X = ${alignmentX}`, meterX, meterY + meterHeight + 15 * globalScale);
+            }
+            
+            ctx.restore();
+        }
+        
+        // Global scale state
+        let globalScale = 1.0;
+        
+        function updateGlobalScale() {
+            globalScale = parseFloat(document.getElementById('globalScale').value);
+            document.getElementById('globalScaleValue').textContent = globalScale.toFixed(1);
+            updateAnimationStatus(`Global scale: ${globalScale.toFixed(1)}x`);
+            draw();
+        }
+        
         // Enhanced modulus configurations with unit circle foundation
         const configs = {
             'unit': { mod: 1, label: '1', description: 'Unit Circle - Fundamental mathematical foundation' },
@@ -10573,7 +11345,7 @@
                 document.getElementById('nestingInversionValue').textContent = nestingInversionAmount.toFixed(2);
             }
             
-            if (!enableRotation && !isInverting && !nestingAnimationActive && !gcdAnimationActive) {
+            if (!enableRotation && !isInverting && !nestingAnimationActive && !gcdAnimationActive && !tSweepActive) {
                 animating = false;
                 return;
             }
@@ -10667,6 +11439,32 @@
             document.getElementById('showChiSquared').checked = true;
             document.getElementById('showModulusComparison').checked = true;
             document.getElementById('showLFunction').checked = true;
+            
+            // Reset Zero-Residue Alignment controls
+            document.getElementById('enableZeroAlignment').checked = false;
+            document.getElementById('alignmentT').value = 14.134;
+            document.getElementById('alignmentTValue').textContent = '14.134';
+            document.getElementById('alignmentX').value = 1000;
+            document.getElementById('alignmentXValue').textContent = '1000';
+            document.getElementById('showPrimePhaseVectors').checked = true;
+            document.getElementById('showCoherenceScore').checked = true;
+            document.getElementById('enableTSweep').checked = false;
+            document.getElementById('showRandomBaseline').checked = false;
+            document.getElementById('tSweepSpeed').value = 1.0;
+            document.getElementById('tSweepSpeedValue').textContent = '1.0';
+            document.getElementById('zeroAlignmentControls').style.display = 'none';
+            document.getElementById('tSweepControls').style.display = 'none';
+            document.getElementById('alignmentResults').style.display = 'none';
+            zeroAlignmentActive = false;
+            tSweepActive = false;
+            alignmentT = 14.134;
+            alignmentX = 1000;
+            primePhaseCache = {};
+            
+            // Reset global scale
+            document.getElementById('globalScale').value = 1.0;
+            document.getElementById('globalScaleValue').textContent = '1.0';
+            globalScale = 1.0;
             
             // Reset nesting animation
             document.getElementById('enableNestingAnimation').checked = false;
@@ -10979,8 +11777,8 @@
             // Sort by final interpolated position
             sortedRings.sort((a, b) => a.finalIndex - b.finalIndex);
 
-            const maxRadius = 280;
-            const minRadius = showUnitCircle && selectedRings.includes('unit') ? 25 : 60;
+            const maxRadius = 280 * globalScale;
+            const minRadius = (showUnitCircle && selectedRings.includes('unit') ? 25 : 60) * globalScale;
 
             // Initialize enhanced ring rotation speeds
             sortedRings.forEach((config) => {
@@ -11056,11 +11854,11 @@
                 if (ring.n === 'unit' && showUnitCircle) {
                     // Special styling for unit circle with normalized thickness
                     ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
-                    ctx.lineWidth = 0.5 + unitThicknessNorm * 4.5; // Scale 0-1 to 0.5-5.0
+                    ctx.lineWidth = (0.5 + unitThicknessNorm * 4.5) * globalScale; // Scale 0-1 to 0.5-5.0, apply global scale
                     ctx.setLineDash([]);
                 } else {
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-                    ctx.lineWidth = 0.2 + ringThicknessNorm * 1.8; // Scale 0-1 to 0.2-2.0
+                    ctx.lineWidth = (0.2 + ringThicknessNorm * 1.8) * globalScale; // Scale 0-1 to 0.2-2.0, apply global scale
                     ctx.setLineDash([2, 4]);
                 }
                 ctx.stroke();
@@ -11152,8 +11950,8 @@
                     // Enhanced point drawing with normalized thickness controls
                     ctx.beginPath();
                     const pointSizeNorm = parseFloat(document.getElementById('pointSize').value);
-                    const basePointSize = ring.n === 'unit' ? 8 : (ring.radius > 150 ? 6 : 4);
-                    let pointSize = basePointSize * (0.2 + pointSizeNorm * 1.8); // Scale 0-1 to 0.2-2.0
+                    const basePointSize = ring.n === 'unit' ? 8 : (ring.radius > 150 * globalScale ? 6 : 4);
+                    let pointSize = basePointSize * (0.2 + pointSizeNorm * 1.8) * globalScale; // Apply global scale
                     
                     // Prime sieve visualization enhancements
                     if (primeData.isActive && ring.modulus === primeData.modulus) {
@@ -11454,6 +12252,11 @@
             }
 
             ctx.restore();
+            
+            // Draw Zero-Residue Alignment visualizations if active
+            if (zeroAlignmentActive) {
+                drawPrimePhaseVectors(rings);
+            }
             
             // Draw coordinate system indicator
             if (coordinateSystem !== 'polar') {
