@@ -1218,6 +1218,52 @@
                         </div>
                     </div>
                     
+                    <div class="custom-gap" style="background: linear-gradient(45deg, rgba(138, 43, 226, 0.15), rgba(255, 215, 0, 0.15)); border: 2px solid rgba(138, 43, 226, 0.4);">
+                        <label><strong>Conjecture Testing Dashboard:</strong></label>
+                        
+                        <div class="slider-group">
+                            <label>Select Conjecture:</label>
+                            <select id="conjectureSelect" onchange="updateConjectureParams()">
+                                <option value="grh">GRH Uniformity</option>
+                                <option value="hardy-littlewood">Hardy-Littlewood k-Tuples</option>
+                                <option value="goldbach">Goldbach Conjecture</option>
+                                <option value="polignac">Polignac's Conjecture</option>
+                                <option value="prime-race">Prime Number Races</option>
+                                <option value="andrica">Andrica's Conjecture</option>
+                                <option value="firoozbakht">Firoozbakht's Conjecture</option>
+                                <option value="legendre">Legendre's Conjecture</option>
+                                <option value="cramer">Cramér's Conjecture</option>
+                            </select>
+                        </div>
+                        
+                        <div id="conjectureParams" style="margin: 10px 0;">
+                            <div class="gap-input">
+                                Test Range: <input type="number" id="conjectureMin" min="2" value="2" style="width: 70px;">
+                                to <input type="number" id="conjectureMax" min="3" value="100000" style="width: 80px;">
+                            </div>
+                            <div id="extraParams" style="margin-top: 8px;">
+                                <!-- Dynamic parameters based on selected conjecture -->
+                            </div>
+                        </div>
+                        
+                        <div class="gap-input">
+                            <button class="rh-btn" onclick="runConjectureTest()">Run Test</button>
+                            <button onclick="viewTestHistory()">View History</button>
+                            <button onclick="exportCertificate()">Export Certificate</button>
+                        </div>
+                        
+                        <div id="conjectureResults" style="display: none; margin-top: 15px; padding: 15px; background: rgba(138, 43, 226, 0.1); border-radius: 8px; border: 2px solid rgba(138, 43, 226, 0.3);">
+                            <strong>Test Results:</strong>
+                            <div id="conjectureResultsContent" style="font-size: 12px; margin-top: 10px;"></div>
+                        </div>
+                        
+                        <div style="font-size: 11px; opacity: 0.85; margin-top: 10px; padding: 8px; background: rgba(138, 43, 226, 0.1); border-radius: 4px;">
+                            <strong>About Conjecture Testing:</strong><br>
+                            Automatically verify famous unsolved problems up to computational limits. 
+                            Tests generate verification certificates with evidence strength and statistical analysis.
+                        </div>
+                    </div>
+                    
                     <div class="custom-gap">
                         <label><strong>GRH Test Parameters:</strong></label>
                         <div class="gap-input">
@@ -2398,7 +2444,507 @@
         // END FAREY & FRANEL-LANDAU FUNCTIONS
         // ========================================
         
-        // Enhanced global state management
+        // Conjecture testing state
+        let conjectureTestHistory = [];
+        let currentConjecture = 'grh';
+        
+        function updateConjectureParams() {
+            currentConjecture = document.getElementById('conjectureSelect').value;
+            const extraParams = document.getElementById('extraParams');
+            
+            const paramConfigs = {
+                'hardy-littlewood': '<div class="gap-input">k-tuple size: <input type="number" id="kTupleSize" min="2" max="10" value="3" style="width: 50px;"> Max gap: <input type="number" id="maxTupleGap" min="2" value="6" style="width: 50px;"></div>',
+                'goldbach': '<div style="font-size: 11px; margin-top: 5px;"><em>Tests all even numbers in range</em></div>',
+                'polignac': '<div class="gap-input">Test gaps: <input type="text" id="polignacGaps" value="2,4,6,8,10" placeholder="2,4,6" style="width: 100px;"></div>',
+                'prime-race': '<div class="gap-input">Modulus: <input type="number" id="raceModulus" min="3" value="4" style="width: 50px;"> <em>(Compare residue classes)</em></div>',
+                'andrica': '<div style="font-size: 11px; margin-top: 5px;"><em>Tests √(p_{n+1}) - √(p_n) < 1</em></div>',
+                'firoozbakht': '<div style="font-size: 11px; margin-top: 5px;"><em>Tests p_n^(1/n) strictly decreasing</em></div>',
+                'legendre': '<div style="font-size: 11px; margin-top: 5px;"><em>Tests prime exists between n² and (n+1)²</em></div>',
+                'cramer': '<div style="font-size: 11px; margin-top: 5px;"><em>Tests gap/(ln p)² < 1</em></div>',
+                'grh': '<div style="font-size: 11px; margin-top: 5px;"><em>Tests prime distribution uniformity</em></div>'
+            };
+            
+            extraParams.innerHTML = paramConfigs[currentConjecture] || '';
+        }
+        
+        function runConjectureTest() {
+            const conjecture = document.getElementById('conjectureSelect').value;
+            const min = parseInt(document.getElementById('conjectureMin').value);
+            const max = parseInt(document.getElementById('conjectureMax').value);
+            
+            if (max - min < 10) {
+                alert('Range too small. Please use at least 10 numbers.');
+                return;
+            }
+            
+            updateAnimationStatus('Running ' + conjecture + ' test...');
+            
+            setTimeout(() => {
+                let result;
+                
+                switch(conjecture) {
+                    case 'andrica':
+                        result = testAndricaConjecture(min, max);
+                        break;
+                    case 'prime-race':
+                        result = testPrimeRace(min, max);
+                        break;
+                    case 'hardy-littlewood':
+                        result = testHardyLittlewoodKTuples(min, max);
+                        break;
+                    case 'goldbach':
+                        result = testGoldbachConjecture(min, max);
+                        break;
+                    case 'polignac':
+                        result = testPolignacConjecture(min, max);
+                        break;
+                    case 'firoozbakht':
+                        result = testFiroozbakhtConjecture(min, max);
+                        break;
+                    case 'legendre':
+                        result = testLegendreConjecture(min, max);
+                        break;
+                    case 'cramer':
+                        result = testCramerConjecture(min, max);
+                        break;
+                    case 'grh':
+                        result = testGRHUniformity(min, max);
+                        break;
+                    default:
+                        result = { error: 'Unknown conjecture' };
+                }
+                
+                displayConjectureResults(result);
+                conjectureTestHistory.push({
+                    timestamp: new Date().toISOString(),
+                    conjecture: conjecture,
+                    range: [min, max],
+                    result: result
+                });
+                
+                updateAnimationStatus('Test complete: ' + result.status);
+            }, 100);
+        }
+        
+        function testAndricaConjecture(min, max) {
+            const primes = sieveOfEratosthenes(max).filter(p => p >= min);
+            
+            if (primes.length < 2) {
+                return { status: 'INSUFFICIENT_DATA', verified: false };
+            }
+            
+            let maxDiff = 0;
+            let maxDiffPrimes = [0, 0];
+            let allVerified = true;
+            
+            for (let i = 0; i < primes.length - 1; i++) {
+                const diff = Math.sqrt(primes[i + 1]) - Math.sqrt(primes[i]);
+                
+                if (diff > maxDiff) {
+                    maxDiff = diff;
+                    maxDiffPrimes = [primes[i], primes[i + 1]];
+                }
+                
+                if (diff >= 1) {
+                    allVerified = false;
+                    return {
+                        status: 'COUNTEREXAMPLE_FOUND',
+                        verified: false,
+                        counterexample: { p1: primes[i], p2: primes[i + 1], diff: diff },
+                        tested: primes.length - 1
+                    };
+                }
+            }
+            
+            return {
+                status: 'VERIFIED',
+                verified: true,
+                tested: primes.length - 1,
+                maxDifference: maxDiff,
+                closestCall: maxDiffPrimes,
+                margin: 1 - maxDiff,
+                confidence: allVerified ? 'STRONG' : 'WEAK'
+            };
+        }
+        
+        function testPrimeRace(min, max) {
+            const modulus = parseInt(document.getElementById('raceModulus')?.value || 4);
+            const primes = sieveOfEratosthenes(max).filter(p => p >= min);
+            const coprimes = getCoprimes(modulus);
+            
+            const counts = {};
+            coprimes.forEach(r => counts[r] = 0);
+            
+            primes.forEach(p => {
+                const r = p % modulus;
+                if (coprimes.includes(r)) {
+                    counts[r]++;
+                }
+            });
+            
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            const leader = sorted[0];
+            const runnerUp = sorted[1];
+            
+            return {
+                status: 'ANALYSIS_COMPLETE',
+                modulus: modulus,
+                tested: primes.length,
+                counts: counts,
+                leader: { residue: parseInt(leader[0]), count: leader[1] },
+                runnerUp: { residue: parseInt(runnerUp[0]), count: runnerUp[1] },
+                margin: leader[1] - runnerUp[1],
+                bias: leader[1] / primes.length
+            };
+        }
+        
+        function testHardyLittlewoodKTuples(min, max) {
+            const k = parseInt(document.getElementById('kTupleSize')?.value || 3);
+            const maxGap = parseInt(document.getElementById('maxTupleGap')?.value || 6);
+            const primes = sieveOfEratosthenes(max).filter(p => p >= min);
+            
+            const tuples = [];
+            
+            for (let i = 0; i <= primes.length - k; i++) {
+                const candidate = [primes[i]];
+                let valid = true;
+                
+                for (let j = 1; j < k; j++) {
+                    if (i + j >= primes.length) {
+                        valid = false;
+                        break;
+                    }
+                    
+                    const gap = primes[i + j] - primes[i];
+                    if (gap > maxGap) {
+                        valid = false;
+                        break;
+                    }
+                    candidate.push(primes[i + j]);
+                }
+                
+                if (valid && candidate.length === k) {
+                    tuples.push(candidate);
+                }
+            }
+            
+            return {
+                status: 'TUPLES_FOUND',
+                k: k,
+                maxGap: maxGap,
+                tested: primes.length,
+                tuplesFound: tuples.length,
+                density: tuples.length / primes.length,
+                examples: tuples.slice(0, 10),
+                largestTuple: tuples[tuples.length - 1] || []
+            };
+        }
+        
+        function testGoldbachConjecture(min, max) {
+            const primes = new Set(sieveOfEratosthenes(max));
+            const results = [];
+            let minPartitions = Infinity;
+            let minPartitionsN = 0;
+            
+            const start = Math.max(4, min % 2 === 0 ? min : min + 1);
+            
+            for (let n = start; n <= max; n += 2) {
+                let partitionCount = 0;
+                let firstPartition = null;
+                
+                for (const p of primes) {
+                    if (p > n / 2) break;
+                    if (primes.has(n - p)) {
+                        if (!firstPartition) firstPartition = [p, n - p];
+                        partitionCount++;
+                    }
+                }
+                
+                if (partitionCount === 0) {
+                    return {
+                        status: 'COUNTEREXAMPLE_FOUND',
+                        verified: false,
+                        counterexample: n,
+                        tested: (n - start) / 2 + 1
+                    };
+                }
+                
+                if (partitionCount < minPartitions) {
+                    minPartitions = partitionCount;
+                    minPartitionsN = n;
+                }
+                
+                results.push({ n, partitionCount, firstPartition });
+            }
+            
+            const avgPartitions = results.reduce((sum, r) => sum + r.partitionCount, 0) / results.length;
+            
+            return {
+                status: 'VERIFIED',
+                verified: true,
+                tested: results.length,
+                averagePartitions: avgPartitions,
+                minPartitions: { n: minPartitionsN, count: minPartitions },
+                confidence: 'STRONG'
+            };
+        }
+        
+        function testPolignacConjecture(min, max) {
+            const gapsStr = document.getElementById('polignacGaps')?.value || '2,4,6,8,10';
+            const testGaps = gapsStr.split(',').map(g => parseInt(g.trim())).filter(g => !isNaN(g) && g > 0);
+            const primes = sieveOfEratosthenes(max).filter(p => p >= min);
+            
+            const gapCounts = {};
+            testGaps.forEach(g => gapCounts[g] = 0);
+            
+            for (let i = 0; i < primes.length - 1; i++) {
+                const gap = primes[i + 1] - primes[i];
+                if (testGaps.includes(gap)) {
+                    gapCounts[gap]++;
+                }
+            }
+            
+            return {
+                status: 'GAPS_ANALYZED',
+                tested: primes.length - 1,
+                gapsSearched: testGaps,
+                gapCounts: gapCounts,
+                allFound: testGaps.every(g => gapCounts[g] > 0),
+                confidence: 'MODERATE'
+            };
+        }
+        
+        function testFiroozbakhtConjecture(min, max) {
+            const primes = sieveOfEratosthenes(max).filter(p => p >= min);
+            
+            if (primes.length < 2) {
+                return { status: 'INSUFFICIENT_DATA', verified: false };
+            }
+            
+            for (let i = 1; i < primes.length; i++) {
+                const prev = Math.pow(primes[i - 1], 1 / i);
+                const curr = Math.pow(primes[i], 1 / (i + 1));
+                
+                if (curr >= prev) {
+                    return {
+                        status: 'COUNTEREXAMPLE_FOUND',
+                        verified: false,
+                        counterexample: { index: i + 1, prime: primes[i], prev: prev, curr: curr },
+                        tested: i + 1
+                    };
+                }
+            }
+            
+            return {
+                status: 'VERIFIED',
+                verified: true,
+                tested: primes.length,
+                confidence: 'STRONG'
+            };
+        }
+        
+        function testLegendreConjecture(min, max) {
+            const sqrtMax = Math.floor(Math.sqrt(max));
+            const primes = new Set(sieveOfEratosthenes(max));
+            
+            const start = Math.max(1, Math.floor(Math.sqrt(min)));
+            
+            for (let n = start; n <= sqrtMax; n++) {
+                const lower = n * n;
+                const upper = (n + 1) * (n + 1);
+                
+                let foundPrime = false;
+                for (const p of primes) {
+                    if (p > lower && p < upper) {
+                        foundPrime = true;
+                        break;
+                    }
+                    if (p >= upper) break;
+                }
+                
+                if (!foundPrime) {
+                    return {
+                        status: 'COUNTEREXAMPLE_FOUND',
+                        verified: false,
+                        counterexample: { n: n, range: [lower, upper] },
+                        tested: n - start + 1
+                    };
+                }
+            }
+            
+            return {
+                status: 'VERIFIED',
+                verified: true,
+                tested: sqrtMax - start + 1,
+                confidence: 'STRONG'
+            };
+        }
+        
+        function testCramerConjecture(min, max) {
+            const primes = sieveOfEratosthenes(max).filter(p => p >= min);
+            
+            if (primes.length < 2) {
+                return { status: 'INSUFFICIENT_DATA', verified: false };
+            }
+            
+            let maxRatio = 0;
+            let maxRatioPrimes = [0, 0];
+            
+            for (let i = 0; i < primes.length - 1; i++) {
+                const gap = primes[i + 1] - primes[i];
+                const logSquared = Math.pow(Math.log(primes[i]), 2);
+                const ratio = gap / logSquared;
+                
+                if (ratio > maxRatio) {
+                    maxRatio = ratio;
+                    maxRatioPrimes = [primes[i], primes[i + 1]];
+                }
+                
+                if (ratio >= 1) {
+                    return {
+                        status: 'COUNTEREXAMPLE_FOUND',
+                        verified: false,
+                        counterexample: { p1: primes[i], p2: primes[i + 1], ratio: ratio },
+                        tested: i + 1
+                    };
+                }
+            }
+            
+            return {
+                status: 'VERIFIED',
+                verified: true,
+                tested: primes.length - 1,
+                maxRatio: maxRatio,
+                closestCall: maxRatioPrimes,
+                margin: 1 - maxRatio,
+                confidence: 'MODERATE'
+            };
+        }
+        
+        function testGRHUniformity(min, max) {
+            const modulus = parseInt(document.getElementById('grhModulus')?.value || 30);
+            const primes = sieveOfEratosthenes(max).filter(p => p >= min && p > modulus);
+            const coprimes = getCoprimes(modulus);
+            
+            const distribution = {};
+            coprimes.forEach(r => distribution[r] = 0);
+            
+            primes.forEach(p => {
+                const r = p % modulus;
+                if (coprimes.includes(r)) {
+                    distribution[r]++;
+                }
+            });
+            
+            const expected = primes.length / coprimes.length;
+            let chiSquared = 0;
+            
+            coprimes.forEach(r => {
+                const observed = distribution[r];
+                chiSquared += Math.pow(observed - expected, 2) / expected;
+            });
+            
+            const degreesOfFreedom = coprimes.length - 1;
+            const uniformityScore = 1 - Math.min(1, chiSquared / (degreesOfFreedom * 2));
+            
+            return {
+                status: 'UNIFORMITY_ANALYZED',
+                modulus: modulus,
+                tested: primes.length,
+                eulerPhi: coprimes.length,
+                chiSquared: chiSquared,
+                degreesOfFreedom: degreesOfFreedom,
+                uniformityScore: uniformityScore,
+                isUniform: uniformityScore > 0.85,
+                grhSupport: uniformityScore > 0.9 ? 'STRONG' : uniformityScore > 0.8 ? 'MODERATE' : 'WEAK'
+            };
+        }
+        
+        function displayConjectureResults(result) {
+            const resultsDiv = document.getElementById('conjectureResults');
+            const contentDiv = document.getElementById('conjectureResultsContent');
+            
+            resultsDiv.style.display = 'block';
+            
+            let html = '<div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;">';
+            html += '<strong style="font-size: 14px;">' + result.status.replace(/_/g, ' ') + '</strong><br><br>';
+            
+            if (result.verified === true) {
+                html += '<span style="color: #4ECDC4; font-size: 13px;">VERIFIED (no counterexamples)</span><br>';
+            } else if (result.verified === false) {
+                html += '<span style="color: #FF6B6B; font-size: 13px;">COUNTEREXAMPLE FOUND</span><br>';
+            }
+            
+            html += '<br><strong>Details:</strong><br>';
+            
+            Object.keys(result).forEach(key => {
+                if (key === 'status' || key === 'verified') return;
+                
+                let value = result[key];
+                if (typeof value === 'number') {
+                    value = value < 1 ? value.toFixed(6) : value.toLocaleString();
+                } else if (typeof value === 'object' && value !== null) {
+                    value = JSON.stringify(value, null, 2).replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+                }
+                
+                html += key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) + ': ' + value + '<br>';
+            });
+            
+            html += '</div>';
+            
+            contentDiv.innerHTML = html;
+        }
+        
+        function viewTestHistory() {
+            if (conjectureTestHistory.length === 0) {
+                alert('No test history available. Run some tests first.');
+                return;
+            }
+            
+            let html = 'TEST HISTORY:\n\n';
+            conjectureTestHistory.slice(-10).reverse().forEach((test, i) => {
+                html += `${i + 1}. ${test.conjecture} [${test.range[0]}-${test.range[1]}]\n`;
+                html += `   ${test.timestamp}\n`;
+                html += `   Status: ${test.result.status}\n\n`;
+            });
+            
+            alert(html);
+        }
+        
+        function exportCertificate() {
+            if (conjectureTestHistory.length === 0) {
+                alert('No test results to export. Run a test first.');
+                return;
+            }
+            
+            const latest = conjectureTestHistory[conjectureTestHistory.length - 1];
+            
+            let certificate = 'VERIFICATION CERTIFICATE\n';
+            certificate += '='.repeat(60) + '\n\n';
+            certificate += `Conjecture: ${latest.conjecture.toUpperCase().replace(/-/g, ' ')}\n`;
+            certificate += `Tested: ${latest.timestamp}\n`;
+            certificate += `Range: [${latest.range[0]}, ${latest.range[1]}]\n\n`;
+            certificate += 'Results:\n';
+            certificate += '-'.repeat(60) + '\n';
+            
+            Object.entries(latest.result).forEach(([key, value]) => {
+                certificate += `${key}: ${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}\n`;
+            });
+            
+            certificate += '\n' + '='.repeat(60) + '\n';
+            certificate += 'Generated by Riemann Hypothesis Explorer\n';
+            certificate += 'Built by Wessen Getachew\n';
+            
+            const blob = new Blob([certificate], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `conjecture_certificate_${latest.conjecture}_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            updateAnimationStatus('Certificate exported');
+        }
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let animating = false;
@@ -10502,4 +11048,4 @@
         }, 500);
     </script>
 </body>
-                                </html>
+</html>
