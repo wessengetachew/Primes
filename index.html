@@ -925,10 +925,10 @@
                 
                 <div class="control-section" style="background: linear-gradient(45deg, rgba(78, 205, 196, 0.15), rgba(138, 43, 226, 0.15)); border: 2px solid rgba(78, 205, 196, 0.4);">
                     <h3 onclick="toggleSection('layoutSection')" style="cursor: pointer; user-select: none; color: #4ECDC4;">
-                        <span class="collapse-icon" id="layoutSectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="layoutSectionIcon">▼</span>
                         Coordinate System Layout
                     </h3>
-                    <div id="layoutSection" class="collapsible-section">
+                    <div id="layoutSection" class="collapsible-section collapsed">
                     
                     <div class="slider-group">
                         <label><strong>Coordinate System:</strong></label>
@@ -957,10 +957,10 @@
                 </div>
                 <div class="control-section rh-section">
                     <h3 onclick="toggleSection('rhSection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="rhSectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="rhSectionIcon">▼</span>
                         Riemann Hypothesis Research Hub
                     </h3>
-                    <div id="rhSection" class="collapsible-section">
+                    <div id="rhSection" class="collapsible-section collapsed">
                     
                     <div class="custom-gap" style="background: linear-gradient(45deg, rgba(255, 215, 0, 0.12), rgba(72, 187, 120, 0.12)); border: 2px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
                         <label><strong>Advanced Distance Measurement:</strong></label>
@@ -1034,36 +1034,6 @@
                                 <button onclick="clearAllPoints()">Clear All</button>
                                 <button onclick="exportMeasurementData()">Export Data</button>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="custom-gap" style="background: linear-gradient(45deg, rgba(0, 255, 127, 0.12), rgba(46, 204, 113, 0.12)); border: 2px solid rgba(46, 204, 113, 0.3); margin-bottom: 15px;">
-                        <label><strong>🔬 Advanced Mathematical Analysis:</strong></label>
-                        
-                        <div class="slider-group">
-                            <label>Select Analysis Type:</label>
-                            <select id="advancedAnalysisType" onchange="updateAdvancedAnalysisParams()">
-                                <option value="zeta-zeros">Find Zeta Zeros (Riemann-Siegel)</option>
-                                <option value="explicit-formula">Explicit Formula π(x)</option>
-                                <option value="mobius">Möbius Function μ(n)</option>
-                                <option value="mangoldt">Von Mangoldt Λ(n)</option>
-                                <option value="fourier">Fourier Analysis</option>
-                                <option value="spectral">Spectral Gap Analysis</option>
-                            </select>
-                        </div>
-                        
-                        <div id="advancedAnalysisParams">
-                            <!-- Dynamic parameters based on selection -->
-                        </div>
-                        
-                        <div class="gap-input" style="margin-top: 10px;">
-                            <button class="rh-btn" onclick="runAdvancedAnalysis()">Run Analysis</button>
-                            <button onclick="clearAdvancedResults()">Clear</button>
-                        </div>
-                        
-                        <div id="advancedAnalysisResults" style="display: none; margin-top: 15px; padding: 15px; background: rgba(46, 204, 113, 0.1); border-radius: 8px; border: 2px solid rgba(46, 204, 113, 0.3); max-height: 400px; overflow-y: auto;">
-                            <strong>Analysis Results:</strong>
-                            <div id="advancedResultsContent" style="font-size: 12px; margin-top: 10px;"></div>
                         </div>
                     </div>
                     
@@ -1500,10 +1470,10 @@
 
                 <div class="control-section">
                     <h3 onclick="toggleSection('gapSection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="gapSectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="gapSectionIcon">▼</span>
                         Gap Analysis
                     </h3>
-                    <div id="gapSection" class="collapsible-section">
+                    <div id="gapSection" class="collapsible-section collapsed">
                     <div class="checkbox-group" id="gapControls">
                         <!-- All gaps unchecked by default -->
                     </div>
@@ -1529,10 +1499,10 @@
 
                 <div class="control-section">
                     <h3 onclick="toggleSection('ringSection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="ringSectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="ringSectionIcon">▼</span>
                         Modular Ring System
                     </h3>
-                    <div id="ringSection" class="collapsible-section">
+                    <div id="ringSection" class="collapsible-section collapsed">
                     <div class="checkbox-group" id="ringControls">
                         <!-- Generated by JavaScript -->
                     </div>
@@ -1562,10 +1532,10 @@
 
                 <div class="control-section">
                     <h3 onclick="toggleSection('visualSection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="visualSectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="visualSectionIcon">▼</span>
                         Visual Customization
                     </h3>
-                    <div id="visualSection" class="collapsible-section">
+                    <div id="visualSection" class="collapsible-section collapsed">
                     
                     <div class="custom-gap">
                         <label><strong>Color Palette Presets:</strong></label>
@@ -1655,10 +1625,10 @@
 
                 <div class="control-section">
                     <h3 onclick="toggleSection('animationSection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="animationSectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="animationSectionIcon">▼</span>
                         Advanced Animation Engine
                     </h3>
-                    <div id="animationSection" class="collapsible-section">
+                    <div id="animationSection" class="collapsible-section collapsed">
                     <div class="checkbox-item">
                         <input type="checkbox" id="enableRotation" onchange="toggleRotation()"> Enable Individual Ring Rotation
                     </div>
@@ -1748,10 +1718,10 @@
 
                 <div class="control-section">
                     <h3 onclick="toggleSection('labelSection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="labelSectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="labelSectionIcon">▼</span>
                         Label Controls
                     </h3>
-                    <div id="labelSection" class="collapsible-section">
+                    <div id="labelSection" class="collapsible-section collapsed">
                     <div class="checkbox-item">
                         <input type="checkbox" id="showLabels"> Show Residue Labels
                     </div>
@@ -1829,10 +1799,10 @@
                 
                 <div class="control-section">
                     <h3 onclick="toggleSection('gcdAnalysisSection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="gcdAnalysisSectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="gcdAnalysisSectionIcon">▼</span>
                         GCD Analysis & Visualization
                     </h3>
-                    <div id="gcdAnalysisSection" class="collapsible-section">
+                    <div id="gcdAnalysisSection" class="collapsible-section collapsed">
                     <div class="custom-gap">
                         <label><strong>GCD Visual Analysis Mode:</strong></label>
                         <div class="checkbox-item">
@@ -1880,10 +1850,10 @@
 
                 <div class="control-section">
                     <h3 onclick="toggleSection('liftSection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="liftSectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="liftSectionIcon">▼</span>
                         Lift Controls
                     </h3>
-                    <div id="liftSection" class="collapsible-section">
+                    <div id="liftSection" class="collapsible-section collapsed">
                     <div class="checkbox-item">
                         <input type="checkbox" id="showDirectLifts" checked> Direct Lifts (r → r, consecutive only)
                     </div>
@@ -1901,10 +1871,10 @@
 
                 <div class="control-section">
                     <h3 onclick="toggleSection('displaySection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="displaySectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="displaySectionIcon">▼</span>
                         Display Controls
                     </h3>
-                    <div id="displaySection" class="collapsible-section">
+                    <div id="displaySection" class="collapsible-section collapsed">
                     <div class="checkbox-item">
                         <input type="checkbox" id="showUnitCircle" checked> Highlight Unit Circle
                     </div>
@@ -1913,10 +1883,10 @@
 
                 <div class="control-section">
                     <h3 onclick="toggleSection('characterSection')" style="cursor: pointer; user-select: none;">
-                        <span class="collapse-icon" id="characterSectionIcon">▼</span>
+                        <span class="collapse-icon collapsed" id="characterSectionIcon">▼</span>
                         Dirichlet Character Controls
                     </h3>
-                    <div id="characterSection" class="collapsible-section">
+                    <div id="characterSection" class="collapsible-section collapsed">
                     <div class="checkbox-group">
                         <div class="checkbox-item">
                             <input type="checkbox" id="showGcdOne" checked onchange="draw()"> Show χ(r) ≠ 0 (Character Support)
@@ -5106,398 +5076,6 @@
                 container.style.display = 'none';
             }
         }
-        
-        // ========================================
-        // ADVANCED ANALYSIS UI FUNCTIONS
-        // ========================================
-        
-        function updateAdvancedAnalysisParams() {
-            const type = document.getElementById('advancedAnalysisType').value;
-            const paramsDiv = document.getElementById('advancedAnalysisParams');
-            
-            let html = '';
-            
-            switch(type) {
-                case 'zeta-zeros':
-                    html = `
-                        <div class="gap-input">
-                            Search range: <input type="number" id="zeroSearchMin" value="0" style="width: 60px;"> to 
-                            <input type="number" id="zeroSearchMax" value="100" style="width: 60px;">
-                        </div>
-                        <div class="gap-input">
-                            Max zeros to find: <input type="number" id="zeroMaxCount" min="1" max="50" value="10" style="width: 60px;">
-                        </div>
-                        <div style="font-size: 11px; opacity: 0.9; margin-top: 8px;">
-                            Uses Riemann-Siegel formula to find zeros on critical line Re(s) = 1/2
-                        </div>
-                    `;
-                    break;
-                    
-                case 'explicit-formula':
-                    html = `
-                        <div class="gap-input">
-                            Compute π(x) for x = <input type="number" id="explicitX" value="100" min="2" style="width: 80px;">
-                        </div>
-                        <div class="gap-input">
-                            Use <input type="number" id="explicitZeros" min="1" max="50" value="10" style="width: 50px;"> zeros
-                        </div>
-                        <div style="font-size: 11px; opacity: 0.9; margin-top: 8px;">
-                            Computes π(x) using explicit formula with zeta zero contributions
-                        </div>
-                    `;
-                    break;
-                    
-                case 'mobius':
-                    html = `
-                        <div class="gap-input">
-                            Compute μ(n) for n: <input type="number" id="mobiusStart" value="1" style="width: 60px;"> to 
-                            <input type="number" id="mobiusEnd" value="100" style="width: 60px;">
-                        </div>
-                        <div style="font-size: 11px; opacity: 0.9; margin-top: 8px;">
-                            μ(n) = 0 if n has squared factor, (-1)^k if n has k distinct primes
-                        </div>
-                    `;
-                    break;
-                    
-                case 'mangoldt':
-                    html = `
-                        <div class="gap-input">
-                            Compute Λ(n) for n: <input type="number" id="mangoldtStart" value="1" style="width: 60px;"> to 
-                            <input type="number" id="mangoldtEnd" value="100" style="width: 60px;">
-                        </div>
-                        <div style="font-size: 11px; opacity: 0.9; margin-top: 8px;">
-                            Λ(n) = log(p) if n = p^k (prime power), 0 otherwise
-                        </div>
-                    `;
-                    break;
-                    
-                case 'fourier':
-                    html = `
-                        <div class="gap-input">
-                            Modulus: <input type="number" id="fourierModulus" value="30" style="width: 60px;">
-                            Prime limit: <input type="number" id="fourierLimit" value="10000" style="width: 80px;">
-                        </div>
-                        <div style="font-size: 11px; opacity: 0.9; margin-top: 8px;">
-                            Performs DFT on prime distribution across residue classes
-                        </div>
-                    `;
-                    break;
-                    
-                case 'spectral':
-                    html = `
-                        <div class="gap-input">
-                            Prime limit: <input type="number" id="spectralLimit" value="10000" style="width: 80px;">
-                        </div>
-                        <div style="font-size: 11px; opacity: 0.9; margin-top: 8px;">
-                            Analyzes frequency spectrum of prime gaps
-                        </div>
-                    `;
-                    break;
-            }
-            
-            paramsDiv.innerHTML = html;
-        }
-        
-        function runAdvancedAnalysis() {
-            const type = document.getElementById('advancedAnalysisType').value;
-            updateAnimationStatus('Running ' + type + ' analysis...');
-            
-            setTimeout(() => {
-                let result;
-                
-                try {
-                    switch(type) {
-                        case 'zeta-zeros':
-                            result = analyzeZetaZeros();
-                            break;
-                        case 'explicit-formula':
-                            result = analyzeExplicitFormula();
-                            break;
-                        case 'mobius':
-                            result = analyzeMobiusFunction();
-                            break;
-                        case 'mangoldt':
-                            result = analyzeMangoldtFunction();
-                            break;
-                        case 'fourier':
-                            result = analyzeFourierTransform();
-                            break;
-                        case 'spectral':
-                            result = analyzeSpectralGaps();
-                            break;
-                    }
-                    
-                    displayAdvancedResults(result);
-                    updateAnimationStatus('Analysis complete');
-                } catch (error) {
-                    updateAnimationStatus('Analysis error: ' + error.message);
-                    console.error(error);
-                }
-            }, 100);
-        }
-        
-        function analyzeZetaZeros() {
-            const min = parseFloat(document.getElementById('zeroSearchMin').value);
-            const max = parseFloat(document.getElementById('zeroSearchMax').value);
-            const maxCount = parseInt(document.getElementById('zeroMaxCount').value);
-            
-            const startTime = performance.now();
-            const zeros = computeZetaZeros(max, maxCount);
-            const computeTime = performance.now() - startTime;
-            
-            return {
-                type: 'zeta-zeros',
-                searchRange: [min, max],
-                zerosFound: zeros.length,
-                zeros: zeros,
-                computeTime: computeTime,
-                method: 'Riemann-Siegel'
-            };
-        }
-        
-        function analyzeExplicitFormula() {
-            const x = parseFloat(document.getElementById('explicitX').value);
-            const numZeros = parseInt(document.getElementById('explicitZeros').value);
-            
-            const startTime = performance.now();
-            
-            // Actual prime count
-            const actualPi = sieveOfEratosthenes(x).length;
-            
-            // Explicit formula estimate
-            const explicitPi = primeCountingExplicit(x, numZeros);
-            
-            // li(x) estimate
-            const liX = logarithmicIntegral(x);
-            
-            const computeTime = performance.now() - startTime;
-            
-            return {
-                type: 'explicit-formula',
-                x: x,
-                actualCount: actualPi,
-                explicitFormula: explicitPi,
-                logarithmicIntegral: liX,
-                explicitError: Math.abs(explicitPi - actualPi),
-                liError: Math.abs(liX - actualPi),
-                zerosUsed: numZeros,
-                computeTime: computeTime
-            };
-        }
-        
-        function analyzeMobiusFunction() {
-            const start = parseInt(document.getElementById('mobiusStart').value);
-            const end = parseInt(document.getElementById('mobiusEnd').value);
-            
-            const results = [];
-            let sumMobius = 0;
-            
-            for (let n = start; n <= end; n++) {
-                const mu = mobiusFunction(n);
-                sumMobius += mu;
-                results.push({ n: n, mu: mu });
-            }
-            
-            return {
-                type: 'mobius',
-                range: [start, end],
-                results: results,
-                sum: sumMobius,
-                avgValue: sumMobius / results.length
-            };
-        }
-        
-        function analyzeMangoldtFunction() {
-            const start = parseInt(document.getElementById('mangoldtStart').value);
-            const end = parseInt(document.getElementById('mangoldtEnd').value);
-            
-            const results = [];
-            let sumLambda = 0;
-            
-            for (let n = start; n <= end; n++) {
-                const lambda = mangoldtFunction(n);
-                sumLambda += lambda;
-                results.push({ n: n, lambda: lambda });
-            }
-            
-            return {
-                type: 'mangoldt',
-                range: [start, end],
-                results: results,
-                sum: sumLambda,
-                chebyshevPsi: sumLambda
-            };
-        }
-        
-        function analyzeFourierTransform() {
-            const modulus = parseInt(document.getElementById('fourierModulus').value);
-            const limit = parseInt(document.getElementById('fourierLimit').value);
-            
-            const startTime = performance.now();
-            const fourierData = fourierAnalysisResidues(modulus, limit);
-            const computeTime = performance.now() - startTime;
-            
-            return {
-                type: 'fourier',
-                modulus: modulus,
-                primeLimit: limit,
-                signal: fourierData.signal,
-                dft: fourierData.dft,
-                dominantFrequencies: fourierData.dominantFrequencies,
-                computeTime: computeTime
-            };
-        }
-        
-        function analyzeSpectralGaps() {
-            const limit = parseInt(document.getElementById('spectralLimit').value);
-            
-            const startTime = performance.now();
-            const primes = sieveOfEratosthenes(limit);
-            
-            // Compute gaps
-            const gaps = [];
-            for (let i = 1; i < primes.length; i++) {
-                gaps.push(primes[i] - primes[i-1]);
-            }
-            
-            const spectralData = spectralAnalysisGaps(gaps);
-            const computeTime = performance.now() - startTime;
-            
-            return {
-                type: 'spectral',
-                primeLimit: limit,
-                gapCount: gaps.length,
-                spectrum: spectralData.spectrum,
-                dominantFrequency: spectralData.dominantFrequency,
-                computeTime: computeTime
-            };
-        }
-        
-        function displayAdvancedResults(result) {
-            const resultsDiv = document.getElementById('advancedAnalysisResults');
-            const contentDiv = document.getElementById('advancedResultsContent');
-            
-            resultsDiv.style.display = 'block';
-            
-            let html = '<div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;">';
-            
-            switch(result.type) {
-                case 'zeta-zeros':
-                    html += '<strong style="font-size: 14px; color: #2ecc71;">Riemann Zeta Zeros Found</strong><br><br>';
-                    html += `Search range: t ∈ [${result.searchRange[0]}, ${result.searchRange[1]}]<br>`;
-                    html += `Zeros found: ${result.zerosFound}<br>`;
-                    html += `Computation time: ${result.computeTime.toFixed(2)}ms<br><br>`;
-                    
-                    html += '<strong>Zeros on critical line (σ = 1/2):</strong><br>';
-                    result.zeros.forEach((zero, i) => {
-                        html += `<div style="margin: 5px 0; padding: 5px; background: rgba(46,204,113,0.1); border-radius: 4px;">`;
-                        html += `ρ<sub>${i+1}</sub> = 0.5 + ${zero.t.toFixed(6)}i<br>`;
-                        html += `<span style="font-size: 11px; opacity: 0.8;">Residual: ${zero.residual.toExponential(3)}, Iterations: ${zero.iterations}</span>`;
-                        html += `</div>`;
-                    });
-                    break;
-                    
-                case 'explicit-formula':
-                    html += '<strong style="font-size: 14px; color: #2ecc71;">Prime Counting Explicit Formula</strong><br><br>';
-                    html += `Computing π(${result.x}) using ${result.zerosUsed} zeta zeros<br><br>`;
-                    
-                    html += `<strong>Actual π(${result.x}) = ${result.actualCount}</strong><br>`;
-                    html += `Explicit formula: ${result.explicitFormula.toFixed(2)} (error: ${result.explicitError.toFixed(2)})<br>`;
-                    html += `li(${result.x}): ${result.logarithmicIntegral.toFixed(2)} (error: ${result.liError.toFixed(2)})<br><br>`;
-                    
-                    html += `<em>Explicit formula accuracy: ${((1 - result.explicitError/result.actualCount) * 100).toFixed(2)}%</em><br>`;
-                    html += `<em>Computation time: ${result.computeTime.toFixed(2)}ms</em>`;
-                    break;
-                    
-                case 'mobius':
-                    html += '<strong style="font-size: 14px; color: #2ecc71;">Möbius Function μ(n)</strong><br><br>';
-                    html += `Range: n ∈ [${result.range[0]}, ${result.range[1]}]<br>`;
-                    html += `Sum: Σμ(n) = ${result.sum}<br>`;
-                    html += `Average: ${result.avgValue.toFixed(4)}<br><br>`;
-                    
-                    html += '<div style="max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 11px;">';
-                    result.results.forEach(r => {
-                        const color = r.mu === 0 ? '#95a5a6' : r.mu === 1 ? '#2ecc71' : '#e74c3c';
-                        html += `<span style="color: ${color};">μ(${r.n}) = ${r.mu.toString().padStart(2)}</span>  `;
-                        if ((r.n - result.range[0] + 1) % 10 === 0) html += '<br>';
-                    });
-                    html += '</div>';
-                    break;
-                    
-                case 'mangoldt':
-                    html += '<strong style="font-size: 14px; color: #2ecc71;">Von Mangoldt Function Λ(n)</strong><br><br>';
-                    html += `Range: n ∈ [${result.range[0]}, ${result.range[1]}]<br>`;
-                    html += `ψ(x) = ΣΛ(n) = ${result.chebyshevPsi.toFixed(4)}<br><br>`;
-                    
-                    html += '<strong>Prime powers found:</strong><br>';
-                    html += '<div style="max-height: 200px; overflow-y: auto; font-size: 11px;">';
-                    result.results.forEach(r => {
-                        if (r.lambda > 0) {
-                            html += `Λ(${r.n}) = ${r.lambda.toFixed(4)} (log of prime base)<br>`;
-                        }
-                    });
-                    html += '</div>';
-                    break;
-                    
-                case 'fourier':
-                    html += '<strong style="font-size: 14px; color: #2ecc71;">Fourier Analysis of Prime Distribution</strong><br><br>';
-                    html += `Modulus: ${result.modulus}<br>`;
-                    html += `Prime limit: ${result.primeLimit}<br>`;
-                    html += `Computation time: ${result.computeTime.toFixed(2)}ms<br><br>`;
-                    
-                    html += '<strong>Top 5 Dominant Frequencies:</strong><br>';
-                    result.dominantFrequencies.forEach((freq, i) => {
-                        html += `<div style="margin: 3px 0;">`;
-                        html += `${i+1}. Frequency ${freq.frequency}: magnitude = ${freq.magnitude.toFixed(2)}, phase = ${freq.phase.toFixed(4)}`;
-                        html += `</div>`;
-                    });
-                    
-                    html += '<br><strong>Signal (primes per residue):</strong><br>';
-                    html += '<div style="font-family: monospace; font-size: 11px;">';
-                    result.signal.forEach((count, residue) => {
-                        if (count > 0) {
-                            html += `r=${residue}: ${count} primes | `;
-                        }
-                    });
-                    html += '</div>';
-                    break;
-                    
-                case 'spectral':
-                    html += '<strong style="font-size: 14px; color: #2ecc71;">Spectral Analysis of Prime Gaps</strong><br><br>';
-                    html += `Prime limit: ${result.primeLimit}<br>`;
-                    html += `Gaps analyzed: ${result.gapCount}<br>`;
-                    html += `Computation time: ${result.computeTime.toFixed(2)}ms<br><br>`;
-                    
-                    html += '<strong>Dominant Frequency:</strong><br>';
-                    html += `Frequency: ${result.dominantFrequency.frequency.toFixed(4)}<br>`;
-                    html += `Power: ${result.dominantFrequency.power.toFixed(4)}<br><br>`;
-                    
-                    html += '<strong>Power Spectrum (top 10):</strong><br>';
-                    result.spectrum.slice(0, 10).forEach((s, i) => {
-                        const barWidth = Math.min(100, s.power * 100);
-                        html += `<div style="margin: 3px 0;">`;
-                        html += `f=${s.frequency.toFixed(3)}: `;
-                        html += `<div style="display: inline-block; width: ${barWidth}px; height: 8px; background: #2ecc71;"></div>`;
-                        html += ` ${s.power.toFixed(4)}`;
-                        html += `</div>`;
-                    });
-                    break;
-            }
-            
-            html += '</div>';
-            contentDiv.innerHTML = html;
-        }
-        
-        function clearAdvancedResults() {
-            document.getElementById('advancedAnalysisResults').style.display = 'none';
-        }
-        
-        // Initialize advanced analysis parameters
-        updateAdvancedAnalysisParams();
-        
-        // ========================================
-        // END ADVANCED ANALYSIS UI
-        // ========================================
         
         // ========================================
         // DISTANCE MEASUREMENT FUNCTIONS
