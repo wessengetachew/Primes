@@ -89,7 +89,7 @@
             margin: 0 auto;
             padding: 20px;
             display: grid;
-            grid-template-columns: 300px 1fr 350px;
+            grid-template-columns: 300px minmax(600px, 1fr) 350px;
             gap: 15px;
             min-height: calc(100vh - 100px);
         }
@@ -209,9 +209,9 @@
             border-radius: 8px;
             background: #000000;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
             max-width: 100%;
             max-height: 875px;
-            width: auto;
             height: auto;
             cursor: grab;
             display: block;
@@ -705,8 +705,8 @@
             font-style: italic;
         }
 
-        @media (max-width: 1400px) {
-            .main-grid {
+        @media (max-width: 1200px) {
+            .app-container {
                 grid-template-columns: 1fr;
             }
             
@@ -11394,6 +11394,15 @@
         // Initialize the enhanced system
         initControls();
         draw();
+        
+        // Add window resize handler for responsive layout
+        window.addEventListener('resize', () => {
+            // Debounce resize events
+            clearTimeout(window.resizeTimeout);
+            window.resizeTimeout = setTimeout(() => {
+                draw();
+            }, 250);
+        });
         
         // Initialize RH visualizations after a short delay
         setTimeout(() => {
