@@ -1277,71 +1277,7 @@
                         <div id="rhPredictions" style="font-size: 12px; margin: 10px 0; opacity: 0.9;"></div>
                     </div>
                     
-                    <div class="custom-gap">
-                        <label><strong>Prime Sieve Engine:</strong></label>
-                        <div class="gap-input">
-                            Search up to: <input type="number" id="sieveLimit" min="100" value="10000" placeholder="10000">
-                        </div>
-                        <div class="gap-input">
-                            Using modulus: <input type="number" id="sieveModulus" min="2" value="30" placeholder="30">
-                            <button class="rh-btn" onclick="runPrimeSieve()">Generate Sieve</button>
-                        </div>
-                        <div class="gap-input">
-                            <button onclick="clearPrimeSieve()">Clear Sieve</button>
-                            <button onclick="exportPrimeData()">Export Data</button>
-                        </div>
-                        <div id="sieveProgress" style="display: none; margin-top: 10px;">
-                            <div style="background: rgba(255,255,255,0.2); border-radius: 10px; height: 20px;">
-                                <div id="progressBar" style="background: linear-gradient(45deg, #4ECDC4, #44A08D); height: 100%; border-radius: 10px; width: 0%; transition: width 0.3s;"></div>
-                            </div>
-                            <div id="progressText" style="text-align: center; margin-top: 5px; font-size: 12px;"></div>
-                        </div>
-                        
-                        <div id="sieveResults" style="display: none; margin-top: 15px;">
-                            <label><strong>Prime Distribution Analysis:</strong></label>
-                            <div id="primeStats" style="font-size: 13px; margin: 10px 0;"></div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="showPrimeMarkers"> Highlight Primes on Rings
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="showCompositeMarkers"> Show Composite Numbers
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="showPrimeDensity"> Show Density Visualization
-                            </div>
-                        </div>
-                        
-                        <div id="primePatternAnalysis" style="display: none; margin-top: 15px;">
-                            <label><strong>Quick Sieve Presets:</strong></label>
-                            <div class="gap-input">
-                                <button onclick="quickSieve(1000, 6)">1K (mod 6)</button>
-                                <button onclick="quickSieve(10000, 30)">10K (mod 30)</button>
-                            </div>
-                            <div class="gap-input">
-                                <button onclick="quickSieve(100000, 210)">100K (mod 210)</button>
-                                <button onclick="quickSieve(1000000, 2310)">1M (mod 2310)</button>
-                            </div>
-                            
-                            <div style="margin-top: 15px;">
-                                <label><strong>Complete Distribution:</strong></label>
-                                <div id="residueDistribution" style="font-size: 12px; max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 10px;"></div>
-                                
-                                <div class="gap-input" style="margin-top: 15px;">
-                                    <button onclick="exportDetailedPrimeList()">Export All Primes</button>
-                                    <button onclick="togglePrimeSearchMode()">Search Primes</button>
-                                </div>
-                                
-                                <div id="primeSearchControls" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                    <label><strong>Prime Search:</strong></label>
-                                    <div class="gap-input">
-                                        Prime: <input type="number" id="searchPrime" min="2" max="1000000" placeholder="Enter prime">
-                                        <button onclick="findPrimeInResidue()">Find Residue</button>
-                                    </div>
-                                    <div id="searchResult" style="margin-top: 10px; font-size: 13px;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                     
                     <div class="custom-gap">
                         <label><strong>Visualization Range Controls:</strong></label>
@@ -1623,6 +1559,54 @@
                     </div>
                 </div>
 
+                <div class="control-section" style="background: linear-gradient(45deg, rgba(78, 205, 196, 0.15), rgba(138, 43, 226, 0.15)); border: 2px solid rgba(78, 205, 196, 0.4);">
+                    <h3 onclick="toggleSection('rotation3dSection')" style="cursor: pointer; user-select: none; color: #4ECDC4;">
+                        <span class="collapse-icon collapsed" id="rotation3dSectionIcon">▼</span>
+                        3D Rotation Panel
+                    </h3>
+                    <div id="rotation3dSection" class="collapsible-section collapsed">
+                    <div class="custom-gap">
+                        <label><strong>Select Ring to Rotate:</strong></label>
+                        <select id="rotation3dRingSelector" onchange="update3DRotationRing()" style="width: 100%; padding: 8px; border-radius: 6px; margin-bottom: 10px;">
+                            <option value="all">All Rings (Global Rotation)</option>
+                        </select>
+                        
+                        <div class="slider-group">
+                            <label>X-Axis Rotation: <span id="rotationXValue">0</span>°</label>
+                            <input type="range" id="rotationX" min="0" max="360" step="1" value="0" oninput="update3DRotation()">
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Y-Axis Rotation: <span id="rotationYValue">0</span>°</label>
+                            <input type="range" id="rotationY" min="0" max="360" step="1" value="0" oninput="update3DRotation()">
+                        </div>
+                        
+                        <div class="slider-group">
+                            <label>Z-Axis Rotation: <span id="rotationZValue">0</span>°</label>
+                            <input type="range" id="rotationZ" min="0" max="360" step="1" value="0" oninput="update3DRotation()">
+                        </div>
+                        
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="enable3DPerspective" onchange="update3DRotation()"> Enable Perspective Projection
+                        </div>
+                        
+                        <div class="gap-input" style="margin-top: 15px;">
+                            <button onclick="reset3DRotation()" style="background: #e74c3c;">Reset Rotation</button>
+                            <button onclick="apply3DToAll()" style="background: #9b59b6;">Apply to All</button>
+                        </div>
+                        
+                        <div style="font-size: 0.85em; opacity: 0.9; margin-top: 10px; padding: 10px; background: rgba(78, 205, 196, 0.1); border-radius: 6px; border-left: 3px solid #4ECDC4;">
+                            <strong>3D Rotation:</strong><br>
+                            • X-axis: Pitch (tilt forward/backward)<br>
+                            • Y-axis: Yaw (turn left/right)<br>
+                            • Z-axis: Roll (rotate clockwise/counter-clockwise)<br>
+                            • All visual elements rotate together<br>
+                            • Each ring can have independent rotation
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                
                 <div class="control-section">
                     <h3 onclick="toggleSection('animationSection')" style="cursor: pointer; user-select: none;">
                         <span class="collapse-icon collapsed" id="animationSectionIcon">▼</span>
@@ -2943,6 +2927,135 @@
             
             updateAnimationStatus('Certificate exported');
         }
+        // 3D Rotation state
+        let ring3DRotations = {}; // Store rotation for each ring: {ringId: {x, y, z}}
+        let current3DRing = 'all'; // Currently selected ring for rotation
+        let global3DRotation = {x: 0, y: 0, z: 0}; // Global rotation for all rings
+        let enable3DPerspective = false;
+        
+        // Initialize 3D rotation panel
+        function init3DRotationPanel() {
+            const selector = document.getElementById('rotation3dRingSelector');
+            selector.innerHTML = '<option value="all">All Rings (Global Rotation)</option>';
+            
+            const selectedRings = getSelectedRings();
+            selectedRings.forEach(ringId => {
+                const config = configs[ringId];
+                if (config) {
+                    const label = ringId === 'unit' ? 'Unit Circle' : `M${config.mod}`;
+                    selector.innerHTML += `<option value="${ringId}">${label}</option>`;
+                }
+            });
+        }
+        
+        function update3DRotationRing() {
+            current3DRing = document.getElementById('rotation3dRingSelector').value;
+            
+            // Load current rotation for selected ring
+            let rotation;
+            if (current3DRing === 'all') {
+                rotation = global3DRotation;
+            } else {
+                rotation = ring3DRotations[current3DRing] || {x: 0, y: 0, z: 0};
+            }
+            
+            document.getElementById('rotationX').value = rotation.x;
+            document.getElementById('rotationY').value = rotation.y;
+            document.getElementById('rotationZ').value = rotation.z;
+            
+            document.getElementById('rotationXValue').textContent = rotation.x;
+            document.getElementById('rotationYValue').textContent = rotation.y;
+            document.getElementById('rotationZValue').textContent = rotation.z;
+        }
+        
+        function update3DRotation() {
+            const x = parseFloat(document.getElementById('rotationX').value);
+            const y = parseFloat(document.getElementById('rotationY').value);
+            const z = parseFloat(document.getElementById('rotationZ').value);
+            
+            enable3DPerspective = document.getElementById('enable3DPerspective').checked;
+            
+            document.getElementById('rotationXValue').textContent = x;
+            document.getElementById('rotationYValue').textContent = y;
+            document.getElementById('rotationZValue').textContent = z;
+            
+            // Store rotation for current ring
+            if (current3DRing === 'all') {
+                global3DRotation = {x, y, z};
+            } else {
+                ring3DRotations[current3DRing] = {x, y, z};
+            }
+            
+            draw();
+        }
+        
+        function reset3DRotation() {
+            document.getElementById('rotationX').value = 0;
+            document.getElementById('rotationY').value = 0;
+            document.getElementById('rotationZ').value = 0;
+            
+            document.getElementById('rotationXValue').textContent = '0';
+            document.getElementById('rotationYValue').textContent = '0';
+            document.getElementById('rotationZValue').textContent = '0';
+            
+            if (current3DRing === 'all') {
+                global3DRotation = {x: 0, y: 0, z: 0};
+            } else {
+                ring3DRotations[current3DRing] = {x: 0, y: 0, z: 0};
+            }
+            
+            draw();
+        }
+        
+        function apply3DToAll() {
+            const x = parseFloat(document.getElementById('rotationX').value);
+            const y = parseFloat(document.getElementById('rotationY').value);
+            const z = parseFloat(document.getElementById('rotationZ').value);
+            
+            global3DRotation = {x, y, z};
+            
+            // Apply to all individual rings too
+            const selectedRings = getSelectedRings();
+            selectedRings.forEach(ringId => {
+                ring3DRotations[ringId] = {x, y, z};
+            });
+            
+            updateAnimationStatus('3D rotation applied to all rings');
+            draw();
+        }
+        
+        // Apply 3D rotation matrix to a point
+        function apply3DRotationToPoint(x, y, z, rotation) {
+            // Convert degrees to radians
+            const rx = rotation.x * Math.PI / 180;
+            const ry = rotation.y * Math.PI / 180;
+            const rz = rotation.z * Math.PI / 180;
+            
+            // Rotation around X-axis (pitch)
+            let y1 = y * Math.cos(rx) - z * Math.sin(rx);
+            let z1 = y * Math.sin(rx) + z * Math.cos(rx);
+            
+            // Rotation around Y-axis (yaw)
+            let x2 = x * Math.cos(ry) + z1 * Math.sin(ry);
+            let z2 = -x * Math.sin(ry) + z1 * Math.cos(ry);
+            
+            // Rotation around Z-axis (roll)
+            let x3 = x2 * Math.cos(rz) - y1 * Math.sin(rz);
+            let y3 = x2 * Math.sin(rz) + y1 * Math.cos(rz);
+            
+            return {x: x3, y: y3, z: z2};
+        }
+        
+        // Get 3D rotation for a specific ring
+        function get3DRotationForRing(ringId) {
+            // Check if ring has individual rotation
+            if (ring3DRotations[ringId]) {
+                return ring3DRotations[ringId];
+            }
+            // Otherwise use global rotation
+            return global3DRotation;
+        }
+        
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let animating = false;
@@ -5416,48 +5529,43 @@
                 angle += rotation;
             }
             
+            // Base 2D coordinates
+            let x, y, displayAngle;
+            
             // Transform based on coordinate system
             switch(coordinateSystem) {
                 case 'polar':
-                    return {
-                        x: baseRadius * Math.cos(angle),
-                        y: baseRadius * Math.sin(angle),
-                        displayAngle: angle
-                    };
+                    x = baseRadius * Math.cos(angle);
+                    y = baseRadius * Math.sin(angle);
+                    displayAngle = angle;
+                    break;
                     
                 case 'log-cylinder':
-                    // u = ln(m), v = θ = 2πr/m
-                    // This should create a FLAT rectangular grid, not circular
                     const u = Math.log(modulus) * coordSystemParams.logCylinder.uScale * 80;
-                    const v = (residue / modulus) * coordSystemParams.logCylinder.vScale * 100 - 50; // Center vertically
-                    return {
-                        x: u - 150, // Shift left to center
-                        y: v,
-                        displayAngle: (residue / modulus) * 2 * Math.PI
-                    };
+                    const v = (residue / modulus) * coordSystemParams.logCylinder.vScale * 100 - 50;
+                    x = u - 150;
+                    y = v;
+                    displayAngle = (residue / modulus) * 2 * Math.PI;
+                    break;
                     
                 case 'spiral':
-                    // Logarithmic spiral: r = a·e^(bθ)
                     const a = 10;
                     const b = coordSystemParams.spiral.growth;
                     const spiralAngle = angle + ringIndex * coordSystemParams.spiral.tightness;
                     const spiralRadius = a * Math.exp(b * spiralAngle);
-                    return {
-                        x: spiralRadius * Math.cos(spiralAngle),
-                        y: spiralRadius * Math.sin(spiralAngle),
-                        displayAngle: spiralAngle
-                    };
+                    x = spiralRadius * Math.cos(spiralAngle);
+                    y = spiralRadius * Math.sin(spiralAngle);
+                    displayAngle = spiralAngle;
+                    break;
                     
                 case 'hyperbolic':
-                    // Poincaré disk model
                     const k = coordSystemParams.hyperbolic.curvature;
-                    const r_normalized = baseRadius / 300; // Normalize to [0,1]
+                    const r_normalized = baseRadius / 300;
                     const hyperbolic_r = Math.tanh(r_normalized * k) * 250;
-                    return {
-                        x: hyperbolic_r * Math.cos(angle),
-                        y: hyperbolic_r * Math.sin(angle),
-                        displayAngle: angle
-                    };
+                    x = hyperbolic_r * Math.cos(angle);
+                    y = hyperbolic_r * Math.sin(angle);
+                    displayAngle = angle;
+                    break;
                     
                 case 'rectangular':
                     const cellSize = coordSystemParams.rectangular.cellSize;
@@ -5466,19 +5574,18 @@
                     const col = ringIndex % cols;
                     const cellAngle = (residue / modulus) * 2 * Math.PI;
                     const cellRadius = cellSize * 0.4;
-                    return {
-                        x: (col - cols/2) * cellSize + cellRadius * Math.cos(cellAngle),
-                        y: (row - cols/2) * cellSize + cellRadius * Math.sin(cellAngle),
-                        displayAngle: cellAngle
-                    };
+                    x = (col - cols/2) * cellSize + cellRadius * Math.cos(cellAngle);
+                    y = (row - cols/2) * cellSize + cellRadius * Math.sin(cellAngle);
+                    displayAngle = cellAngle;
+                    break;
                     
                 default:
-                    return {
-                        x: baseRadius * Math.cos(angle),
-                        y: baseRadius * Math.sin(angle),
-                        displayAngle: angle
-                    };
+                    x = baseRadius * Math.cos(angle);
+                    y = baseRadius * Math.sin(angle);
+                    displayAngle = angle;
             }
+            
+            return {x, y, z: 0, displayAngle};
         }
 
         function gcd(a, b) {
@@ -10385,6 +10492,10 @@
         // Enhanced main drawing function
         function draw() {
             const selectedRings = getSelectedRings();
+            
+            // Update 3D rotation ring selector
+            init3DRotationPanel();
+            
             const selectedGaps = getSelectedGaps();
             const showLabels = document.getElementById('showLabels').checked;
             const showDirectLifts = document.getElementById('showDirectLifts').checked;
@@ -10748,8 +10859,23 @@
                 residuesToDraw.forEach(({r, isGcdOne}) => {
                     // Transform coordinates based on selected system
                     const coords = transformCoordinates(ring.modulus, r, ring.index, rings.length);
-                    const x = coords.x;
-                    const y = coords.y;
+                    
+                    // Apply 3D rotation for this ring
+                    const ringId = ring.n;
+                    const rotation3D = get3DRotationForRing(ringId);
+                    const rotated = apply3DRotationToPoint(coords.x, coords.y, coords.z, rotation3D);
+                    
+                    // Apply perspective if enabled
+                    let x = rotated.x;
+                    let y = rotated.y;
+                    
+                    if (enable3DPerspective) {
+                        const perspective = 1000; // Distance to viewer
+                        const scale = perspective / (perspective + rotated.z);
+                        x = rotated.x * scale;
+                        y = rotated.y * scale;
+                    }
+                    
                     const angle = coords.displayAngle;
 
                     // Enhanced point drawing with normalized thickness controls
