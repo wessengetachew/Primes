@@ -963,59 +963,76 @@
                     <div id="rhSection" class="collapsible-section">
                     
                     <div class="custom-gap" style="background: linear-gradient(45deg, rgba(255, 215, 0, 0.12), rgba(72, 187, 120, 0.12)); border: 2px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
-                        <label><strong>Distance Measurement Tool:</strong></label>
+                        <label><strong>Advanced Distance Measurement:</strong></label>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="enableDistanceTool" onchange="toggleDistanceTool()"> Enable Distance Measurement
+                            <input type="checkbox" id="enableDistanceTool" onchange="toggleDistanceTool()"> Enable Multi-Point Measurement
                         </div>
                         <div id="distanceControls" style="display: none; margin-top: 10px;">
-                            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 12px;">
-                                <strong>Manual Point Selection:</strong><br>
-                                Enter residue (r) and modulus (M) for each point
+                            <div class="slider-group">
+                                <label>Measurement Mode:</label>
+                                <select id="distanceMode" onchange="updateDistanceMode()">
+                                    <option value="euclidean">Euclidean (straight line)</option>
+                                    <option value="manhattan">Manhattan (|Δx| + |Δy|)</option>
+                                    <option value="geodesic">Geodesic (along ring)</option>
+                                    <option value="angular">Angular (radians)</option>
+                                    <option value="modular">Modular Arithmetic</option>
+                                </select>
                             </div>
                             
-                            <!-- Point 1 Selection -->
-                            <div style="background: rgba(255, 215, 0, 0.15); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid rgba(255, 215, 0, 0.3);">
-                                <strong style="color: #FFD700;">Point 1:</strong>
+                            <div class="slider-group">
+                                <label>Path Type:</label>
+                                <select id="pathType" onchange="updatePathType()">
+                                    <option value="sequential">Sequential (point-to-point)</option>
+                                    <option value="closed">Closed Loop</option>
+                                    <option value="star">Star (all to centroid)</option>
+                                    <option value="mst">Minimum Spanning Tree</option>
+                                    <option value="tsp">Traveling Salesman</option>
+                                </select>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showDistanceLabels" onchange="draw()"> Show Distance Labels
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showAngles" onchange="draw()"> Show Angles
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showMidpoints" onchange="draw()"> Show Midpoints
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showCentroid" onchange="draw()"> Show Centroid
+                            </div>
+                            
+                            <div style="margin-top: 12px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                                <strong>Quick Selection:</strong>
                                 <div class="gap-input" style="margin-top: 8px;">
-                                    r = <input type="number" id="point1Residue" min="0" placeholder="0" style="width: 60px;">
-                                    mod <input type="number" id="point1Modulus" min="1" placeholder="30" style="width: 60px;">
-                                    <button onclick="selectPoint1Manual()" style="background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; font-weight: bold; padding: 4px 10px;">Set P1</button>
-                                </div>
-                                <div id="point1Status" style="font-size: 11px; margin-top: 5px; min-height: 40px;">
-                                    <em>Not selected</em>
+                                    <button onclick="selectAllOnRing()">All on Ring</button>
+                                    <button onclick="selectPrimesOnly()">Primes Only</button>
+                                    <button onclick="selectByGCD()">By GCD=1</button>
                                 </div>
                             </div>
                             
-                            <!-- Point 2 Selection -->
-                            <div style="background: rgba(78, 205, 196, 0.15); padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid rgba(78, 205, 196, 0.3);">
-                                <strong style="color: #4ECDC4;">Point 2:</strong>
-                                <div class="gap-input" style="margin-top: 8px;">
-                                    r = <input type="number" id="point2Residue" min="0" placeholder="15" style="width: 60px;">
-                                    mod <input type="number" id="point2Modulus" min="1" placeholder="60" style="width: 60px;">
-                                    <button onclick="selectPoint2Manual()" style="background: linear-gradient(45deg, #4ECDC4, #44A08D); color: #fff; font-weight: bold; padding: 4px 10px;">Set P2</button>
-                                </div>
-                                <div id="point2Status" style="font-size: 11px; margin-top: 5px; min-height: 40px;">
-                                    <em>Not selected</em>
-                                </div>
+                            <div style="font-size: 12px; opacity: 0.9; margin: 12px 0 8px 0;">
+                                <strong>Manual Point Entry:</strong>
+                            </div>
+                            <div class="gap-input">
+                                r = <input type="number" id="pointResidue" min="0" placeholder="0" style="width: 50px;">
+                                M = <input type="number" id="pointModulus" min="1" placeholder="30" style="width: 50px;">
+                                <button onclick="addMeasurementPoint()" style="background: #4ECDC4; color: #fff; font-weight: bold;">Add Point</button>
                             </div>
                             
-                            <div id="distanceDisplay" style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; min-height: 80px; margin-bottom: 10px;">
-                                <strong>Distance Calculator</strong><br>
-                                <em>Select two points using inputs above</em>
-                            </div>
-                            <div class="gap-input" style="margin-top: 10px;">
-                                <button onclick="clearDistanceMeasurement()">Clear Both Points</button>
-                                <button onclick="exportDistanceData()">Export Results</button>
+                            <div id="pointsList" style="max-height: 150px; overflow-y: auto; margin: 10px 0; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 11px;">
+                                <em>No points selected. Click points on canvas or enter manually.</em>
                             </div>
                             
-                            <div style="font-size: 11px; opacity: 0.85; margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
-                                <strong>Quick Examples:</strong><br>
-                                • Unit to M30: r=0,M=1 → r=7,M=30<br>
-                                • Same ring: r=1,M=6 → r=5,M=6<br>
-                                • Cross rings: r=5,M=15 → r=11,M=30<br>
-                                • Any modulus: r=3,M=100 → r=17,M=500<br><br>
-                                <strong style="color: #4ECDC4;">✓ Works with ANY r and M values!</strong><br>
-                                <em>Uses current radius scaling & label format settings</em>
+                            <div id="distanceResults" style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; min-height: 80px; margin-bottom: 10px; font-size: 12px;">
+                                <strong>Statistics</strong><br>
+                                <em>Select 2+ points to see analysis</em>
+                            </div>
+                            
+                            <div class="gap-input">
+                                <button onclick="clearAllPoints()">Clear All</button>
+                                <button onclick="exportMeasurementData()">Export Data</button>
                             </div>
                         </div>
                     </div>
@@ -2408,10 +2425,11 @@
             fractal: { depth: 3, branching: 4 }
         };
         
-        // Distance measurement state
+        // Enhanced multi-point distance measurement state
         let distanceMeasurementActive = false;
-        let selectedPoint1 = null;
-        let selectedPoint2 = null;
+        let measurementPoints = [];
+        let distanceMode = 'euclidean';
+        let pathType = 'sequential';
         
         // Farey sequence state
         let fareyData = {
@@ -4791,13 +4809,394 @@
             
             if (distanceMeasurementActive) {
                 canvas.classList.add('distance-mode');
-                clearDistanceMeasurement();
-                updateAnimationStatus('Distance tool active - enter residue values or click points');
+                clearAllPoints();
+                updateAnimationStatus('Multi-point measurement active');
             } else {
                 canvas.classList.remove('distance-mode');
-                clearDistanceMeasurement();
-                updateAnimationStatus('Distance tool deactivated');
+                clearAllPoints();
+                updateAnimationStatus('Measurement tool deactivated');
             }
+        }
+        
+        function addMeasurementPoint() {
+            const r = parseInt(document.getElementById('pointResidue').value);
+            const M = parseInt(document.getElementById('pointModulus').value);
+            
+            if (isNaN(r) || isNaN(M) || M < 1 || r < 0 || r >= M) {
+                alert('Invalid input. Ensure 0 ≤ r < M and M ≥ 1');
+                return;
+            }
+            
+            const point = createPointFromResidueModulus(r, M);
+            if (point) {
+                measurementPoints.push(point);
+                updatePointsList();
+                updateDistanceStatistics();
+                draw();
+            }
+        }
+        
+        function createPointFromResidueModulus(r, M) {
+            const allRings = [];
+            allRings.push({ modulus: 1 });
+            for (let m = 2; m <= 1000; m++) allRings.push({ modulus: m });
+            allRings.sort((a, b) => a.modulus - b.modulus);
+            
+            const ringIndex = allRings.findIndex(rc => rc.modulus === M);
+            if (ringIndex === -1) return null;
+            
+            const radius = calculateRadius(M, ringIndex, allRings.length);
+            const baseAngle = M === 1 ? 0 : 2 * Math.PI * (M - r) / M;
+            const rotation = parseFloat(document.getElementById('rotationSlider').value) * Math.PI / 180;
+            const angle = baseAngle + rotation;
+            
+            return {
+                residue: r, modulus: M, radius: radius, angle: angle,
+                x: radius * Math.cos(angle), y: radius * Math.sin(angle),
+                isGcdOne: gcd(r, M) === 1, isPrime: isPrime(r)
+            };
+        }
+        
+        function handleDistanceMeasurementClick(screenX, screenY) {
+            const point = findNearestResidue(screenX, screenY);
+            if (point && measurementPoints.length < 20) {
+                measurementPoints.push(point);
+                updatePointsList();
+                updateDistanceStatistics();
+                draw();
+            }
+        }
+        
+        function findNearestResidue(screenX, screenY) {
+            const selectedRings = getSelectedRings();
+            if (selectedRings.length === 0) return null;
+            
+            const centerX = canvas.width / 2 + panX;
+            const centerY = canvas.height / 2 + panY;
+            const dx = (screenX - centerX) / currentZoom;
+            const dy = (screenY - centerY) / currentZoom;
+            
+            let nearest = null;
+            let minDist = Infinity;
+            
+            selectedRings.forEach(ringId => {
+                const config = configs[ringId];
+                if (!config) return;
+                
+                const M = config.mod;
+                const residues = getAllResidues(M);
+                
+                residues.forEach(r => {
+                    const point = createPointFromResidueModulus(r, M);
+                    if (!point) return;
+                    
+                    const dist = Math.sqrt((dx - point.x)**2 + (dy - point.y)**2);
+                    if (dist < 15 && dist < minDist) {
+                        minDist = dist;
+                        nearest = point;
+                    }
+                });
+            });
+            
+            return nearest;
+        }
+        
+        function updateDistanceMode() {
+            distanceMode = document.getElementById('distanceMode').value;
+            updateDistanceStatistics();
+            draw();
+        }
+        
+        function updatePathType() {
+            pathType = document.getElementById('pathType').value;
+            updateDistanceStatistics();
+            draw();
+        }
+        
+        function calculateDistance(p1, p2, mode) {
+            switch(mode) {
+                case 'euclidean':
+                    return Math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2);
+                case 'manhattan':
+                    return Math.abs(p2.x - p1.x) + Math.abs(p2.y - p1.y);
+                case 'geodesic':
+                    if (p1.modulus === p2.modulus) {
+                        const angleDiff = Math.abs(p2.angle - p1.angle);
+                        return p1.radius * Math.min(angleDiff, 2*Math.PI - angleDiff);
+                    }
+                    return Math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2);
+                case 'angular':
+                    return Math.abs(p2.angle - p1.angle);
+                case 'modular':
+                    const minMod = Math.min(p1.modulus, p2.modulus);
+                    return Math.abs((p2.residue % minMod) - (p1.residue % minMod));
+                default:
+                    return Math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2);
+            }
+        }
+        
+        function updatePointsList() {
+            const list = document.getElementById('pointsList');
+            if (measurementPoints.length === 0) {
+                list.innerHTML = '<em>No points selected</em>';
+                return;
+            }
+            
+            let html = measurementPoints.map((p, i) => 
+                `<div style="padding: 3px; background: rgba(255,215,0,0.1); margin: 2px 0; border-radius: 3px;">
+                    <strong>P${i+1}:</strong> r=${p.residue}, M=${p.modulus} 
+                    ${p.isGcdOne ? '<span style="color: #4ECDC4;">✓</span>' : ''}
+                    <button onclick="removePoint(${i})" style="float: right; padding: 0 6px; font-size: 10px;">×</button>
+                </div>`
+            ).join('');
+            list.innerHTML = html;
+        }
+        
+        function removePoint(index) {
+            measurementPoints.splice(index, 1);
+            updatePointsList();
+            updateDistanceStatistics();
+            draw();
+        }
+        
+        function updateDistanceStatistics() {
+            const results = document.getElementById('distanceResults');
+            const n = measurementPoints.length;
+            
+            if (n < 2) {
+                results.innerHTML = '<strong>Statistics</strong><br><em>Select 2+ points to see analysis</em>';
+                return;
+            }
+            
+            let html = '<strong>Statistics:</strong><br>';
+            html += `Points: ${n}<br>`;
+            
+            const distances = [];
+            let totalDist = 0;
+            
+            if (pathType === 'sequential') {
+                for (let i = 0; i < n - 1; i++) {
+                    const d = calculateDistance(measurementPoints[i], measurementPoints[i+1], distanceMode);
+                    distances.push(d);
+                    totalDist += d;
+                }
+            } else if (pathType === 'closed' && n >= 3) {
+                for (let i = 0; i < n; i++) {
+                    const d = calculateDistance(measurementPoints[i], measurementPoints[(i+1)%n], distanceMode);
+                    distances.push(d);
+                    totalDist += d;
+                }
+            } else if (pathType === 'star') {
+                const centroid = calculateCentroid(measurementPoints);
+                measurementPoints.forEach(p => {
+                    const d = calculateDistance(p, centroid, distanceMode);
+                    distances.push(d);
+                    totalDist += d;
+                });
+            }
+            
+            if (distances.length > 0) {
+                html += `Total: ${totalDist.toFixed(3)}<br>`;
+                html += `Average: ${(totalDist/distances.length).toFixed(3)}<br>`;
+                html += `Min: ${Math.min(...distances).toFixed(3)}<br>`;
+                html += `Max: ${Math.max(...distances).toFixed(3)}<br>`;
+                
+                if (pathType === 'closed' && n >= 3) {
+                    const area = calculatePolygonArea(measurementPoints);
+                    html += `Area: ${Math.abs(area).toFixed(2)}<br>`;
+                }
+            }
+            
+            results.innerHTML = html;
+        }
+        
+        function calculateCentroid(points) {
+            const n = points.length;
+            const cx = points.reduce((sum, p) => sum + p.x, 0) / n;
+            const cy = points.reduce((sum, p) => sum + p.y, 0) / n;
+            return { x: cx, y: cy };
+        }
+        
+        function calculatePolygonArea(points) {
+            let area = 0;
+            const n = points.length;
+            for (let i = 0; i < n; i++) {
+                const j = (i + 1) % n;
+                area += points[i].x * points[j].y;
+                area -= points[j].x * points[i].y;
+            }
+            return area / 2;
+        }
+        
+        function drawMeasurementPoints() {
+            if (!distanceMeasurementActive || measurementPoints.length === 0) return;
+            
+            ctx.save();
+            
+            const colors = ['#FFD700', '#4ECDC4', '#FF6B6B', '#9b59b6', '#e67e22'];
+            const showLabels = document.getElementById('showDistanceLabels')?.checked;
+            const showAngles = document.getElementById('showAngles')?.checked;
+            const showMidpoints = document.getElementById('showMidpoints')?.checked;
+            const showCentroid = document.getElementById('showCentroid')?.checked;
+            
+            // Draw paths
+            if (pathType === 'sequential') {
+                for (let i = 0; i < measurementPoints.length - 1; i++) {
+                    drawSegment(measurementPoints[i], measurementPoints[i+1], i, showLabels, showMidpoints);
+                }
+            } else if (pathType === 'closed') {
+                for (let i = 0; i < measurementPoints.length; i++) {
+                    drawSegment(measurementPoints[i], measurementPoints[(i+1)%measurementPoints.length], i, showLabels, showMidpoints);
+                }
+            } else if (pathType === 'star') {
+                const centroid = calculateCentroid(measurementPoints);
+                measurementPoints.forEach((p, i) => {
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(centroid.x, centroid.y);
+                    ctx.strokeStyle = colors[i % colors.length];
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                });
+                if (showCentroid) {
+                    ctx.beginPath();
+                    ctx.arc(centroid.x, centroid.y, 8, 0, 2*Math.PI);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+            
+            // Draw points
+            measurementPoints.forEach((p, i) => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 8, 0, 2*Math.PI);
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 10px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText((i+1).toString(), p.x, p.y + 3);
+            });
+            
+            ctx.restore();
+        }
+        
+        function drawSegment(p1, p2, index, showLabel, showMidpoint) {
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            if (showLabel || showMidpoint) {
+                const mx = (p1.x + p2.x) / 2;
+                const my = (p1.y + p2.y) / 2;
+                
+                if (showMidpoint) {
+                    ctx.beginPath();
+                    ctx.arc(mx, my, 3, 0, 2*Math.PI);
+                    ctx.fillStyle = '#4ECDC4';
+                    ctx.fill();
+                }
+                
+                if (showLabel) {
+                    const dist = calculateDistance(p1, p2, distanceMode);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    ctx.fillRect(mx - 25, my - 10, 50, 16);
+                    ctx.fillStyle = '#FFD700';
+                    ctx.font = '10px Segoe UI';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(dist.toFixed(2), mx, my + 3);
+                }
+            }
+        }
+        
+        function selectAllOnRing() {
+            const M = parseInt(prompt('Enter modulus M:', '30'));
+            if (!M || M < 1) return;
+            
+            const residues = getAllResidues(M);
+            residues.forEach(r => {
+                const point = createPointFromResidueModulus(r, M);
+                if (point) measurementPoints.push(point);
+            });
+            updatePointsList();
+            updateDistanceStatistics();
+            draw();
+        }
+        
+        function selectPrimesOnly() {
+            const M = parseInt(prompt('Enter modulus M:', '30'));
+            const limit = parseInt(prompt('Search primes up to:', '100'));
+            if (!M || !limit) return;
+            
+            const primes = sieveOfEratosthenes(limit);
+            primes.forEach(p => {
+                if (p < M) return;
+                const point = createPointFromResidueModulus(p % M, M);
+                if (point && !measurementPoints.find(mp => mp.residue === point.residue && mp.modulus === point.modulus)) {
+                    measurementPoints.push(point);
+                }
+            });
+            updatePointsList();
+            updateDistanceStatistics();
+            draw();
+        }
+        
+        function selectByGCD() {
+            const M = parseInt(prompt('Enter modulus M:', '30'));
+            if (!M || M < 1) return;
+            
+            const coprimes = getCoprimes(M);
+            coprimes.forEach(r => {
+                const point = createPointFromResidueModulus(r, M);
+                if (point) measurementPoints.push(point);
+            });
+            updatePointsList();
+            updateDistanceStatistics();
+            draw();
+        }
+        
+        function clearAllPoints() {
+            measurementPoints = [];
+            document.getElementById('pointResidue').value = '';
+            document.getElementById('pointModulus').value = '';
+            updatePointsList();
+            updateDistanceStatistics();
+            draw();
+        }
+        
+        function exportMeasurementData() {
+            if (measurementPoints.length === 0) {
+                alert('No points to export');
+                return;
+            }
+            
+            let csv = 'Index,Residue,Modulus,X,Y,Radius,Angle,GCD=1,Prime\n';
+            measurementPoints.forEach((p, i) => {
+                csv += `${i+1},${p.residue},${p.modulus},${p.x.toFixed(3)},${p.y.toFixed(3)},${p.radius.toFixed(3)},${p.angle.toFixed(4)},${p.isGcdOne},${p.isPrime}\n`;
+            });
+            
+            csv += `\nMode,${distanceMode}\n`;
+            csv += `Path,${pathType}\n`;
+            
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `measurement_${measurementPoints.length}points_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
         }
         
         function clearDistanceMeasurement() {
@@ -9791,7 +10190,7 @@
             
             // Draw distance measurement highlights if active
             if (distanceMeasurementActive) {
-                drawSelectedPoints();
+                drawMeasurementPoints();
             }
             
             updateInfo(rings);
@@ -10103,4 +10502,4 @@
         }, 500);
     </script>
 </body>
-</html>
+                                </html>
