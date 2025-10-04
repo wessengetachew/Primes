@@ -892,8 +892,74 @@
 </head>
 <body>
     <div class="container">
+        <!-- BEGINNER'S GUIDE SECTION -->
+        <div class="beginner-guide" style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 20px; margin: 20px; border-radius: 12px; color: white; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+            <h2 style="margin-top: 0; color: #FFD700;"> First Time Here?</h2>
+            <p style="font-size: 16px; margin-bottom: 15px;"><strong>What is this?</strong> This tool visualizes deep mathematical patterns related to prime numbers and the famous Riemann Hypothesis.</p>
+            
+            <details style="margin: 15px 0; cursor: pointer;">
+                <summary style="font-size: 18px; font-weight: bold; padding: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; margin-bottom: 10px;"> Quick Start (No Math PhD Required!)</summary>
+                <div style="padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; margin-top: 10px;">
+                    <ol style="line-height: 2; font-size: 15px;">
+                        <li><strong>See patterns:</strong> The colored dots show numbers arranged in circles. Different colors = different mathematical properties.</li>
+                        <li><strong>Try this:</strong> Scroll down to "Gap Analysis" → Check "Gap 2" → See connections between "twin primes" (primes separated by 2, like 11 and 13)</li>
+                        <li><strong>Make it move:</strong> Find "Advanced Animation Engine" → Enable "Ring Rotation" → Watch the patterns rotate</li>
+                        <li><strong>Change colors:</strong> Go to "Visual Customization" → Try different "Residue Coloring Scheme" options</li>
+                        <li><strong>Take a screenshot:</strong> Scroll to "View Controls" → Click "Capture Image" to save your creation!</li>
+                    </ol>
+                </div>
+            </details>
+            
+            <details style="margin: 15px 0; cursor: pointer;">
+                <summary style="font-size: 18px; font-weight: bold; padding: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; margin-bottom: 10px;"> What Am I Looking At?</summary>
+                <div style="padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; margin-top: 10px;">
+                    <ul style="line-height: 2; font-size: 15px;">
+                        <li><strong>Concentric Rings (M1, M2, etc.):</strong> Each ring represents a different "modulus" - a way of grouping numbers (like a clock with different numbers of hours)</li>
+                        <li><strong>Colored Dots:</strong> Individual numbers positioned around each ring. The colors show mathematical relationships</li>
+                        <li><strong>Golden/Bright Dots:</strong> Numbers that are "coprime" to their ring - mathematically special numbers that don't share factors</li>
+                        <li><strong>Lines Connecting Dots:</strong> Show mathematical relationships and patterns between numbers</li>
+                        <li><strong>Unit Circle (center):</strong> The mathematical "foundation" - where everything begins</li>
+                    </ul>
+                    <p style="margin-top: 15px; padding: 10px; background: rgba(255, 215, 0, 0.2); border-radius: 6px; border-left: 4px solid #FFD700;">
+                        <strong> Tip:</strong> Use your mouse wheel to zoom in/out, and click-and-drag to pan around the visualization!
+                    </p>
+                </div>
+            </details>
+            
+            <details style="margin: 15px 0; cursor: pointer;">
+                <summary style="font-size: 18px; font-weight: bold; padding: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; margin-bottom: 10px;"> For Researchers & Math Enthusiasts</summary>
+                <div style="padding: 15px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; margin-top: 10px;">
+                    <p style="font-size: 15px; line-height: 1.8;">This is a comprehensive research tool for exploring:</p>
+                    <ul style="line-height: 1.8; font-size: 14px; columns: 2; column-gap: 20px;">
+                        <li>Modular arithmetic visualization</li>
+                        <li>Prime distribution analysis</li>
+                        <li>Dirichlet character support domains</li>
+                        <li>L-function critical line analysis</li>
+                        <li>Riemann Hypothesis numerical verification</li>
+                        <li>Farey sequences & Franel-Landau testing</li>
+                        <li>Chinese Remainder Theorem lifts</li>
+                        <li>Euler totient density patterns</li>
+                        <li>Prime gap conjectures (Twin, Cousin, Sexy primes)</li>
+                        <li>Zero-residue alignment diagnostics</li>
+                    </ul>
+                    <p style="margin-top: 15px; padding: 10px; background: rgba(72, 187, 120, 0.2); border-radius: 6px; border-left: 4px solid #48BB78;">
+                        <strong>📊 Advanced Features:</strong> Explore the "Riemann Hypothesis Research Hub" panel for cutting-edge analysis tools including prime sieves, conjecture testing, and GCD pattern analysis.
+                    </p>
+                </div>
+            </details>
+            
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 215, 0, 0.15); border-radius: 8px; border: 2px solid rgba(255, 215, 0, 0.4);">
+                <strong style="font-size: 16px;"> Learning Path:</strong>
+                <p style="margin: 10px 0; line-height: 1.6;">
+                    <strong>Beginner:</strong> Start with just the Unit Circle + M2-M10, try different color modes<br>
+                    <strong>Intermediate:</strong> Enable Gap 2, 4, 6 to see prime patterns, run a prime sieve<br>
+                    <strong>Advanced:</strong> Explore the RH Research Hub, test conjectures, analyze L-functions
+                </p>
+            </div>
+        </div>
+        
         <div class="theme-toggle" onclick="toggleTheme()">
-            <span id="themeIcon">🌙</span>
+            <span id="themeIcon"></span>
             <span id="themeText">Dark Mode</span>
         </div>
         
